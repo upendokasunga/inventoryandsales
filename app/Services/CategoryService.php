@@ -7,16 +7,20 @@ use Illuminate\Support\Str;
 
 class CategoryService
 {
-    public function getAllPaginated(int $perPage = 20)
+    public function getAllPaginated(int $perPage = 20, ?array $filters = null)
     {
-        return Category::with('parent')
-            ->latest()
-            ->paginate($perPage);
+        $query = Category::with('parent');
+
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        return $query->latest()->paginate($perPage);
     }
 
     public function getTree()
     {
-        return Category::with('children')
+        return Category::with('children.children')
             ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get();

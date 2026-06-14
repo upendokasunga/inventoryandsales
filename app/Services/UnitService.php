@@ -11,6 +11,14 @@ class UnitService
         return Unit::latest()->paginate($perPage);
     }
 
+    public function search(string $query, int $perPage = 20)
+    {
+        return Unit::where('name', 'like', "%{$query}%")
+            ->orWhere('short_code', 'like', "%{$query}%")
+            ->latest()
+            ->paginate($perPage);
+    }
+
     public function create(array $data): Unit
     {
         return Unit::create($data);

@@ -24,9 +24,10 @@ class SystemMenusSeeder extends Seeder
 
             // Master Data (Phase 2)
             ['name' => 'Categories', 'route' => 'categories.index', 'icon' => 'folder-tree', 'module' => 'Master Data', 'sort_order' => 30],
-            ['name' => 'Units', 'route' => 'units.index', 'icon' => 'ruler', 'module' => 'Master Data', 'sort_order' => 31],
-            ['name' => 'Customer Groups', 'route' => 'customer-groups.index', 'icon' => 'users', 'module' => 'Master Data', 'sort_order' => 32],
-            ['name' => 'Suppliers', 'route' => 'suppliers.index', 'icon' => 'truck', 'module' => 'Master Data', 'sort_order' => 33],
+            ['name' => 'Category Tree', 'route' => 'categories.tree', 'icon' => 'folder-tree', 'module' => 'Master Data', 'sort_order' => 31],
+            ['name' => 'Units', 'route' => 'units.index', 'icon' => 'ruler', 'module' => 'Master Data', 'sort_order' => 32],
+            ['name' => 'Customer Groups', 'route' => 'customer-groups.index', 'icon' => 'users', 'module' => 'Master Data', 'sort_order' => 33],
+            ['name' => 'Suppliers', 'route' => 'suppliers.index', 'icon' => 'truck', 'module' => 'Master Data', 'sort_order' => 34],
 
             // Placeholder for future phases
             ['name' => 'Products', 'route' => '#', 'icon' => 'cube', 'module' => 'Inventory', 'sort_order' => 40],

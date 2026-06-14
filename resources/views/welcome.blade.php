@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'WERP') }}</title>
+        <title>{{ config('app.name', 'WholesaleTZ') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -34,7 +34,7 @@
             <div class="flex-1 flex items-center justify-center px-6">
                 <div class="max-w-2xl text-center">
                     <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4">
-                        Wholesale ERP System
+WholesaleTZ
                     </h1>
                     <p class="text-lg text-blue-200 mb-8">
                         Manage inventory, sales, purchases, customers, and reporting — all in one place.
@@ -52,7 +52,7 @@
             </div>
 
             <footer class="px-6 py-4 text-center text-sm text-blue-300">
-                &copy; {{ date('Y') }} {{ config('app.name', 'WERP') }}. All rights reserved.
+                &copy; {{ date('Y') }} {{ config('app.name', 'WholesaleTZ') }}. All rights reserved.
             </footer>
         </div>
     </body>

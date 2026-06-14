@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Supplier\StoreSupplierRequest;
+use App\Http\Requests\Supplier\UpdateSupplierRequest;
 use App\Models\Supplier;
 use App\Services\SupplierService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 
 class SupplierController extends Controller
@@ -20,10 +23,15 @@ class SupplierController extends Controller
     public function index(Request $request): View
     {
         $search = $request->get('search');
+        $status = $request->get('status');
 
-        $suppliers = $search
-            ? $this->supplierService->search($search)
-            : $this->supplierService->getAllPaginated();
+        $suppliers = $this->supplierService->search($search);
+
+        if ($status === 'active') {
+            $suppliers = $this->supplierService->getAllPaginated(null, ['is_active' => true]);
+        } elseif ($status === 'inactive') {
+            $suppliers = $this->supplierService->getAllPaginated(null, ['is_active' => false]);
+        }
 
         return view('suppliers.index', compact('suppliers', 'search'));
     }
@@ -33,23 +41,9 @@ class SupplierController extends Controller
         return view('suppliers.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreSupplierRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone1' => 'nullable|string|max:50',
-            'phone2' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'tax_id' => 'nullable|string|max:100',
-            'payment_terms' => 'nullable|string|max:100',
-            'notes' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $this->supplierService->create($validated);
+        $this->supplierService->create($request->validated());
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier created successfully.');
@@ -65,23 +59,9 @@ class SupplierController extends Controller
         return view('suppliers.edit', compact('supplier'));
     }
 
-    public function update(Request $request, Supplier $supplier): RedirectResponse
+    public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone1' => 'nullable|string|max:50',
-            'phone2' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'tax_id' => 'nullable|string|max:100',
-            'payment_terms' => 'nullable|string|max:100',
-            'notes' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $this->supplierService->update($supplier, $validated);
+        $this->supplierService->update($supplier, $request->validated());
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier updated successfully.');
@@ -93,5 +73,37 @@ class SupplierController extends Controller
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier deleted successfully.');
+    }
+
+    public function exportCsv(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $suppliers = $this->supplierService->getAllPaginated(null, limit: 0)->get();
+
+        $callback = function () use ($suppliers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Name', 'Contact Person', 'Email', 'Phone 1', 'Phone 2', 'City', 'Address', 'Tax ID', 'Payment Terms', 'Status']);
+
+            foreach ($suppliers as $supplier) {
+                fputcsv($handle, [
+                    $supplier->name,
+                    $supplier->contact_person,
+                    $supplier->email,
+                    $supplier->phone1,
+                    $supplier->phone2,
+                    $supplier->city,
+                    $supplier->address,
+                    $supplier->tax_id,
+                    $supplier->payment_terms,
+                    $supplier->is_active ? 'Active' : 'Inactive',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return Response::stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="suppliers.csv"',
+        ]);
     }
 }

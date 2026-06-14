@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Category\StoreCategoryRequest;
+use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +27,13 @@ class CategoryController extends Controller
             ? $this->categoryService->search($search)
             : $this->categoryService->getAllPaginated();
 
+        $status = $request->get('status');
+        if ($status === 'active') {
+            $categories = $this->categoryService->getAllPaginated(null, ['is_active' => true]);
+        } elseif ($status === 'inactive') {
+            $categories = $this->categoryService->getAllPaginated(null, ['is_active' => false]);
+        }
+
         return view('categories.index', compact('categories', 'search'));
     }
 
@@ -42,17 +51,9 @@ class CategoryController extends Controller
         return view('categories.create', compact('parents'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:categories,id',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
-
-        $this->categoryService->create($validated);
+        $this->categoryService->create($request->validated());
 
         return redirect()->route('categories.index')
             ->with('success', 'Category created successfully.');
@@ -65,17 +66,9 @@ class CategoryController extends Controller
         return view('categories.edit', compact('category', 'parents'));
     }
 
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:categories,id|not_in:' . $category->id,
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
-
-        $this->categoryService->update($category, $validated);
+        $this->categoryService->update($category, $request->validated());
 
         return redirect()->route('categories.index')
             ->with('success', 'Category updated successfully.');

@@ -13,7 +13,8 @@ class UnitFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word(),
-            'abbreviation' => fake()->unique()->lexify('???'),
+            'short_code' => fake()->unique()->lexify('???'),
+            'is_base' => false,
         ];
     }
 }

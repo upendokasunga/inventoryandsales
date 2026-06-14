@@ -37,14 +37,14 @@ class UnitTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('units.create'));
 
         $response->assertStatus(200);
-        $response->assertSee('Abbreviation');
+        $response->assertSee('Short Code');
     }
 
     public function test_unit_can_be_created(): void
     {
         $response = $this->actingAs($this->admin)->post(route('units.store'), [
             'name' => 'Dozen',
-            'abbreviation' => 'dz',
+            'short_code' => 'dz',
         ]);
 
         $response->assertRedirect(route('units.index'));
@@ -55,7 +55,7 @@ class UnitTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->post(route('units.store'), [
             'name' => '',
-            'abbreviation' => 'dz',
+            'short_code' => 'dz',
         ]);
 
         $response->assertSessionHasErrors('name');
@@ -67,7 +67,7 @@ class UnitTest extends TestCase
 
         $response = $this->actingAs($this->admin)->patch(route('units.update', $unit), [
             'name' => 'Updated',
-            'abbreviation' => 'upd',
+            'short_code' => 'upd',
         ]);
 
         $response->assertRedirect(route('units.index'));
@@ -81,6 +81,6 @@ class UnitTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('units.destroy', $unit));
 
         $response->assertRedirect(route('units.index'));
-        $this->assertDatabaseMissing('units', ['id' => $unit->id]);
+        $this->assertSoftDeleted('units', ['id' => $unit->id]);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Unit\StoreUnitRequest;
+use App\Http\Requests\Unit\UpdateUnitRequest;
 use App\Models\Unit;
 use App\Services\UnitService;
 use Illuminate\Http\RedirectResponse;
@@ -17,11 +19,15 @@ class UnitController extends Controller
         $this->unitService = $unitService;
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $units = $this->unitService->getAllPaginated();
+        $search = $request->get('search');
 
-        return view('units.index', compact('units'));
+        $units = $search
+            ? $this->unitService->search($search)
+            : $this->unitService->getAllPaginated();
+
+        return view('units.index', compact('units', 'search'));
     }
 
     public function create(): View
@@ -29,14 +35,9 @@ class UnitController extends Controller
         return view('units.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUnitRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:units',
-            'abbreviation' => 'required|string|max:20',
-        ]);
-
-        $this->unitService->create($validated);
+        $this->unitService->create($request->validated());
 
         return redirect()->route('units.index')
             ->with('success', 'Unit created successfully.');
@@ -47,14 +48,9 @@ class UnitController extends Controller
         return view('units.edit', compact('unit'));
     }
 
-    public function update(Request $request, Unit $unit): RedirectResponse
+    public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:units,name,' . $unit->id,
-            'abbreviation' => 'required|string|max:20',
-        ]);
-
-        $this->unitService->update($unit, $validated);
+        $this->unitService->update($unit, $request->validated());
 
         return redirect()->route('units.index')
             ->with('success', 'Unit updated successfully.');

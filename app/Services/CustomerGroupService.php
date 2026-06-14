@@ -6,9 +6,15 @@ use App\Models\CustomerGroup;
 
 class CustomerGroupService
 {
-    public function getAllPaginated(int $perPage = 20)
+    public function getAllPaginated(int $perPage = 20, ?array $filters = null)
     {
-        return CustomerGroup::latest()->paginate($perPage);
+        $query = CustomerGroup::query();
+
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        return $query->latest()->paginate($perPage);
     }
 
     public function create(array $data): CustomerGroup

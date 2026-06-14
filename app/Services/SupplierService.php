@@ -6,13 +6,23 @@ use App\Models\Supplier;
 
 class SupplierService
 {
-    public function getAllPaginated(int $perPage = 20)
+    public function getAllPaginated(int $perPage = 20, ?array $filters = null)
     {
-        return Supplier::latest()->paginate($perPage);
+        $query = Supplier::query();
+
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        return $query->latest()->paginate($perPage);
     }
 
-    public function search(string $query, int $perPage = 20)
+    public function search(?string $query, int $perPage = 20)
     {
+        if (!$query) {
+            return $this->getAllPaginated($perPage);
+        }
+
         return Supplier::where(function ($q) use ($query) {
             $q->where('name', 'like', "%{$query}%")
               ->orWhere('contact_person', 'like', "%{$query}%")

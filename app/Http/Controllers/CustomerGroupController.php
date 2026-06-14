@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerGroup\StoreCustomerGroupRequest;
+use App\Http\Requests\CustomerGroup\UpdateCustomerGroupRequest;
 use App\Models\CustomerGroup;
 use App\Services\CustomerGroupService;
 use Illuminate\Http\RedirectResponse;
@@ -17,9 +19,17 @@ class CustomerGroupController extends Controller
         $this->customerGroupService = $customerGroupService;
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $status = $request->get('status');
+
         $customerGroups = $this->customerGroupService->getAllPaginated();
+
+        if ($status === 'active') {
+            $customerGroups = $this->customerGroupService->getAllPaginated(null, ['is_active' => true]);
+        } elseif ($status === 'inactive') {
+            $customerGroups = $this->customerGroupService->getAllPaginated(null, ['is_active' => false]);
+        }
 
         return view('customer-groups.index', compact('customerGroups'));
     }
@@ -29,17 +39,9 @@ class CustomerGroupController extends Controller
         return view('customer-groups.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCustomerGroupRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:customer_groups',
-            'description' => 'nullable|string|max:500',
-            'default_credit_limit' => 'numeric|min:0',
-            'default_payment_terms' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-        ]);
-
-        $this->customerGroupService->create($validated);
+        $this->customerGroupService->create($request->validated());
 
         return redirect()->route('customer-groups.index')
             ->with('success', 'Customer group created successfully.');
@@ -50,17 +52,9 @@ class CustomerGroupController extends Controller
         return view('customer-groups.edit', compact('customerGroup'));
     }
 
-    public function update(Request $request, CustomerGroup $customerGroup): RedirectResponse
+    public function update(UpdateCustomerGroupRequest $request, CustomerGroup $customerGroup): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:customer_groups,name,' . $customerGroup->id,
-            'description' => 'nullable|string|max:500',
-            'default_credit_limit' => 'numeric|min:0',
-            'default_payment_terms' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-        ]);
-
-        $this->customerGroupService->update($customerGroup, $validated);
+        $this->customerGroupService->update($customerGroup, $request->validated());
 
         return redirect()->route('customer-groups.index')
             ->with('success', 'Customer group updated successfully.');

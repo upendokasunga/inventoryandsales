@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::resource('suppliers', SupplierController::class);
         Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
+        Route::get('suppliers-export', [SupplierController::class, 'exportCsv'])->name('suppliers.export-csv');
     });
 });
 

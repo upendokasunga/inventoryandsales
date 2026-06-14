@@ -55,8 +55,8 @@ class AuditObserver
                 'auditable_id' => $model->getKey(),
                 'user_id' => $user?->id,
                 'event' => $event,
-                'old_values' => $old ? json_encode($old) : null,
-                'new_values' => $new ? json_encode($new) : null,
+                'old_values' => $old,
+                'new_values' => $new,
                 'ip_address' => app()->runningInConsole() ? 'console' : Request::ip(),
                 'user_agent' => app()->runningInConsole() ? 'CLI' : Request::userAgent(),
             ]);

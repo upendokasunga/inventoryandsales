@@ -86,6 +86,6 @@ class CustomerGroupTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('customer-groups.destroy', $group));
 
         $response->assertRedirect(route('customer-groups.index'));
-        $this->assertDatabaseMissing('customer_groups', ['id' => $group->id]);
+        $this->assertSoftDeleted('customer_groups', ['id' => $group->id]);
     }
 }

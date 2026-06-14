@@ -23,7 +23,8 @@
                     <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Abbreviation</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Short Code</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Base</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -31,7 +32,8 @@
                         @forelse ($units as $unit)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{{ $unit->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $unit->abbreviation }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $unit->short_code }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $unit->is_base ? 'Yes' : 'No' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <a href="{{ route('units.edit', $unit) }}" class="text-blue-600 hover:text-blue-500 mr-3">Edit</a>
                                     <form action="{{ route('units.destroy', $unit) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
@@ -42,7 +44,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-6 py-4 text-center text-sm text-slate-500">No units found.</td>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-slate-500">No units found.</td>
                             </tr>
                         @endforelse
                     </tbody>

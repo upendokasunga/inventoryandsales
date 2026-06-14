@@ -16,10 +16,17 @@
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="mb-4">
-                        <label for="abbreviation" class="block text-sm font-medium text-slate-700">Abbreviation</label>
-                        <input type="text" name="abbreviation" id="abbreviation" value="{{ old('abbreviation', $unit->abbreviation) }}" required
+                        <label for="short_code" class="block text-sm font-medium text-slate-700">Short Code</label>
+                        <input type="text" name="short_code" id="short_code" value="{{ old('short_code', $unit->short_code) }}" required
                             class="mt-1 block w-40 rounded-lg border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('abbreviation') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        @error('short_code') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="is_base" value="1" {{ old('is_base', $unit->is_base) ? 'checked' : '' }}
+                                class="rounded border-blue-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-slate-700">Base Unit</span>
+                        </label>
                     </div>
                 </div>
             </div>
