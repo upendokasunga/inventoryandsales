@@ -1,0 +1,100 @@
+# Upendo Development Rules
+
+
+## Coding Style
+
+Write code like a real university software engineering student.
+
+Priorities:
+
+- readability
+- simplicity
+- maintainability
+
+
+Avoid AI-looking code:
+
+No:
+- unnecessary classes
+- over abstraction
+- giant files
+- fake enterprise patterns
+- excessive comments
+
+
+Prefer:
+
+- clear functions
+- practical structure
+- simple naming
+
+
+## Before coding
+
+Always:
+
+1. inspect existing files
+2. understand current architecture
+3. reuse existing code
+
+
+Do not rewrite working systems.
+
+
+## Comments
+
+Only explain decisions.
+
+Never add obvious comments.
+
+
+## Error Handling
+
+Always:
+
+- validate input
+- handle failures
+- return useful messages
+
+
+## Frontend
+
+Keep:
+
+- components small
+- logic separated
+- UI clean
+
+
+## Backend
+
+Prefer:
+
+- clear routes
+- services only when needed
+- simple database operations
+
+
+## Context Management
+
+When context grows:
+
+Use compaction.
+
+Keep:
+
+- architecture decisions
+- important files
+- pending tasks
+
+Remove:
+
+- old errors
+- repeated discussions
+
+
+## Project Memory
+
+Before making changes:
+
+Read existing project structure and notes.
