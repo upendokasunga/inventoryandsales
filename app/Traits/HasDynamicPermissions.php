@@ -17,6 +17,11 @@ trait HasDynamicPermissions
             }
         }
 
+        $prefix = explode('.', $routeName)[0] . '.index';
+        if ($prefix !== $routeName) {
+            return $this->hasMenuAccess($prefix, $permission);
+        }
+
         return false;
     }
 

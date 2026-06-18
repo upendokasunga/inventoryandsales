@@ -6,19 +6,19 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-4 flex items-center justify-between">
             <div class="flex gap-2">
-                <a href="{{ route('suppliers.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-200 rounded-lg font-semibold text-xs text-slate-700 hover:bg-blue-50 transition">
+                <a href="{{ route('suppliers.index') }}" class="erp-btn-secondary">
                     Back to List
                 </a>
-                <a href="{{ route('suppliers.edit', $supplier) }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 border border-transparent rounded-lg font-semibold text-xs text-white shadow-lg shadow-blue-500/20 transition">
+                <a href="{{ route('suppliers.edit', $supplier) }}" class="erp-btn-primary">
                     Edit Supplier
                 </a>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg shadow-blue-500/5 border border-blue-100 overflow-hidden mb-6">
-            <div class="border-b border-blue-100">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mb-6">
+            <div class="border-b border-slate-100">
                 <nav class="flex px-6" aria-label="Tabs">
-                    <button class="px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Overview</button>
+                    <button class="px-4 py-3 text-sm font-medium text-primary border-b-2 border-primary">Overview</button>
                     <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Products</button>
                     <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Purchases</button>
                     <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Performance</button>
@@ -55,9 +55,9 @@
                                 <dt class="text-sm text-slate-500">Status</dt>
                                 <dd>
                                     @if ($supplier->is_active)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-700">Active</span>
+                                        <span class="erp-badge-active">Active</span>
                                     @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700">Inactive</span>
+                                        <span class="erp-badge-inactive">Inactive</span>
                                     @endif
                                 </dd>
                             </div>
@@ -87,7 +87,7 @@
                 </div>
 
                 @if ($supplier->notes)
-                    <div class="mt-6 pt-6 border-t border-blue-100">
+                    <div class="mt-6 pt-6 border-t border-slate-100">
                         <h3 class="text-sm font-medium text-slate-500 mb-2">Notes</h3>
                         <p class="text-sm text-slate-700">{{ $supplier->notes }}</p>
                     </div>

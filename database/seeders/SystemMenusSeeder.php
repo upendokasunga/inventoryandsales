@@ -29,17 +29,28 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Customer Groups', 'route' => 'customer-groups.index', 'icon' => 'users', 'module' => 'Master Data', 'sort_order' => 33],
             ['name' => 'Suppliers', 'route' => 'suppliers.index', 'icon' => 'truck', 'module' => 'Master Data', 'sort_order' => 34],
 
-            // Placeholder for future phases
-            ['name' => 'Products', 'route' => '#', 'icon' => 'cube', 'module' => 'Inventory', 'sort_order' => 40],
+            // Inventory module (Phase 3)
+            ['name' => 'Products', 'route' => 'products.index', 'icon' => 'cube', 'module' => 'Inventory', 'sort_order' => 40],
             ['name' => 'Stock', 'route' => '#', 'icon' => 'archive', 'module' => 'Inventory', 'sort_order' => 41],
-            ['name' => 'Customers', 'route' => '#', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 50],
+
+            // Pricing module (Phase 4)
+            ['name' => 'Pricing Dashboard', 'route' => 'price-lists.dashboard', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 42],
+            ['name' => 'Price Lists', 'route' => 'price-lists.index', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 43],
+            ['name' => 'Pricing Simulator', 'route' => 'price-lists.simulator', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 44],
+
+            ['name' => 'Customer Dashboard', 'route' => 'customers.dashboard', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 49],
+            ['name' => 'Customers', 'route' => 'customers.index', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 50],
             ['name' => 'Sales', 'route' => '#', 'icon' => 'cash', 'module' => 'Sales', 'sort_order' => 51],
-            ['name' => 'Purchases', 'route' => '#', 'icon' => 'truck', 'module' => 'Purchasing', 'sort_order' => 60],
+            ['name' => 'Purchasing Dashboard', 'route' => '#', 'icon' => 'truck', 'module' => 'Purchasing', 'sort_order' => 59],
+            ['name' => 'Purchase Suggestions', 'route' => 'purchasing.suggestions.index', 'icon' => 'clipboard-list', 'module' => 'Purchasing', 'sort_order' => 60],
+            ['name' => 'Purchase Orders', 'route' => 'purchasing.orders.index', 'icon' => 'shopping-cart', 'module' => 'Purchasing', 'sort_order' => 61],
+            ['name' => 'Goods Receiving', 'route' => 'purchasing.receipts.index', 'icon' => 'archive', 'module' => 'Purchasing', 'sort_order' => 62],
+            ['name' => 'Supplier Analytics', 'route' => 'purchasing.analytics', 'icon' => 'chart-bar', 'module' => 'Purchasing', 'sort_order' => 63],
             ['name' => 'Reports', 'route' => '#', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 70],
         ];
 
         foreach ($menus as $menu) {
-            Menu::firstOrCreate(
+            Menu::updateOrCreate(
                 ['name' => $menu['name']],
                 $menu
             );

@@ -47,6 +47,12 @@ class CustomerGroupController extends Controller
             ->with('success', 'Customer group created successfully.');
     }
 
+    public function show(CustomerGroup $customerGroup): View
+    {
+        $customerGroup->load('priceLists');
+        return view('customer-groups.show', compact('customerGroup'));
+    }
+
     public function edit(CustomerGroup $customerGroup): View
     {
         return view('customer-groups.edit', compact('customerGroup'));

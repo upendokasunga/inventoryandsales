@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\AutoHasUuid;
+use App\Traits\AutoLogsAudit;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class GoodsReceipt extends Model
+{
+    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+
+    protected $fillable = [
+        'purchase_order_id', 'receipt_date', 'status', 'notes', 'created_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'receipt_date' => 'date',
+        ];
+    }
+
+    public const STATUSES = ['draft', 'completed', 'cancelled'];
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(GoodsReceiptItem::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+}

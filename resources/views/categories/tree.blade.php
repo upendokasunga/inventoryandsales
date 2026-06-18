@@ -5,12 +5,12 @@
 
     <div class="max-w-7xl mx-auto">
         <div class="mb-4">
-            <a href="{{ route('categories.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-200 rounded-lg font-semibold text-xs text-slate-700 hover:bg-blue-50 transition">
+            <a href="{{ route('categories.index') }}" class="erp-btn-secondary">
                 List View
             </a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg shadow-blue-500/5 border border-blue-100 p-6">
+        <div class="erp-card">
             @forelse ($categories as $category)
                 <div class="mb-2">
                     <div class="flex items-center px-4 py-2 bg-blue-50 rounded-lg">

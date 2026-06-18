@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-surface text-slate-700 antialiased;
+    }
+}
+
+@layer components {
+    .erp-card {
+        @apply bg-white rounded-xl shadow-sm border border-slate-200/60 p-6;
+    }
+
+    .erp-btn-primary {
+        @apply inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
+    }
+
+    .erp-btn-success {
+        @apply inline-flex items-center px-4 py-2 bg-success border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-success-600 focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 transition duration-150;
+    }
+
+    .erp-btn-danger {
+        @apply inline-flex items-center px-4 py-2 bg-danger border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-danger-600 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 transition duration-150;
+    }
+
+    .erp-btn-secondary {
+        @apply inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-[10px] font-semibold text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
+    }
+
+    .erp-input {
+        @apply border-slate-200 focus:border-primary focus:ring-primary rounded-lg shadow-sm text-sm;
+    }
+
+    .erp-badge-active {
+        @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-600;
+    }
+
+    .erp-badge-inactive {
+        @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-danger-50 text-danger-600;
+    }
+}
+
+@layer utilities {
+    .sidebar-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .sidebar-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .sidebar-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+    }
+    .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255,255,255,0.2);
+    }
+}

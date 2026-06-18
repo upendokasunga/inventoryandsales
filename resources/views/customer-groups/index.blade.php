@@ -5,21 +5,21 @@
 
     <div class="max-w-7xl mx-auto">
         @if (session('success'))
-            <div class="mb-4 px-4 py-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">{{ session('success') }}</div>
+            <div class="mb-4 px-4 py-2 text-success-700 bg-success-50 border border-success-100 rounded-lg">{{ session('success') }}</div>
         @endif
         @if (session('error'))
-            <div class="mb-4 px-4 py-2 text-red-700 bg-red-50 border border-red-200 rounded-lg">{{ session('error') }}</div>
+            <div class="mb-4 px-4 py-2 text-danger-700 bg-danger-50 border border-danger-100 rounded-lg">{{ session('error') }}</div>
         @endif
 
         <div class="mb-4">
-            <a href="{{ route('customer-groups.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 border border-transparent rounded-lg font-semibold text-xs text-white shadow-lg shadow-blue-500/20 transition">
+            <a href="{{ route('customer-groups.create') }}" class="erp-btn-primary">
                 Create Customer Group
             </a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg shadow-blue-500/5 border border-blue-100 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
             <div class="p-6">
-                <table class="min-w-full divide-y divide-blue-100">
+                <table class="min-w-full divide-y divide-slate-100">
                     <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
@@ -29,7 +29,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-blue-50">
+                    <tbody class="divide-y divide-slate-50">
                         @forelse ($customerGroups as $group)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{{ $group->name }}</td>
@@ -37,9 +37,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $group->default_payment_terms ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     @if ($group->is_active)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-700">Active</span>
+                                        <span class="erp-badge-active">Active</span>
                                     @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700">Inactive</span>
+                                        <span class="erp-badge-inactive">Inactive</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
