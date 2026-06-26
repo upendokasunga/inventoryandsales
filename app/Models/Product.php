@@ -20,7 +20,7 @@ class Product extends Model
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'barcode', 'barcode_image',
         'description', 'tax_rate', 'tax_inclusive', 'is_active',
-        'track_stock', 'reorder_level', 'image', 'weight',
+        'track_stock', 'reorder_level', 'current_stock', 'safety_stock', 'image', 'weight',
     ];
 
     protected function casts(): array
@@ -31,6 +31,8 @@ class Product extends Model
             'is_active' => 'boolean',
             'track_stock' => 'boolean',
             'reorder_level' => 'decimal:3',
+            'current_stock' => 'decimal:3',
+            'safety_stock' => 'decimal:3',
             'weight' => 'decimal:3',
         ];
     }

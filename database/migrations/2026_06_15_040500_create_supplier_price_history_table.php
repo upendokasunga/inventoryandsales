@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->index(['supplier_id', 'product_id', 'effective_date']);
+            $table->index(['supplier_id', 'product_id', 'effective_date'], 'sph_composite_index');
         });
     }
 

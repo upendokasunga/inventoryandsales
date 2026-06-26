@@ -17,7 +17,7 @@
                                 class="mt-1 block w-full erp-input">
                                 <option value="">Select Supplier</option>
                                 @foreach ($suppliers as $id => $name)
-                                    <option value="{{ $id }}" {{ old('supplier_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                    <option value="{{ $id }}" {{ old('supplier_id', request('supplier_id')) == $id ? 'selected' : '' }}>{{ $name }}</option>
                                 @endforeach
                             </select>
                             @error('supplier_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -30,7 +30,7 @@
                             @error('order_date') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-3 gap-4 mb-4">
                         <div>
                             <label for="expected_date" class="block text-sm font-medium text-slate-700">Expected Date</label>
                             <input type="date" name="expected_date" id="expected_date"
@@ -44,6 +44,19 @@
                                 value="{{ old('tax', '0.00') }}"
                                 class="mt-1 block w-full erp-input">
                             @error('tax') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="discount" class="block text-sm font-medium text-slate-700">Discount</label>
+                            <div class="flex gap-2 mt-1">
+                                <input type="number" step="0.01" name="discount" id="discount"
+                                    value="{{ old('discount', '0.00') }}"
+                                    class="block w-full erp-input">
+                                <select name="discount_type" id="discount_type" class="erp-input w-32">
+                                    <option value="fixed" {{ old('discount_type') === 'fixed' ? 'selected' : '' }}>Fixed</option>
+                                    <option value="percentage" {{ old('discount_type') === 'percentage' ? 'selected' : '' }}>%</option>
+                                </select>
+                            </div>
+                            @error('discount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
                     <div class="mb-4">
@@ -77,12 +90,13 @@
                                     <select name="items[0][product_id]" required class="erp-input product-select">
                                         <option value="">Select</option>
                                         @foreach ($products as $id => $name)
-                                            <option value="{{ $id }}">{{ $name }}</option>
+                                            <option value="{{ $id }}" {{ old('items.0.product_id', request('product_id')) == $id ? 'selected' : '' }}>{{ $name }}</option>
                                         @endforeach
                                     </select>
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" name="items[0][quantity]" required
+                                        value="{{ old('items.0.quantity', request('suggested_quantity')) }}"
                                         class="erp-input item-qty" style="width:100px">
                                 </td>
                                 <td class="px-4 py-2">
@@ -96,6 +110,21 @@
                             </tr>
                         </tbody>
                         <tfoot>
+                            <tr>
+                                <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-slate-700">Subtotal:</td>
+                                <td class="px-4 py-3 text-sm font-bold text-slate-800" id="order-subtotal">0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="px-4 py-1 text-right text-sm text-slate-500">Discount:</td>
+                                <td class="px-4 py-1 text-sm text-slate-500" id="order-discount">0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="px-4 py-1 text-right text-sm text-slate-500">Tax:</td>
+                                <td class="px-4 py-1 text-sm text-slate-500" id="order-tax-display">0.00</td>
+                                <td></td>
+                            </tr>
                             <tr>
                                 <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-slate-700">Total:</td>
                                 <td class="px-4 py-3 text-sm font-bold text-slate-800" id="order-total">0.00</td>
@@ -136,6 +165,9 @@
                 row.querySelector('.item-subtotal').textContent = subtotal.toFixed(2);
                 calcTotal();
             }
+            if (e.target.id === 'tax' || e.target.id === 'discount' || e.target.id === 'discount_type') {
+                calcTotal();
+            }
         });
 
         document.addEventListener('click', function(e) {
@@ -149,12 +181,27 @@
         });
 
         function calcTotal() {
-            let total = 0;
+            let subtotal = 0;
             document.querySelectorAll('.item-subtotal').forEach(el => {
-                total += parseFloat(el.textContent) || 0;
+                subtotal += parseFloat(el.textContent) || 0;
             });
             const tax = parseFloat(document.getElementById('tax').value) || 0;
-            document.getElementById('order-total').textContent = (total + tax).toFixed(2);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const discountType = document.getElementById('discount_type').value;
+
+            let afterDiscount = subtotal;
+            if (discountType === 'percentage' && discount > 0) {
+                afterDiscount = subtotal - (subtotal * discount / 100);
+            } else if (discount > 0) {
+                afterDiscount = Math.max(0, subtotal - discount);
+            }
+
+            const total = afterDiscount + tax;
+
+            document.getElementById('order-subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('order-discount').textContent = '-' + (subtotal - afterDiscount).toFixed(2);
+            document.getElementById('order-tax-display').textContent = tax.toFixed(2);
+            document.getElementById('order-total').textContent = total.toFixed(2);
         }
     </script>
 </x-app-layout>

@@ -28,7 +28,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_caches_stats_for_super_admin(): void
     {
-        Cache::forget('dashboard.stats.admin');
+        $key = 'dashboard.stats.' . $this->admin->id;
+        Cache::forget($key);
 
         $response = $this->actingAs($this->admin)->get(route('dashboard'));
 
@@ -36,18 +37,20 @@ class DashboardTest extends TestCase
         $response->assertSee('Users');
         $response->assertSee('Groups');
 
-        $this->assertNotNull(Cache::get('dashboard.stats.admin'));
+        $this->assertNotNull(Cache::get($key));
     }
 
     public function test_dashboard_stats_match_database(): void
     {
+        $key = 'dashboard.stats.' . $this->admin->id;
+
         $stats = [
             'users' => User::count(),
             'groups' => Group::count(),
             'audit_logs' => AuditLog::count(),
         ];
 
-        $cached = Cache::remember('dashboard.stats.admin', 3600, fn() => $stats);
+        $cached = Cache::remember($key, 3600, fn() => $stats);
 
         $this->assertEquals($stats['users'], $cached['users']);
         $this->assertEquals($stats['groups'], $cached['groups']);

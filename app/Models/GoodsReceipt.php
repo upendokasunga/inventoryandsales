@@ -15,7 +15,7 @@ class GoodsReceipt extends Model
     use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
 
     protected $fillable = [
-        'purchase_order_id', 'receipt_date', 'status', 'notes', 'created_by',
+        'purchase_order_id', 'receipt_number', 'receipt_date', 'status', 'notes', 'created_by',
     ];
 
     protected function casts(): array

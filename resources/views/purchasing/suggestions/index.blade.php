@@ -94,9 +94,15 @@
                                             @csrf
                                             <button type="submit" class="text-green-600 hover:text-green-500">Approve</button>
                                         </form>
-                                        <form action="{{ route('purchasing.suggestions.reject', $suggestion) }}" method="POST" class="inline" onsubmit="return confirm('Reject this suggestion?');">
+                                        <form action="{{ route('purchasing.suggestions.reject', $suggestion) }}" method="POST" class="inline mr-2" onsubmit="return confirm('Reject this suggestion?');">
                                             @csrf
                                             <button type="submit" class="text-red-600 hover:text-red-500">Reject</button>
+                                        </form>
+                                    @endif
+                                    @if (in_array($suggestion->status, ['approved', 'pending']))
+                                        <form action="{{ route('purchasing.suggestions.convert', $suggestion) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-blue-600 hover:text-blue-500">Convert to PO</button>
                                         </form>
                                     @endif
                                 </td>

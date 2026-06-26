@@ -18,6 +18,8 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'order_date' => 'required|date',
             'expected_date' => 'nullable|date|after_or_equal:order_date',
             'tax' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'discount_type' => 'nullable|string|in:fixed,percentage',
             'notes' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

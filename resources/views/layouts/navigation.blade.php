@@ -2,7 +2,7 @@
     $user = Auth::user();
     $navMenus = $user->getCachedMenus();
     $grouped = $navMenus->where('can_view', true)->sortBy('sort_order')->groupBy('module');
-    $moduleOrder = ['Dashboard', 'Master Data', 'Inventory', 'Authentication', 'System'];
+    $moduleOrder = ['Dashboard', 'Master Data', 'Inventory', 'Purchasing', 'Sales', 'Pricing', 'Authentication', 'System', 'Reporting'];
 @endphp
 
 {{-- Sidebar --}}

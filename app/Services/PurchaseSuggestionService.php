@@ -26,7 +26,9 @@ class PurchaseSuggestionService
 
     public function generateSuggestions(?int $productId = null): array
     {
-        $query = Product::with('category')->where('track_stock', true)->where('reorder_level', '>', 0);
+        $query = Product::with('category')
+            ->where('track_stock', true)
+            ->where('reorder_level', '>', 0);
 
         if ($productId) {
             $query->where('id', $productId);
@@ -40,11 +42,16 @@ class PurchaseSuggestionService
                 ->whereIn('status', ['pending', 'approved'])
                 ->exists();
 
-            if (!$exists) {
+            if (!$exists && $product->current_stock <= $product->reorder_level) {
+                $suggestedQty = max(0, $product->reorder_level - $product->current_stock + $product->safety_stock);
+
                 $suggestion = PurchaseSuggestion::create([
                     'product_id' => $product->id,
-                    'suggested_quantity' => $product->reorder_level * 2,
-                    'reason' => "Product reorder level ({$product->reorder_level}) indicates stock may be low",
+                    'suggested_quantity' => $suggestedQty,
+                    'reason' => vsprintf(
+                        'Stock %s is below reorder level %s. Current: %s, Safety: %s',
+                        [$product->current_stock, $product->reorder_level, $product->current_stock, $product->safety_stock]
+                    ),
                     'status' => 'pending',
                     'created_by' => auth()->id(),
                 ]);
@@ -95,7 +102,7 @@ class PurchaseSuggestionService
 
     public function getStats(): array
     {
-        return Cache::remember('purchasing.suggestion.stats', 300, function () {
+        return Cache::remember('purchasing.suggestion.stats', 3600, function () {
             return [
                 'total' => PurchaseSuggestion::count(),
                 'pending' => PurchaseSuggestion::where('status', 'pending')->count(),

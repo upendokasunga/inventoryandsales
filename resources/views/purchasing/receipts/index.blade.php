@@ -48,6 +48,7 @@
                 <table class="min-w-full divide-y divide-slate-100">
                     <thead>
                         <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Receipt #</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">PO #</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Supplier</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
@@ -61,9 +62,10 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
                                     <a href="{{ route('purchasing.receipts.show', $receipt) }}" class="text-blue-600 hover:text-blue-500">
-                                        {{ $receipt->purchaseOrder?->po_number ?? '-' }}
+                                        {{ $receipt->receipt_number ?? $receipt->id }}
                                     </a>
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->po_number ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->supplier?->name ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->receipt_date?->format('M d, Y') ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -79,7 +81,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-sm text-slate-500">No goods receipts found.</td>
+                                <td colspan="7" class="px-6 py-4 text-center text-sm text-slate-500">No goods receipts found.</td>
                             </tr>
                         @endforelse
                     </tbody>

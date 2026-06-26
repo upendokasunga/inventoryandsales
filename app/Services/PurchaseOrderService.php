@@ -41,10 +41,22 @@ class PurchaseOrderService
         return $query->latest()->paginate($perPage);
     }
 
+    protected function calculateTotal(float $subtotal, float $tax, float $discount, string $discountType): float
+    {
+        $afterDiscount = $subtotal;
+
+        if ($discountType === 'percentage' && $discount > 0) {
+            $afterDiscount = $subtotal - ($subtotal * $discount / 100);
+        } elseif ($discount > 0) {
+            $afterDiscount = max(0, $subtotal - $discount);
+        }
+
+        return $afterDiscount + $tax;
+    }
+
     public function create(array $data, array $items): PurchaseOrder
     {
         return DB::transaction(function () use ($data, $items) {
-            $data['po_number'] = $this->generatePoNumber();
             $data['created_by'] = auth()->id();
             $data['status'] = 'draft';
 
@@ -64,7 +76,11 @@ class PurchaseOrderService
 
             $data['subtotal'] = $subtotal;
             $data['tax'] = $data['tax'] ?? 0;
-            $data['total'] = $subtotal + ($data['tax'] ?? 0);
+            $data['discount'] = $data['discount'] ?? 0;
+            $data['discount_type'] = $data['discount_type'] ?? 'fixed';
+            $data['total'] = $this->calculateTotal(
+                $subtotal, $data['tax'], $data['discount'], $data['discount_type']
+            );
 
             $purchaseOrder = PurchaseOrder::create($data);
             $purchaseOrder->items()->saveMany($poItems);
@@ -95,7 +111,11 @@ class PurchaseOrderService
 
             $data['subtotal'] = $subtotal;
             $data['tax'] = $data['tax'] ?? 0;
-            $data['total'] = $subtotal + ($data['tax'] ?? 0);
+            $data['discount'] = $data['discount'] ?? 0;
+            $data['discount_type'] = $data['discount_type'] ?? 'fixed';
+            $data['total'] = $this->calculateTotal(
+                $subtotal, $data['tax'], $data['discount'], $data['discount_type']
+            );
 
             $purchaseOrder->update($data);
             $purchaseOrder->items()->delete();
@@ -115,7 +135,7 @@ class PurchaseOrderService
 
     public function getStats(): array
     {
-        return Cache::remember('purchasing.order.stats', 300, function () {
+        return Cache::remember('purchasing.order.stats', 3600, function () {
             return [
                 'total' => PurchaseOrder::count(),
                 'draft' => PurchaseOrder::where('status', 'draft')->count(),
@@ -127,14 +147,5 @@ class PurchaseOrderService
                 'cancelled' => PurchaseOrder::where('status', 'cancelled')->count(),
             ];
         });
-    }
-
-    protected function generatePoNumber(): string
-    {
-        $prefix = 'PO';
-        $last = PurchaseOrder::withTrashed()->lockForUpdate()->latest('id')->first();
-        $nextId = $last ? $last->id + 1 : 1;
-
-        return $prefix . '-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
     }
 }

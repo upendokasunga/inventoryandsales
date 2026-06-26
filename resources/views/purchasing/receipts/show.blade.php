@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Goods Receipt') }} #{{ $goodsReceipt->id }}
+        {{ __('Goods Receipt') }} #{{ $goodsReceipt->receipt_number ?? $goodsReceipt->id }}
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
@@ -23,6 +23,10 @@
                     <div>
                         <h3 class="text-sm font-medium text-slate-500 mb-4">Receipt Information</h3>
                         <dl class="space-y-3">
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-slate-500">Receipt #</dt>
+                                <dd class="text-sm font-semibold text-slate-800">{{ $goodsReceipt->receipt_number ?? '-' }}</dd>
+                            </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">PO Number</dt>
                                 <dd class="text-sm font-semibold text-slate-800">{{ $goodsReceipt->purchaseOrder?->po_number ?? '-' }}</dd>

@@ -13,7 +13,7 @@ class UpdateCustomerGroupRequest extends FormRequest
 
     public function rules(): array
     {
-        $customerGroup = $this->route('customer_group');
+        $customerGroup = $this->route('customerGroup');
 
         return [
             'name' => 'required|string|max:100|unique:customer_groups,name,' . $customerGroup->id,

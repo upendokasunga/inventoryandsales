@@ -85,6 +85,10 @@
                                 <dd class="text-sm font-medium text-slate-800">{{ number_format($purchaseOrder->subtotal, 2) }}</dd>
                             </div>
                             <div class="flex justify-between">
+                                <dt class="text-sm text-slate-500">Discount ({{ $purchaseOrder->discount_type === 'percentage' ? '%' : 'Fixed' }})</dt>
+                                <dd class="text-sm font-medium text-slate-800">-{{ number_format($purchaseOrder->discount, 2) }}</dd>
+                            </div>
+                            <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Tax</dt>
                                 <dd class="text-sm font-medium text-slate-800">{{ number_format($purchaseOrder->tax, 2) }}</dd>
                             </div>

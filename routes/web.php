@@ -17,6 +17,12 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\StatementController;
+use App\Http\Controllers\BatchController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\SalesDashboardController;
+use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\SupplierAnalyticsController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
@@ -145,13 +151,15 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("products/{product}", [ProductController::class, "show"])->name("products.show");
     });
 
-    // --- Customer Groups ---
+    // --- Customer Groups (fixed paths BEFORE wildcards) ---
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("customer-groups/create", [CustomerGroupController::class, "create"])->name("customer-groups.create");
+    });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("customer-groups", [CustomerGroupController::class, "index"])->name("customer-groups.index");
         Route::get("customer-groups/{customerGroup}", [CustomerGroupController::class, "show"])->name("customer-groups.show");
     });
     Route::middleware("menu.access:can_create")->group(function () {
-        Route::get("customer-groups/create", [CustomerGroupController::class, "create"])->name("customer-groups.create");
         Route::post("customer-groups", [CustomerGroupController::class, "store"])->name("customer-groups.store");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
@@ -182,7 +190,12 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("suppliers/{supplier}", [SupplierController::class, "show"])->name("suppliers.show");
     });
 
-    // --- Purchasing (Phase 6) ---
+    // --- Purchasing (Phase 6; fixed paths BEFORE wildcards) ---
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("purchasing/suggestions/create", [PurchaseSuggestionController::class, "create"])->name("purchasing.suggestions.create");
+        Route::get("purchasing/orders/create", [PurchaseOrderController::class, "create"])->name("purchasing.orders.create");
+        Route::get("purchasing/receipts/create", [GoodsReceiptController::class, "create"])->name("purchasing.receipts.create");
+    });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("purchasing/suggestions", [PurchaseSuggestionController::class, "index"])->name("purchasing.suggestions.index");
         Route::get("purchasing/suggestions/{suggestion}", [PurchaseSuggestionController::class, "show"])->name("purchasing.suggestions.show");
@@ -193,12 +206,9 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("purchasing/analytics", [SupplierAnalyticsController::class, "index"])->name("purchasing.analytics");
     });
     Route::middleware("menu.access:can_create")->group(function () {
-        Route::get("purchasing/suggestions/create", [PurchaseSuggestionController::class, "create"])->name("purchasing.suggestions.create");
         Route::post("purchasing/suggestions", [PurchaseSuggestionController::class, "store"])->name("purchasing.suggestions.store");
         Route::post("purchasing/suggestions/generate", [PurchaseSuggestionController::class, "generate"])->name("purchasing.suggestions.generate");
-        Route::get("purchasing/orders/create", [PurchaseOrderController::class, "create"])->name("purchasing.orders.create");
         Route::post("purchasing/orders", [PurchaseOrderController::class, "store"])->name("purchasing.orders.store");
-        Route::get("purchasing/receipts/create", [GoodsReceiptController::class, "create"])->name("purchasing.receipts.create");
         Route::post("purchasing/receipts", [GoodsReceiptController::class, "store"])->name("purchasing.receipts.store");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
@@ -209,6 +219,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::middleware("menu.access:can_approve")->group(function () {
         Route::post("purchasing/suggestions/{suggestion}/approve", [PurchaseSuggestionController::class, "approve"])->name("purchasing.suggestions.approve");
         Route::post("purchasing/suggestions/{suggestion}/reject", [PurchaseSuggestionController::class, "reject"])->name("purchasing.suggestions.reject");
+        Route::post("purchasing/suggestions/{suggestion}/convert", [PurchaseSuggestionController::class, "convert"])->name("purchasing.suggestions.convert");
         Route::post("purchasing/orders/{purchaseOrder}/submit-for-approval", [PurchaseOrderController::class, "submitForApproval"])->name("purchasing.orders.submit-approval");
         Route::post("purchasing/orders/{purchaseOrder}/approve", [PurchaseOrderController::class, "approve"])->name("purchasing.orders.approve");
         Route::post("purchasing/orders/{purchaseOrder}/reject", [PurchaseOrderController::class, "reject"])->name("purchasing.orders.reject");
@@ -266,6 +277,67 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("price-lists/{priceList}", [PriceListController::class, "show"])->name("price-lists.show");
+    });
+
+    // --- Inventory (Phase 7) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("inventory", [InventoryController::class, "index"])->name("inventory.index");
+        Route::get("inventory/transactions", [InventoryController::class, "transactions"])->name("inventory.transactions");
+        Route::get("inventory/valuation", [InventoryController::class, "valuation"])->name("inventory.valuation");
+        Route::get("inventory/analytics", [InventoryController::class, "analytics"])->name("inventory.analytics");
+        Route::get("inventory/batches", [BatchController::class, "index"])->name("inventory.batches");
+    });
+
+    // --- Stock Adjustments (Phase 7) ---
+    // IMPORTANT: create/store defined BEFORE {stockAdjustment} wildcard to avoid 404
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("stock-adjustments/create", [StockAdjustmentController::class, "create"])->name("stock-adjustments.create");
+        Route::post("stock-adjustments", [StockAdjustmentController::class, "store"])->name("stock-adjustments.store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("stock-adjustments", [StockAdjustmentController::class, "index"])->name("stock-adjustments.index");
+        Route::get("stock-adjustments/{stockAdjustment}", [StockAdjustmentController::class, "show"])->name("stock-adjustments.show");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
+        Route::get("stock-adjustments/{stockAdjustment}/edit", [StockAdjustmentController::class, "edit"])->name("stock-adjustments.edit");
+        Route::patch("stock-adjustments/{stockAdjustment}", [StockAdjustmentController::class, "update"])->name("stock-adjustments.update");
+        Route::patch("stock-adjustments/{stockAdjustment}/complete", [StockAdjustmentController::class, "complete"])->name("stock-adjustments.complete");
+    });
+    Route::middleware("menu.access:can_delete")->group(function () {
+        Route::delete("stock-adjustments/{stockAdjustment}", [StockAdjustmentController::class, "destroy"])->name("stock-adjustments.destroy");
+    });
+
+    // --- Sales (Phase 8) ---
+    // IMPORTANT: create/store defined BEFORE {salesOrder} wildcard to avoid 404
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("sales/orders/create", [SalesOrderController::class, "create"])->name("sales.orders.create");
+        Route::post("sales/orders", [SalesOrderController::class, "store"])->name("sales.orders.store");
+        Route::post("sales/reservations", [ReservationController::class, "store"])->name("sales.reservations.store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("sales/dashboard", [SalesDashboardController::class, "index"])->name("sales.dashboard");
+        Route::get("sales/orders", [SalesOrderController::class, "index"])->name("sales.orders.index");
+        Route::get("sales/orders/{salesOrder}", [SalesOrderController::class, "show"])->name("sales.orders.show");
+        Route::get("sales/reservations", [ReservationController::class, "index"])->name("sales.reservations.index");
+        Route::get("sales/reservations/{stockReservation}", [ReservationController::class, "show"])->name("sales.reservations.show");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
+        Route::get("sales/orders/{salesOrder}/edit", [SalesOrderController::class, "edit"])->name("sales.orders.edit");
+        Route::patch("sales/orders/{salesOrder}", [SalesOrderController::class, "update"])->name("sales.orders.update");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("sales/orders/{salesOrder}/submit-for-approval", [SalesOrderController::class, "submitForApproval"])->name("sales.orders.submit-approval");
+        Route::post("sales/orders/{salesOrder}/approve", [SalesOrderController::class, "approve"])->name("sales.orders.approve");
+        Route::post("sales/orders/{salesOrder}/reject", [SalesOrderController::class, "reject"])->name("sales.orders.reject");
+        Route::post("sales/orders/{salesOrder}/reserve", [SalesOrderController::class, "reserve"])->name("sales.orders.reserve");
+        Route::post("sales/orders/{salesOrder}/fulfill", [SalesOrderController::class, "fulfill"])->name("sales.orders.fulfill");
+        Route::post("sales/orders/{salesOrder}/cancel", [SalesOrderController::class, "cancel"])->name("sales.orders.cancel");
+    });
+    Route::middleware("menu.access:can_delete")->group(function () {
+        Route::delete("sales/orders/{salesOrder}", [SalesOrderController::class, "destroy"])->name("sales.orders.destroy");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
+        Route::post("sales/reservations/{stockReservation}/release", [ReservationController::class, "release"])->name("sales.reservations.release");
     });
 });
 

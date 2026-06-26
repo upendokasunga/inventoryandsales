@@ -70,4 +70,16 @@ class PurchaseSuggestionController extends Controller
         return redirect()->route('purchasing.suggestions.index')
             ->with('success', 'Suggestion rejected.');
     }
+
+    public function convert(PurchaseSuggestion $suggestion): RedirectResponse
+    {
+        $this->suggestionService->markConverted($suggestion);
+
+        return redirect()->route('purchasing.orders.create', [
+            'suggestion_id' => $suggestion->id,
+            'product_id' => $suggestion->product_id,
+            'supplier_id' => $suggestion->supplier_id,
+            'suggested_quantity' => $suggestion->suggested_quantity,
+        ])->with('success', 'Suggestion marked as converted. Create purchase order below.');
+    }
 }

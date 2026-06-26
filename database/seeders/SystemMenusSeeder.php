@@ -29,9 +29,12 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Customer Groups', 'route' => 'customer-groups.index', 'icon' => 'users', 'module' => 'Master Data', 'sort_order' => 33],
             ['name' => 'Suppliers', 'route' => 'suppliers.index', 'icon' => 'truck', 'module' => 'Master Data', 'sort_order' => 34],
 
-            // Inventory module (Phase 3)
+            // Inventory module (Phase 3/7)
             ['name' => 'Products', 'route' => 'products.index', 'icon' => 'cube', 'module' => 'Inventory', 'sort_order' => 40],
-            ['name' => 'Stock', 'route' => '#', 'icon' => 'archive', 'module' => 'Inventory', 'sort_order' => 41],
+            ['name' => 'Inventory Dashboard', 'route' => 'inventory.index', 'icon' => 'archive', 'module' => 'Inventory', 'sort_order' => 41],
+            ['name' => 'Stock Adjustments', 'route' => 'stock-adjustments.index', 'icon' => 'adjustments', 'module' => 'Inventory', 'sort_order' => 42],
+            ['name' => 'Batch Tracking', 'route' => 'inventory.batches', 'icon' => 'cube', 'module' => 'Inventory', 'sort_order' => 43],
+            ['name' => 'Inventory Valuation', 'route' => 'inventory.valuation', 'icon' => 'currency-dollar', 'module' => 'Inventory', 'sort_order' => 44],
 
             // Pricing module (Phase 4)
             ['name' => 'Pricing Dashboard', 'route' => 'price-lists.dashboard', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 42],
@@ -40,7 +43,9 @@ class SystemMenusSeeder extends Seeder
 
             ['name' => 'Customer Dashboard', 'route' => 'customers.dashboard', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 49],
             ['name' => 'Customers', 'route' => 'customers.index', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 50],
-            ['name' => 'Sales', 'route' => '#', 'icon' => 'cash', 'module' => 'Sales', 'sort_order' => 51],
+            ['name' => 'Sales Dashboard', 'route' => 'sales.dashboard', 'icon' => 'cash', 'module' => 'Sales', 'sort_order' => 51],
+            ['name' => 'Sales Orders', 'route' => 'sales.orders.index', 'icon' => 'document-text', 'module' => 'Sales', 'sort_order' => 52],
+            ['name' => 'Reservations', 'route' => 'sales.reservations.index', 'icon' => 'lock-closed', 'module' => 'Sales', 'sort_order' => 53],
             ['name' => 'Purchasing Dashboard', 'route' => '#', 'icon' => 'truck', 'module' => 'Purchasing', 'sort_order' => 59],
             ['name' => 'Purchase Suggestions', 'route' => 'purchasing.suggestions.index', 'icon' => 'clipboard-list', 'module' => 'Purchasing', 'sort_order' => 60],
             ['name' => 'Purchase Orders', 'route' => 'purchasing.orders.index', 'icon' => 'shopping-cart', 'module' => 'Purchasing', 'sort_order' => 61],
