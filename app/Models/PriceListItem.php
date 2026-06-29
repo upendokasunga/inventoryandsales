@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PriceListItem extends Model
 {
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
         'price_list_id', 'product_id', 'unit_id',

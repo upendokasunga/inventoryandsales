@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\Invoice\StoreInvoiceRequest;
+use App\Models\Invoice;
+use App\Services\BarcodeService;
+use App\Services\InvoiceService;
+use App\Services\ReceiptService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class InvoiceController extends Controller
+{
+    public function __construct(
+        protected InvoiceService $invoiceService,
+        protected ReceiptService $receiptService,
+        protected BarcodeService $barcodeService,
+    ) {}
+
+    public function index(Request $request): View
+    {
+        $filters = $request->only(['status', 'payment_status', 'customer_id', 'date_from', 'date_to', 'search']);
+        $invoices = $this->invoiceService->getAllPaginated(20, $filters);
+        $stats = $this->invoiceService->getStats();
+        return view('invoices.index', compact('invoices', 'stats'));
+    }
+
+    public function create(): View
+    {
+        return view('invoices.create');
+    }
+
+    public function store(StoreInvoiceRequest $request): RedirectResponse
+    {
+        $invoice = $this->invoiceService->create($request->validated());
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Invoice created successfully.');
+    }
+
+    public function show(Invoice $invoice): View
+    {
+        $invoice->load(['customer', 'items.product', 'items.unit', 'payments', 'creator', 'approver']);
+        return view('invoices.show', compact('invoice'));
+    }
+
+    public function edit(Invoice $invoice): View
+    {
+        $invoice->load(['customer', 'items.product', 'items.unit']);
+        return view('invoices.edit', compact('invoice'));
+    }
+
+    public function update(StoreInvoiceRequest $request, Invoice $invoice): RedirectResponse
+    {
+        $this->invoiceService->update($invoice, $request->validated());
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Invoice updated successfully.');
+    }
+
+    public function approve(Invoice $invoice): RedirectResponse
+    {
+        try {
+            $this->invoiceService->approve($invoice);
+            return redirect()->route('invoices.show', $invoice)
+                ->with('success', 'Invoice approved successfully.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('invoices.show', $invoice)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function print(Invoice $invoice): View
+    {
+        $data = $this->receiptService->getInvoicePrintData($invoice);
+        $data['barcodeSvg'] = $this->barcodeService->getBarcodeSvg($invoice->invoice_number);
+        return view('invoices.print', $data);
+    }
+
+    public function receipt(Invoice $invoice): View
+    {
+        $data = $this->receiptService->getReceiptData($invoice);
+        $data['barcodeSvg'] = $this->barcodeService->getBarcodeSvg($invoice->invoice_number);
+        return view('invoices.receipt', $data);
+    }
+
+    public function destroy(Invoice $invoice): RedirectResponse
+    {
+        $this->invoiceService->delete($invoice);
+        return redirect()->route('invoices.index')
+            ->with('success', 'Invoice deleted successfully.');
+    }
+}

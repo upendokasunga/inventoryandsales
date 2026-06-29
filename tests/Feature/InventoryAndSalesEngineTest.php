@@ -932,7 +932,7 @@ class InventoryAndSalesEngineTest extends TestCase
         ]);
 
         $reservationService = app(ReservationService::class);
-        $reservation = $reservationService->reserve($order, now()->addDays(3));
+        $reservation = $reservationService->reserve($order);
 
         $this->assertEquals('active', $reservation->status);
         $this->assertDatabaseHas('stock_reservation_items', [

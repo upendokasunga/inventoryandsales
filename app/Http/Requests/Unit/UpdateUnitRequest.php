@@ -8,7 +8,7 @@ class UpdateUnitRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('units.update', 'can_edit') ?? false;
     }
 
     public function rules(): array

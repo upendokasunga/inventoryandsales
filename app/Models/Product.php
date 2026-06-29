@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +14,7 @@ use Illuminate\Support\Str;
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'barcode', 'barcode_image',

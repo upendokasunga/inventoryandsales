@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\InventoryBatch;
 use App\Models\Product;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class FifoService
 {
@@ -15,6 +16,7 @@ class FifoService
             ->where('quantity_remaining', '>', 0)
             ->orderBy('created_at')
             ->orderBy('expiry_date')
+            ->lockForUpdate()
             ->get();
 
         $remaining = $quantity;

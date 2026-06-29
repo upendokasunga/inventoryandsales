@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->nullableMorphs('reference');
-            $table->string('type'); // purchase_receipt, sales_order, adjustment, transfer, return, initial
+            $table->string('type'); // purchase_receipt, sales_order, adjustment, transfer, return, initial, sale_return, purchase_return, damage, expiry, reservation, reservation_release
             $table->decimal('quantity', 15, 3);
             $table->decimal('unit_cost', 15, 2)->default(0);
             $table->decimal('total_cost', 15, 2)->default(0);

@@ -13,6 +13,12 @@ class InventoryTransaction extends Model
 {
     use HasFactory, AutoHasUuid, SoftDeletes;
 
+    public const TYPES = [
+        'purchase_receipt', 'sales_order', 'adjustment', 'transfer',
+        'return', 'initial', 'sale_return', 'purchase_return',
+        'damage', 'expiry', 'reservation', 'reservation_release',
+    ];
+
     protected $fillable = [
         'product_id', 'reference_type', 'reference_id',
         'type', 'quantity', 'unit_cost', 'total_cost',

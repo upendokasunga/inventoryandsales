@@ -8,7 +8,7 @@ class StoreStockAdjustmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('stock-adjustments.store', 'can_create') ?? false;
     }
 
     public function rules(): array

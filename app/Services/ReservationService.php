@@ -38,6 +38,7 @@ class ReservationService
                     ->where('quantity_remaining', '>', 0)
                     ->orderBy('created_at')
                     ->orderBy('expiry_date')
+                    ->lockForUpdate()
                     ->get();
 
                 $remaining = $item->quantity;
@@ -62,9 +63,11 @@ class ReservationService
                     $reservation->items()->saveMany($reservationItems);
                 }
 
+                $balance = InventoryBalance::where('id', $balance->id)->lockForUpdate()->firstOrFail();
+                $newReserved = $balance->quantity_reserved + $item->quantity;
                 $balance->update([
-                    'quantity_reserved' => $balance->quantity_reserved + $item->quantity,
-                    'quantity_available' => $balance->quantity_on_hand - ($balance->quantity_reserved + $item->quantity),
+                    'quantity_reserved' => $newReserved,
+                    'quantity_available' => $balance->quantity_on_hand - $newReserved,
                 ]);
             }
 
@@ -85,9 +88,11 @@ class ReservationService
         DB::transaction(function () use ($reservation) {
             foreach ($reservation->items as $item) {
                 $balance = $this->inventoryService->getOrCreateBalance($item->product_id);
+                $balance = InventoryBalance::where('id', $balance->id)->lockForUpdate()->firstOrFail();
+                $newReserved = max(0, $balance->quantity_reserved - $item->quantity);
                 $balance->update([
-                    'quantity_reserved' => max(0, $balance->quantity_reserved - $item->quantity),
-                    'quantity_available' => $balance->quantity_on_hand - max(0, $balance->quantity_reserved - $item->quantity),
+                    'quantity_reserved' => $newReserved,
+                    'quantity_available' => $balance->quantity_on_hand - $newReserved,
                 ]);
             }
 
@@ -106,7 +111,7 @@ class ReservationService
         $issues = [];
 
         foreach ($salesOrder->items as $item) {
-            $balance = $this->inventoryService->getBalance($item->product_id);
+            $balance = InventoryBalance::where('product_id', $item->product_id)->lockForUpdate()->first();
             $available = $balance ? $balance->quantity_available : 0;
 
             if ($available < $item->quantity) {

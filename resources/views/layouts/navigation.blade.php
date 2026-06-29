@@ -2,11 +2,14 @@
     $user = Auth::user();
     $navMenus = $user->getCachedMenus();
     $grouped = $navMenus->where('can_view', true)->sortBy('sort_order')->groupBy('module');
-    $moduleOrder = ['Dashboard', 'Master Data', 'Inventory', 'Purchasing', 'Sales', 'Pricing', 'Authentication', 'System', 'Reporting'];
+    $moduleOrder = ['Dashboard', 'Point of Sale', 'Master Data', 'Inventory', 'Purchasing', 'Sales', 'Pricing', 'Authentication', 'System', 'Reporting'];
 @endphp
 
 {{-- Sidebar --}}
-<aside class="fixed inset-y-0 left-0 z-40 w-64 bg-sidebar flex flex-col shadow-2xl overflow-hidden">
+<aside x-data="{ sidebarOpen: window.innerWidth >= 1024 }"
+       @toggle-sidebar.window="sidebarOpen = !sidebarOpen"
+       :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
+       class="fixed inset-y-0 left-0 z-40 w-64 bg-sidebar flex flex-col shadow-2xl overflow-hidden transition-transform duration-300 lg:translate-x-0">
     {{-- Logo --}}
     <div class="flex items-center h-16 px-4 border-b border-white/5 shrink-0">
         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
@@ -88,3 +91,12 @@
         </div>
     </div>
 </aside>
+
+{{-- Mobile overlay --}}
+<div x-data="{ sidebarOpen: window.innerWidth >= 1024 }"
+     @toggle-sidebar.window="sidebarOpen = !sidebarOpen"
+     x-show="sidebarOpen"
+     @click="sidebarOpen = false"
+     class="fixed inset-0 z-30 bg-black/40 lg:hidden"
+     style="display: none;">
+</div>

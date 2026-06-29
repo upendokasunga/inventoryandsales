@@ -8,7 +8,7 @@ class StoreCustomerGroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('customer-groups.store', 'can_create') ?? false;
     }
 
     public function rules(): array

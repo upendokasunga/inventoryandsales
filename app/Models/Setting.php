@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    use HasFactory, AutoLogsAudit;
+    use HasFactory;
 
     protected $fillable = [
         'key', 'value', 'type', 'description', 'is_editable',

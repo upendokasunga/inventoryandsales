@@ -8,7 +8,7 @@ class UpdateSupplierRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('suppliers.update', 'can_edit') ?? false;
     }
 
     public function rules(): array
@@ -16,7 +16,7 @@ class UpdateSupplierRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'email' => 'nullable|email|max:255|unique:suppliers,email,' . ($this->route('supplier')?->id ?? 'NULL'),
             'phone1' => 'nullable|string|max:50',
             'phone2' => 'nullable|string|max:50',
             'address' => 'nullable|string',

@@ -33,6 +33,34 @@ document.addEventListener('alpine:init', () => {
             this.open = false;
         },
     }));
+
+    Alpine.data('notifications', () => ({
+        open: false,
+        notifications: [],
+        unreadCount: 0,
+        async init() {
+            this.unreadCount = 3;
+            this.notifications = [
+                { id: 1, message: 'Low stock alert', time: '5 min ago', read: false },
+                { id: 2, message: 'New order received', time: '1 hour ago', read: false },
+                { id: 3, message: 'Payment confirmed', time: '2 hours ago', read: false },
+            ];
+        },
+        toggle() {
+            this.open = !this.open;
+        },
+        close() {
+            this.open = false;
+        },
+        get unread() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        markRead(id) {
+            const n = this.notifications.find(n => n.id === id);
+            if (n) n.read = true;
+            this.unreadCount = this.unread;
+        },
+    }));
 });
 
 Alpine.start();

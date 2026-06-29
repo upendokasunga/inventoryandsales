@@ -24,6 +24,11 @@
             {{-- Top Navbar --}}
             <div class="sticky top-0 z-30 bg-white border-b border-slate-200/60 shadow-sm lg:ml-64">
                 <div class="flex items-center justify-between h-16 px-4 lg:px-6">
+                    <button x-data @click="$dispatch('toggle-sidebar')" class="lg:hidden p-2 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
                     <div class="flex items-center gap-3 ml-auto" x-data="clock">
                         <div class="hidden md:flex items-center gap-3 text-sm text-slate-500">
                             <span x-text="date" class="hidden lg:inline"></span>
@@ -31,12 +36,45 @@
                             <span x-text="time" class="font-mono text-xs bg-slate-50 px-2 py-1 rounded-md border border-slate-200"></span>
                         </div>
 
-                        <button class="relative p-2 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                            </svg>
-                            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full"></span>
-                        </button>
+                        <div class="relative" x-data="notifications" @click.outside="close">
+                            <button @click="toggle" class="relative p-2 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                <span x-show="unreadCount > 0" x-text="unreadCount" class="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-[10px] font-bold rounded-full flex items-center justify-center"></span>
+                            </button>
+
+                            <div x-show="open"
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-50"
+                                 style="display: none;">
+                                <div class="px-4 py-2 border-b border-slate-100">
+                                    <p class="text-sm font-semibold text-slate-700">{{ __('Notifications') }}</p>
+                                </div>
+                                <div class="max-h-60 overflow-y-auto">
+                                    <template x-for="notification in notifications" :key="notification.id">
+                                        <div class="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-start gap-3"
+                                             :class="{'bg-primary-50/50': !notification.read}"
+                                             @click="markRead(notification.id)">
+                                            <div class="w-2 h-2 mt-1.5 rounded-full shrink-0"
+                                                 :class="notification.read ? 'bg-transparent' : 'bg-primary'"></div>
+                                            <div>
+                                                <p class="text-sm text-slate-700" x-text="notification.message"></p>
+                                                <p class="text-xs text-slate-400 mt-0.5" x-text="notification.time"></p>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="px-4 py-2 border-t border-slate-100 text-center">
+                                    <a href="#" class="text-xs text-primary hover:text-primary-600">{{ __('View all notifications') }}</a>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="relative" x-data="dropdown" @click.outside="close">
                             <button @click="toggle" class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition">

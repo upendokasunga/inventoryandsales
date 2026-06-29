@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GoodsReceipt extends Model
 {
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
         'purchase_order_id', 'receipt_number', 'receipt_date', 'status', 'notes', 'created_by',

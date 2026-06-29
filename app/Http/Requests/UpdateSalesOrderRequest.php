@@ -8,7 +8,7 @@ class UpdateSalesOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('sales.orders.update', 'can_edit') ?? false;
     }
 
     public function rules(): array

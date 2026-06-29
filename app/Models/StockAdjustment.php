@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,11 +11,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockAdjustment extends Model
 {
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
-    public const TYPES = ['positive', 'negative', 'transfer'];
-    public const REASONS = ['damaged', 'lost', 'found', 'expired', 'recount', 'other'];
-    public const STATUSES = ['draft', 'completed', 'cancelled'];
+    public const TYPES = ['positive', 'negative', 'transfer', 'return'];
+    public const REASONS = ['damaged', 'lost', 'found', 'expired', 'recount', 'theft', 'audit_count', 'correction', 'return', 'other'];
+    public const STATUSES = ['draft', 'pending_approval', 'approved', 'completed', 'cancelled'];
 
     protected $fillable = [
         'adjustment_number', 'type', 'reason', 'description',

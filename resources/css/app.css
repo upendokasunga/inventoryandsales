@@ -14,19 +14,19 @@
     }
 
     .erp-btn-primary {
-        @apply inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
+        @apply inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
     }
 
     .erp-btn-success {
-        @apply inline-flex items-center px-4 py-2 bg-success border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-success-600 focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 transition duration-150;
+        @apply inline-flex items-center px-4 py-2 bg-success border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-success-600 focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 transition duration-150;
     }
 
     .erp-btn-danger {
-        @apply inline-flex items-center px-4 py-2 bg-danger border border-transparent rounded-[10px] font-semibold text-xs text-white hover:bg-danger-600 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 transition duration-150;
+        @apply inline-flex items-center px-4 py-2 bg-danger border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-danger-600 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 transition duration-150;
     }
 
     .erp-btn-secondary {
-        @apply inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-[10px] font-semibold text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
+        @apply inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-lg font-semibold text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition duration-150;
     }
 
     .erp-input {

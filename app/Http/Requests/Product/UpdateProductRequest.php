@@ -8,7 +8,7 @@ class UpdateProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('products.update', 'can_edit') ?? false;
     }
 
     public function rules(): array

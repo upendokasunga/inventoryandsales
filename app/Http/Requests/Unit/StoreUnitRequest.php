@@ -8,7 +8,7 @@ class StoreUnitRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('units.store', 'can_create') ?? false;
     }
 
     public function rules(): array

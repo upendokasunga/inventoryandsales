@@ -17,7 +17,8 @@ class InventoryBatch extends Model
     protected $fillable = [
         'product_id', 'batch_number', 'quantity', 'quantity_remaining',
         'unit_cost', 'manufacturing_date', 'expiry_date',
-        'supplier_batch', 'status', 'notes', 'created_by',
+        'supplier_batch', 'supplier_id', 'purchase_order_id',
+        'status', 'notes', 'created_by',
     ];
 
     protected function casts(): array
@@ -39,6 +40,16 @@ class InventoryBatch extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     public function scopeActive($query)

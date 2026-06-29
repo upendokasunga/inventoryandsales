@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Group extends Model
 {
     /** @use HasFactory<GroupFactory> */
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
         'name', 'description', 'is_super_admin', 'is_active',

@@ -157,6 +157,30 @@ class SalesOrderController extends Controller
         }
     }
 
+    public function startPicking(SalesOrder $salesOrder)
+    {
+        try {
+            $this->fulfillmentService->startPicking($salesOrder);
+            return redirect()->route('sales.orders.show', $salesOrder)
+                ->with('success', 'Picking started for order.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('sales.orders.show', $salesOrder)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function markPacked(SalesOrder $salesOrder)
+    {
+        try {
+            $this->fulfillmentService->markPacked($salesOrder);
+            return redirect()->route('sales.orders.show', $salesOrder)
+                ->with('success', 'Order marked as packed.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('sales.orders.show', $salesOrder)
+                ->with('error', $e->getMessage());
+        }
+    }
+
     public function fulfill(SalesOrder $salesOrder)
     {
         try {

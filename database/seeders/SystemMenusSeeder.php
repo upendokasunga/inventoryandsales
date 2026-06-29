@@ -37,9 +37,23 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Inventory Valuation', 'route' => 'inventory.valuation', 'icon' => 'currency-dollar', 'module' => 'Inventory', 'sort_order' => 44],
 
             // Pricing module (Phase 4)
-            ['name' => 'Pricing Dashboard', 'route' => 'price-lists.dashboard', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 42],
-            ['name' => 'Price Lists', 'route' => 'price-lists.index', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 43],
-            ['name' => 'Pricing Simulator', 'route' => 'price-lists.simulator', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 44],
+            ['name' => 'Pricing Dashboard', 'route' => 'price-lists.dashboard', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 45],
+            ['name' => 'Price Lists', 'route' => 'price-lists.index', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 46],
+            ['name' => 'Pricing Simulator', 'route' => 'price-lists.simulator', 'icon' => 'currency-dollar', 'module' => 'Pricing', 'sort_order' => 47],
+
+            // Point of Sale (Phase 9)
+            ['name' => 'POS', 'route' => 'pos.index', 'icon' => 'shopping-cart', 'module' => 'Point of Sale', 'sort_order' => 1],
+            ['name' => 'POS Dashboard', 'route' => 'pos.dashboard', 'icon' => 'chart-pie', 'module' => 'Point of Sale', 'sort_order' => 2],
+
+            // Sales (Phase 9/10)
+            ['name' => 'Invoices', 'route' => 'invoices.index', 'icon' => 'document-text', 'module' => 'Sales', 'sort_order' => 54],
+            ['name' => 'Payments', 'route' => 'payments.index', 'icon' => 'cash', 'module' => 'Sales', 'sort_order' => 55],
+            ['name' => 'Sales Returns', 'route' => 'sales-returns.index', 'icon' => 'refresh', 'module' => 'Sales', 'sort_order' => 56],
+            ['name' => 'Credit Notes', 'route' => 'credit-notes.index', 'icon' => 'document-text', 'module' => 'Sales', 'sort_order' => 57],
+            ['name' => 'Refunds', 'route' => 'refunds.index', 'icon' => 'currency-dollar', 'module' => 'Sales', 'sort_order' => 58],
+
+            // Purchasing (Phase 10)
+            ['name' => 'Purchase Returns', 'route' => 'purchase-returns.index', 'icon' => 'refresh', 'module' => 'Purchasing', 'sort_order' => 64],
 
             ['name' => 'Customer Dashboard', 'route' => 'customers.dashboard', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 49],
             ['name' => 'Customers', 'route' => 'customers.index', 'icon' => 'shopping-cart', 'module' => 'Sales', 'sort_order' => 50],
@@ -52,6 +66,17 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Goods Receiving', 'route' => 'purchasing.receipts.index', 'icon' => 'archive', 'module' => 'Purchasing', 'sort_order' => 62],
             ['name' => 'Supplier Analytics', 'route' => 'purchasing.analytics', 'icon' => 'chart-bar', 'module' => 'Purchasing', 'sort_order' => 63],
             ['name' => 'Reports', 'route' => '#', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 70],
+            ['name' => 'Sales Reports', 'route' => 'reports.sales', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 71],
+            ['name' => 'Profit Analysis', 'route' => 'reports.profit', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 72],
+            ['name' => 'Inventory Reports', 'route' => 'reports.inventory', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 73],
+            ['name' => 'Customer Reports', 'route' => 'reports.customers', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 74],
+            ['name' => 'Supplier Reports', 'route' => 'reports.suppliers', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 75],
+            ['name' => 'Procurement Reports', 'route' => 'reports.procurement', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 76],
+            ['name' => 'Tax Reports', 'route' => 'reports.tax', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 77],
+            ['name' => 'Payment Reports', 'route' => 'reports.payments', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 78],
+            ['name' => 'Analytics Dashboard', 'route' => 'reports.analytics', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 79],
+            ['name' => 'KPI Dashboard', 'route' => 'reports.kpi', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 80],
+            ['name' => 'Scheduled Reports', 'route' => 'reports.scheduled.index', 'icon' => 'chart-bar', 'module' => 'Reporting', 'sort_order' => 81],
         ];
 
         foreach ($menus as $menu) {

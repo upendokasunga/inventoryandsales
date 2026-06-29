@@ -15,10 +15,48 @@ class FulfillmentService
         protected CreditService $creditService,
     ) {}
 
+    public function startPicking(SalesOrder $salesOrder): SalesOrder
+    {
+        if ($salesOrder->status !== 'reserved') {
+            throw new \InvalidArgumentException(
+                'Cannot start picking for order in status: ' . $salesOrder->status
+            );
+        }
+
+        $salesOrder->update([
+            'status' => 'picking',
+            'picked_by' => auth()->id(),
+            'picked_at' => now(),
+        ]);
+
+        Cache::forget('sales.order.stats');
+
+        return $salesOrder->fresh();
+    }
+
+    public function markPacked(SalesOrder $salesOrder): SalesOrder
+    {
+        if ($salesOrder->status !== 'picking') {
+            throw new \InvalidArgumentException(
+                'Cannot mark as packed for order in status: ' . $salesOrder->status
+            );
+        }
+
+        $salesOrder->update([
+            'status' => 'packed',
+            'packed_by' => auth()->id(),
+            'packed_at' => now(),
+        ]);
+
+        Cache::forget('sales.order.stats');
+
+        return $salesOrder->fresh();
+    }
+
     public function fulfill(SalesOrder $salesOrder): SalesOrder
     {
         return DB::transaction(function () use ($salesOrder) {
-            if (!in_array($salesOrder->status, ['reserved', 'partially_fulfilled'])) {
+            if (!in_array($salesOrder->status, ['reserved', 'packed', 'partially_fulfilled'])) {
                 throw new \InvalidArgumentException(
                     'Cannot fulfill order in status: ' . $salesOrder->status
                 );

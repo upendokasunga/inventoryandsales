@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class GoodsReceiptService
 {
+    public function __construct(
+        protected InventoryService $inventoryService,
+    ) {}
+
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
     {
         $query = GoodsReceipt::with(['purchaseOrder.supplier', 'creator']);
@@ -67,6 +72,17 @@ class GoodsReceiptService
                         $poItem->update(['received_quantity' => $newReceived]);
                     }
                 }
+
+                $product = Product::findOrFail($item->product_id);
+                $this->inventoryService->receiveStock(
+                    $product,
+                    $item->received_quantity,
+                    ($poItem?->unit_price ?? 0),
+                    null,
+                    null,
+                    $receipt,
+                    "Goods receipt: {$item->received_quantity} units received"
+                );
             }
 
             $po = $receipt->purchaseOrder;

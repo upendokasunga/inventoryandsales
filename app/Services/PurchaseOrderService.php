@@ -86,7 +86,9 @@ class PurchaseOrderService
             $purchaseOrder->items()->saveMany($poItems);
 
             Cache::forget('purchasing.order.stats');
-            Cache::forget('purchasing.analytics.*');
+            Cache::forget('purchasing.analytics.dashboard');
+            Cache::forget('purchasing.analytics.supplier_rankings');
+            Cache::forget('purchasing.analytics.trends');
 
             return $purchaseOrder->fresh(['items', 'supplier']);
         });
@@ -118,7 +120,7 @@ class PurchaseOrderService
             );
 
             $purchaseOrder->update($data);
-            $purchaseOrder->items()->delete();
+            $purchaseOrder->items()->forceDelete();
             $purchaseOrder->items()->saveMany($poItems);
 
             Cache::forget("purchasing.order.{$purchaseOrder->id}");

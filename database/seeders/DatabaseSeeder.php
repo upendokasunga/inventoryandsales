@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             SuperAdminGroupSeeder::class,
             AdminUserSeeder::class,
             UnitsSeeder::class,
+            SequenceSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

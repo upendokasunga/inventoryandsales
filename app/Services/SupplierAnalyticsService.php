@@ -95,21 +95,17 @@ class SupplierAnalyticsService
 
     public function recalculatePerformance(): void
     {
-        $suppliers = PurchaseOrder::whereIn('status', ['completed', 'partially_received'])
-            ->distinct('supplier_id')
-            ->pluck('supplier_id');
+        $orders = PurchaseOrder::whereIn('status', ['completed', 'partially_received'])
+            ->get()
+            ->groupBy('supplier_id');
 
-        foreach ($suppliers as $supplierId) {
-            $orders = PurchaseOrder::where('supplier_id', $supplierId)
-                ->whereIn('status', ['completed', 'partially_received'])
-                ->get();
-
-            $totalOrders = $orders->count();
+        foreach ($orders as $supplierId => $supplierOrders) {
+            $totalOrders = $supplierOrders->count();
             $onTime = 0;
             $late = 0;
             $totalLeadDays = 0;
 
-            foreach ($orders as $order) {
+            foreach ($supplierOrders as $order) {
                 $leadDays = $order->created_at->diffInDays($order->updated_at);
                 $totalLeadDays += $leadDays;
 
@@ -128,7 +124,7 @@ class SupplierAnalyticsService
                     'late_orders' => $late,
                     'on_time_rate' => $totalOrders > 0 ? round(($onTime / $totalOrders) * 100, 2) : 0,
                     'avg_lead_time_days' => $totalOrders > 0 ? round($totalLeadDays / $totalOrders, 2) : 0,
-                    'total_purchase_value' => $orders->sum('total'),
+                    'total_purchase_value' => $supplierOrders->sum('total'),
                     'order_accuracy_rate' => 0,
                     'calculated_at' => now(),
                 ]

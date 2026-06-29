@@ -68,11 +68,26 @@ class SalesOrderService
             $data['created_by'] = auth()->id();
             $data['status'] = 'draft';
 
+            $customer = \App\Models\Customer::find($data['customer_id']);
+            $customerGroupId = $customer?->customer_group_id;
+
             $subtotal = 0;
             $soItems = [];
 
             foreach ($items as $item) {
-                $lineSubtotal = $item['quantity'] * $item['unit_price'];
+                $unitPrice = $item['unit_price'];
+                $resolvedPrice = $this->resolvePrice(
+                    $item['product_id'],
+                    $item['unit_id'] ?? null,
+                    $item['quantity'],
+                    $customerGroupId,
+                );
+                if ($resolvedPrice !== null) {
+                    $unitPrice = $resolvedPrice['price'];
+                    $data['price_list_id'] = $resolvedPrice['price_list_id'];
+                }
+
+                $lineSubtotal = $item['quantity'] * $unitPrice;
                 $lineDiscount = $item['discount'] ?? 0;
                 $lineTax = $item['tax'] ?? 0;
                 $lineTotal = $lineSubtotal - $lineDiscount + $lineTax;
@@ -83,7 +98,7 @@ class SalesOrderService
                     'product_id' => $item['product_id'],
                     'unit_id' => $item['unit_id'] ?? null,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $unitPrice,
                     'subtotal' => $lineSubtotal,
                     'discount' => $lineDiscount,
                     'tax' => $lineTax,
@@ -111,11 +126,26 @@ class SalesOrderService
     public function update(SalesOrder $salesOrder, array $data, array $items): SalesOrder
     {
         return DB::transaction(function () use ($salesOrder, $data, $items) {
+            $customer = \App\Models\Customer::find($data['customer_id'] ?? $salesOrder->customer_id);
+            $customerGroupId = $customer?->customer_group_id;
+
             $subtotal = 0;
             $soItems = [];
 
             foreach ($items as $item) {
-                $lineSubtotal = $item['quantity'] * $item['unit_price'];
+                $unitPrice = $item['unit_price'];
+                $resolvedPrice = $this->resolvePrice(
+                    $item['product_id'],
+                    $item['unit_id'] ?? null,
+                    $item['quantity'],
+                    $customerGroupId,
+                );
+                if ($resolvedPrice !== null) {
+                    $unitPrice = $resolvedPrice['price'];
+                    $data['price_list_id'] = $resolvedPrice['price_list_id'];
+                }
+
+                $lineSubtotal = $item['quantity'] * $unitPrice;
                 $lineDiscount = $item['discount'] ?? 0;
                 $lineTax = $item['tax'] ?? 0;
                 $lineTotal = $lineSubtotal - $lineDiscount + $lineTax;
@@ -126,7 +156,7 @@ class SalesOrderService
                     'product_id' => $item['product_id'],
                     'unit_id' => $item['unit_id'] ?? null,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $unitPrice,
                     'subtotal' => $lineSubtotal,
                     'discount' => $lineDiscount,
                     'tax' => $lineTax,
@@ -152,6 +182,20 @@ class SalesOrderService
         });
     }
 
+    protected function resolvePrice(int $productId, ?int $unitId, float $quantity, ?int $customerGroupId): ?array
+    {
+        if (!$unitId) {
+            return null;
+        }
+
+        try {
+            return $this->pricingService->getPrice($productId, $unitId, $quantity, $customerGroupId);
+        } catch (\Throwable $e) {
+            report($e);
+            return null;
+        }
+    }
+
     public function delete(SalesOrder $salesOrder): void
     {
         $salesOrder->delete();
@@ -167,8 +211,11 @@ class SalesOrderService
                 'pending_approval' => SalesOrder::where('status', 'pending_approval')->count(),
                 'approved' => SalesOrder::where('status', 'approved')->count(),
                 'reserved' => SalesOrder::where('status', 'reserved')->count(),
+                'picking' => SalesOrder::where('status', 'picking')->count(),
+                'packed' => SalesOrder::where('status', 'packed')->count(),
                 'partially_fulfilled' => SalesOrder::where('status', 'partially_fulfilled')->count(),
                 'fulfilled' => SalesOrder::where('status', 'fulfilled')->count(),
+                'invoiced' => SalesOrder::where('status', 'invoiced')->count(),
                 'cancelled' => SalesOrder::where('status', 'cancelled')->count(),
             ];
         });

@@ -117,12 +117,13 @@ class CreditService
         $cacheKey = "customer.credit.{$customer->id}";
 
         return Cache::remember($cacheKey, 300, function () use ($customer) {
-            $customer->fresh();
+            $fresh = $customer->fresh();
+            $model = $fresh ?: $customer;
             return [
-                'limit' => (float) $customer->credit_limit,
-                'available' => (float) $customer->available_credit,
-                'outstanding' => (float) $customer->outstanding_balance,
-                'status' => $customer->credit_status,
+                'limit' => (float) $model->credit_limit,
+                'available' => (float) $model->available_credit,
+                'outstanding' => (float) $model->outstanding_balance,
+                'status' => $model->credit_status,
             ];
         });
     }

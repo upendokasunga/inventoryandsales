@@ -178,9 +178,9 @@
                 <h2 class="text-3xl font-bold text-white mb-4">Ready to Transform Your Wholesale Operations?</h2>
                 <p class="text-primary-200 text-lg mb-8">Join businesses that trust {{ config('app.name', 'WholesaleTZ') }} for their inventory and sales management.</p>
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="inline-flex items-center px-8 py-3 bg-white text-primary font-semibold rounded-[10px] hover:bg-primary-50 transition">Go to Dashboard</a>
+                    <a href="{{ url('/dashboard') }}" class="inline-flex items-center px-8 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-primary-50 transition">Go to Dashboard</a>
                 @else
-                    <a href="{{ route('register') }}" class="inline-flex items-center px-8 py-3 bg-white text-primary font-semibold rounded-[10px] hover:bg-primary-50 transition">Get Started Free</a>
+                    <a href="{{ route('register') }}" class="inline-flex items-center px-8 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-primary-50 transition">Get Started Free</a>
                 @endauth
             </div>
         </section>

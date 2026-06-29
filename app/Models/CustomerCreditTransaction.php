@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomerCreditTransaction extends Model
 {
-    use HasFactory, AutoHasUuid, AutoLogsAudit;
+    use HasFactory, AutoHasUuid;
 
     protected $fillable = [
         'customer_id', 'user_id', 'type', 'amount',

@@ -35,14 +35,18 @@ class PurchaseSuggestionService
         }
 
         $products = $query->get();
+        $existingProductIds = PurchaseSuggestion::whereIn('product_id', $products->pluck('id'))
+            ->whereIn('status', ['pending', 'approved'])
+            ->pluck('product_id')
+            ->toArray();
         $created = [];
 
         foreach ($products as $product) {
-            $exists = PurchaseSuggestion::where('product_id', $product->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->exists();
+            if (in_array($product->id, $existingProductIds)) {
+                continue;
+            }
 
-            if (!$exists && $product->current_stock <= $product->reorder_level) {
+            if ($product->current_stock <= $product->reorder_level) {
                 $suggestedQty = max(0, $product->reorder_level - $product->current_stock + $product->safety_stock);
 
                 $suggestion = PurchaseSuggestion::create([

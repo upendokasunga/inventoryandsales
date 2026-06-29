@@ -8,7 +8,7 @@ class StoreSalesOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('sales.orders.store', 'can_create') ?? false;
     }
 
     public function rules(): array

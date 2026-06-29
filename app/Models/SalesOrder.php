@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AutoHasUuid;
-use App\Traits\AutoLogsAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,11 +11,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends Model
 {
-    use HasFactory, AutoHasUuid, AutoLogsAudit, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes;
 
     public const STATUSES = [
         'draft', 'pending_approval', 'approved', 'reserved',
-        'partially_fulfilled', 'fulfilled', 'cancelled',
+        'picking', 'packed', 'partially_fulfilled', 'fulfilled',
+        'invoiced', 'cancelled',
     ];
 
     protected $fillable = [
@@ -26,7 +26,10 @@ class SalesOrder extends Model
         'tax', 'total', 'notes', 'internal_notes',
         'created_by', 'approved_by', 'approved_at',
         'reserved_by', 'reserved_at',
+        'picked_by', 'picked_at',
+        'packed_by', 'packed_at',
         'fulfilled_by', 'fulfilled_at',
+        'invoiced_by', 'invoiced_at',
     ];
 
     protected function casts(): array
@@ -40,7 +43,10 @@ class SalesOrder extends Model
             'total' => 'decimal:2',
             'approved_at' => 'datetime',
             'reserved_at' => 'datetime',
+            'picked_at' => 'datetime',
+            'packed_at' => 'datetime',
             'fulfilled_at' => 'datetime',
+            'invoiced_at' => 'datetime',
         ];
     }
 

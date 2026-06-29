@@ -39,13 +39,15 @@ class ExpiryMonitoringService
             ->where('quantity_remaining', '>', 0)
             ->update(['status' => 'expired']);
 
-        Cache::forget('inventory.expiring.*');
+        $this->invalidateCache();
 
         return $count;
     }
 
     public function invalidateCache(): void
     {
-        Cache::forget('inventory.expiring.*');
+        foreach ([30, 60, 90] as $days) {
+            Cache::forget("inventory.expiring.{$days}");
+        }
     }
 }

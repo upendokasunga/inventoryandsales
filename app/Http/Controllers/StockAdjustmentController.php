@@ -132,18 +132,48 @@ class StockAdjustmentController extends Controller
             ->with('success', 'Stock adjustment updated.');
     }
 
-    public function complete(StockAdjustment $stockAdjustment)
+    public function submitForApproval(StockAdjustment $stockAdjustment)
     {
         if ($stockAdjustment->status !== 'draft') {
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Adjustment already processed.');
+                ->with('error', 'Only draft adjustments can be submitted.');
+        }
+
+        $stockAdjustment->update(['status' => 'pending_approval']);
+
+        return redirect()->route('stock-adjustments.show', $stockAdjustment)
+            ->with('success', 'Stock adjustment submitted for approval.');
+    }
+
+    public function approve(StockAdjustment $stockAdjustment)
+    {
+        if ($stockAdjustment->status !== 'pending_approval') {
+            return redirect()->route('stock-adjustments.show', $stockAdjustment)
+                ->with('error', 'Adjustment is not pending approval.');
+        }
+
+        $stockAdjustment->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
+
+        return redirect()->route('stock-adjustments.show', $stockAdjustment)
+            ->with('success', 'Stock adjustment approved.');
+    }
+
+    public function complete(StockAdjustment $stockAdjustment)
+    {
+        if (!in_array($stockAdjustment->status, ['draft', 'approved'])) {
+            return redirect()->route('stock-adjustments.show', $stockAdjustment)
+                ->with('error', 'Adjustment cannot be completed in its current status.');
         }
 
         DB::transaction(function () use ($stockAdjustment) {
             $stockAdjustment->update([
                 'status' => 'completed',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
+                'approved_by' => $stockAdjustment->approved_by ?? auth()->id(),
+                'approved_at' => $stockAdjustment->approved_at ?? now(),
             ]);
 
             foreach ($stockAdjustment->items as $item) {

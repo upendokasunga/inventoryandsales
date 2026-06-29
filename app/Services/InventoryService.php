@@ -88,6 +88,8 @@ class InventoryService
                 'last_transaction_at' => now(),
             ]);
 
+            $product->update(['current_stock' => $balanceAfter]);
+
             if ($batchNumber) {
                 $this->batchService->createBatch(
                     $product, $batchNumber, $quantity, $unitCost, $expiryDate
@@ -146,6 +148,8 @@ class InventoryService
                 'last_transaction_at' => now(),
             ]);
 
+            $product->update(['current_stock' => $balanceAfter]);
+
             $transaction = InventoryTransaction::create([
                 'product_id' => $product->id,
                 'reference_type' => $reference ? get_class($reference) : null,
@@ -203,6 +207,8 @@ class InventoryService
                 'total_value' => $newTotalValue,
                 'last_transaction_at' => now(),
             ]);
+
+            $product->update(['current_stock' => $balanceAfter]);
 
             $transaction = InventoryTransaction::create([
                 'product_id' => $product->id,

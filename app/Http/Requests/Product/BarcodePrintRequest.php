@@ -8,7 +8,7 @@ class BarcodePrintRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('products.barcodes', 'can_view') ?? false;
     }
 
     public function rules(): array

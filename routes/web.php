@@ -2,26 +2,33 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CreditNoteController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\CustomerGroupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoodsReceiptController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PosController;
 use App\Http\Controllers\PriceListController;
 use App\Http\Controllers\PricingSimulatorController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\PurchaseSuggestionController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\CustomerDashboardController;
-use App\Http\Controllers\StatementController;
+use App\Http\Controllers\RefundController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\SalesDashboardController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\StatementController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\SupplierAnalyticsController;
 use App\Http\Controllers\SupplierController;
@@ -301,6 +308,12 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::middleware("menu.access:can_edit")->group(function () {
         Route::get("stock-adjustments/{stockAdjustment}/edit", [StockAdjustmentController::class, "edit"])->name("stock-adjustments.edit");
         Route::patch("stock-adjustments/{stockAdjustment}", [StockAdjustmentController::class, "update"])->name("stock-adjustments.update");
+        Route::post("stock-adjustments/{stockAdjustment}/submit-approval", [StockAdjustmentController::class, "submitForApproval"])->name("stock-adjustments.submit-approval");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("stock-adjustments/{stockAdjustment}/approve", [StockAdjustmentController::class, "approve"])->name("stock-adjustments.approve");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
         Route::patch("stock-adjustments/{stockAdjustment}/complete", [StockAdjustmentController::class, "complete"])->name("stock-adjustments.complete");
     });
     Route::middleware("menu.access:can_delete")->group(function () {
@@ -330,6 +343,8 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::post("sales/orders/{salesOrder}/approve", [SalesOrderController::class, "approve"])->name("sales.orders.approve");
         Route::post("sales/orders/{salesOrder}/reject", [SalesOrderController::class, "reject"])->name("sales.orders.reject");
         Route::post("sales/orders/{salesOrder}/reserve", [SalesOrderController::class, "reserve"])->name("sales.orders.reserve");
+        Route::post("sales/orders/{salesOrder}/pick", [SalesOrderController::class, "startPicking"])->name("sales.orders.pick");
+        Route::post("sales/orders/{salesOrder}/pack", [SalesOrderController::class, "markPacked"])->name("sales.orders.pack");
         Route::post("sales/orders/{salesOrder}/fulfill", [SalesOrderController::class, "fulfill"])->name("sales.orders.fulfill");
         Route::post("sales/orders/{salesOrder}/cancel", [SalesOrderController::class, "cancel"])->name("sales.orders.cancel");
     });
@@ -339,6 +354,97 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::middleware("menu.access:can_edit")->group(function () {
         Route::post("sales/reservations/{stockReservation}/release", [ReservationController::class, "release"])->name("sales.reservations.release");
     });
+
+    // --- POS (Phase 9) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("pos", [PosController::class, "index"])->name("pos.index");
+        Route::get("pos/dashboard", [PosController::class, "dashboard"])->name("pos.dashboard");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("pos/barcode", [PosController::class, "lookupBarcode"])->name("pos.barcode");
+        Route::get("pos/sku", [PosController::class, "lookupSku"])->name("pos.sku");
+        Route::get("pos/customer", [PosController::class, "getCustomer"])->name("pos.customer");
+        Route::get("pos/price", [PosController::class, "getPrice"])->name("pos.price");
+        Route::post("pos/validate-credit", [PosController::class, "validateCredit"])->name("pos.validate-credit");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::post("pos/checkout", [PosController::class, "checkout"])->name("pos.checkout")->middleware("throttle:10,1");
+    });
+
+    // --- Invoices (Phase 9) ---
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("invoices/create", [InvoiceController::class, "create"])->name("invoices.create");
+        Route::post("invoices", [InvoiceController::class, "store"])->name("invoices.store")->middleware("throttle:30,1");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("invoices", [InvoiceController::class, "index"])->name("invoices.index");
+        Route::get("invoices/{invoice}", [InvoiceController::class, "show"])->name("invoices.show");
+        Route::get("invoices/{invoice}/print", [InvoiceController::class, "print"])->name("invoices.print");
+        Route::get("invoices/{invoice}/receipt", [InvoiceController::class, "receipt"])->name("invoices.receipt");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
+        Route::get("invoices/{invoice}/edit", [InvoiceController::class, "edit"])->name("invoices.edit");
+        Route::patch("invoices/{invoice}", [InvoiceController::class, "update"])->name("invoices.update");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("invoices/{invoice}/approve", [InvoiceController::class, "approve"])->name("invoices.approve");
+    });
+    Route::middleware("menu.access:can_delete")->group(function () {
+        Route::delete("invoices/{invoice}", [InvoiceController::class, "destroy"])->name("invoices.destroy");
+    });
+
+    // --- Payments (Phase 9) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("payments", [PaymentController::class, "index"])->name("payments.index");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("payments/create/{invoice}", [PaymentController::class, "create"])->name("payments.create");
+        Route::post("payments/{invoice}", [PaymentController::class, "store"])->name("payments.store")->middleware("throttle:10,1");
+    });
+
+    // --- Sales Returns (Phase 10) ---
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("sales-returns/create", [SalesReturnController::class, "create"])->name("sales-returns.create");
+        Route::post("sales-returns", [SalesReturnController::class, "store"])->name("sales-returns.store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("sales-returns", [SalesReturnController::class, "index"])->name("sales-returns.index");
+        Route::get("sales-returns/{salesReturn}", [SalesReturnController::class, "show"])->name("sales-returns.show");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("sales-returns/{salesReturn}/approve", [SalesReturnController::class, "approve"])->name("sales-returns.approve");
+        Route::post("sales-returns/{salesReturn}/reject", [SalesReturnController::class, "reject"])->name("sales-returns.reject");
+        Route::post("sales-returns/{salesReturn}/complete", [SalesReturnController::class, "complete"])->name("sales-returns.complete");
+    });
+
+    // --- Purchase Returns (Phase 10) ---
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("purchase-returns/create", [PurchaseReturnController::class, "create"])->name("purchase-returns.create");
+        Route::post("purchase-returns", [PurchaseReturnController::class, "store"])->name("purchase-returns.store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("purchase-returns", [PurchaseReturnController::class, "index"])->name("purchase-returns.index");
+        Route::get("purchase-returns/{purchaseReturn}", [PurchaseReturnController::class, "show"])->name("purchase-returns.show");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("purchase-returns/{purchaseReturn}/approve", [PurchaseReturnController::class, "approve"])->name("purchase-returns.approve");
+        Route::post("purchase-returns/{purchaseReturn}/reject", [PurchaseReturnController::class, "reject"])->name("purchase-returns.reject");
+        Route::post("purchase-returns/{purchaseReturn}/complete", [PurchaseReturnController::class, "complete"])->name("purchase-returns.complete");
+    });
+
+    // --- Credit Notes (Phase 10) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("credit-notes", [CreditNoteController::class, "index"])->name("credit-notes.index");
+        Route::get("credit-notes/{creditNote}", [CreditNoteController::class, "show"])->name("credit-notes.show");
+    });
+
+    // --- Refunds (Phase 10) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("refunds", [RefundController::class, "index"])->name("refunds.index");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::post("refunds/process", [RefundController::class, "process"])->name("refunds.process")->middleware("throttle:10,1");
+    });
 });
 
 Route::middleware("auth")->group(function () {
@@ -347,4 +453,5 @@ Route::middleware("auth")->group(function () {
     Route::delete("/profile", [ProfileController::class, "destroy"])->name("profile.destroy");
 });
 
+require __DIR__ . "/reports.php";
 require __DIR__ . "/auth.php";

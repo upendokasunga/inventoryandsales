@@ -8,7 +8,7 @@ class UpdateCustomerRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('customers.update', 'can_edit') ?? false;
     }
 
     public function rules(): array
