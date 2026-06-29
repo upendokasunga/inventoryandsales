@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UnitsSeeder::class,
             SequenceSeeder::class,
             SettingsSeeder::class,
+            SuperAdminUserSeeder::class,
         ]);
     }
 }
