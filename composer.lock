@@ -7,6 +7,7 @@
     "content-hash": "05731ca9553f7fbaf141134fa0d3c8ef",
     "packages": [
         {
+<<<<<<< Updated upstream
             "name": "barryvdh/laravel-dompdf",
             "version": "v3.1.2",
             "source": {
@@ -93,6 +94,17 @@
             },
             "dist": {
                 "type": "zip",
+=======
+            "name": "brick/math",
+            "version": "0.17.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brick/math.git",
+                "reference": "8189e751995f9e15729c1aa2f89fa8f166ffe818"
+            },
+            "dist": {
+                "type": "zip",
+>>>>>>> Stashed changes
                 "url": "https://api.github.com/repos/brick/math/zipball/8189e751995f9e15729c1aa2f89fa8f166ffe818",
                 "reference": "8189e751995f9e15729c1aa2f89fa8f166ffe818",
                 "shasum": ""
@@ -3776,6 +3788,7 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.3"
             },
             "time": "2026-06-18T03:57:49+00:00"
+<<<<<<< Updated upstream
         },
         {
             "name": "sabberworm/php-css-parser",
@@ -3856,6 +3869,8 @@
                 "source": "https://github.com/MyIntervals/PHP-CSS-Parser/tree/v9.4.0"
             },
             "time": "2026-06-18T15:10:53+00:00"
+=======
+>>>>>>> Stashed changes
         },
         {
             "name": "symfony/clock",
