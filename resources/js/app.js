@@ -1,8 +1,34 @@
 import Alpine from 'alpinejs';
+import persist from '@alpinejs/persist';
+
+Alpine.plugin(persist);
 
 window.Alpine = Alpine;
 
 document.addEventListener('alpine:init', () => {
+    Alpine.data('sidebarNav', (activeParentId) => ({
+        sidebarOpen: window.innerWidth >= 1024,
+        openSections: Alpine.$persist([]).as('sidebar-open-sections'),
+
+        init() {
+            if (activeParentId && !this.openSections.includes(activeParentId)) {
+                this.openSections.push(activeParentId);
+            }
+        },
+
+        toggleSection(id) {
+            if (this.openSections.includes(id)) {
+                this.openSections = this.openSections.filter(s => s !== id);
+            } else {
+                this.openSections = [...this.openSections, id];
+            }
+        },
+
+        isOpen(id) {
+            return this.openSections.includes(id);
+        },
+    }));
+
     Alpine.data('clock', () => ({
         now: new Date(),
         init() {
