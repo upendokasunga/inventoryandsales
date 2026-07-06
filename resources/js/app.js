@@ -6,26 +6,25 @@ Alpine.plugin(persist);
 window.Alpine = Alpine;
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('sidebarNav', (activeParentId) => ({
+    Alpine.store('erp', {
+        activeModule: null,
+    });
+
+    Alpine.data('erpSidebar', (initialModule) => ({
         sidebarOpen: window.innerWidth >= 1024,
-        openSections: Alpine.$persist([]).as('sidebar-open-sections'),
 
         init() {
-            if (activeParentId && !this.openSections.includes(activeParentId)) {
-                this.openSections.push(activeParentId);
+            if (initialModule !== null) {
+                this.$store.erp.activeModule = initialModule;
             }
         },
 
-        toggleSection(id) {
-            if (this.openSections.includes(id)) {
-                this.openSections = this.openSections.filter(s => s !== id);
-            } else {
-                this.openSections = [...this.openSections, id];
-            }
+        activateModule(index) {
+            this.$store.erp.activeModule = index;
         },
 
-        isOpen(id) {
-            return this.openSections.includes(id);
+        isActive(index) {
+            return this.$store.erp.activeModule === index;
         },
     }));
 
