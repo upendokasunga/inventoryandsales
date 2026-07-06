@@ -22,9 +22,9 @@ class ProfitAnalysisService
                 ->whereIn('status', ['paid', 'approved'])
                 ->whereBetween('created_at', [$startDate, $endDate]))
                 ->select(
-                    DB::raw('COALESCE(SUM(total), 0) as revenue'),
-                    DB::raw('COALESCE(SUM(unit_cost * quantity), 0) as cost'),
-                    DB::raw('COALESCE(SUM(total - (unit_cost * quantity)), 0) as gross_profit'),
+                    DB::raw('COALESCE(SUM(line_total), 0) as revenue'),
+                    DB::raw('COALESCE(SUM(unit_price * quantity), 0) as cost'),
+                    DB::raw('COALESCE(SUM(line_total - (unit_price * quantity)), 0) as gross_profit'),
                 )->first();
 
             $revenue = (float) ($items->revenue ?? 0);
@@ -72,9 +72,9 @@ class ProfitAnalysisService
             return InvoiceItem::select(
                 'product_id',
                 DB::raw('SUM(quantity) as quantity_sold'),
-                DB::raw('SUM(total) as revenue'),
-                DB::raw('SUM(unit_cost * quantity) as cost'),
-                DB::raw('SUM(total - (unit_cost * quantity)) as profit'),
+                DB::raw('SUM(line_total) as revenue'),
+                DB::raw('SUM(unit_price * quantity) as cost'),
+                DB::raw('SUM(line_total - (unit_price * quantity)) as profit'),
             )
                 ->whereHas('invoice', fn($q) => $q
                     ->whereIn('status', ['paid', 'approved'])
@@ -103,11 +103,11 @@ class ProfitAnalysisService
         return Cache::remember($key, 3600, function () use ($startDate, $endDate) {
             return InvoiceItem::select(
                 'products.category_id',
-                DB::raw('SUM(invoice_items.total) as revenue'),
-                DB::raw('SUM(invoice_items.unit_cost * invoice_items.quantity) as cost'),
-                DB::raw('SUM(invoice_items.total - (invoice_items.unit_cost * invoice_items.quantity)) as profit'),
+                DB::raw('SUM(sales_invoice_items.line_total) as revenue'),
+                DB::raw('SUM(sales_invoice_items.unit_price * sales_invoice_items.quantity) as cost'),
+                DB::raw('SUM(sales_invoice_items.line_total - (sales_invoice_items.unit_price * sales_invoice_items.quantity)) as profit'),
             )
-                ->join('products', 'products.id', '=', 'invoice_items.product_id')
+                ->join('products', 'products.id', '=', 'sales_invoice_items.product_id')
                 ->whereHas('invoice', fn($q) => $q
                     ->whereIn('status', ['paid', 'approved'])
                     ->whereBetween('created_at', [$startDate, $endDate]))
@@ -132,7 +132,7 @@ class ProfitAnalysisService
             return Invoice::select(
                 'customer_id',
                 DB::raw('COUNT(*) as order_count'),
-                DB::raw('SUM(total_amount) as revenue'),
+                DB::raw('SUM(total) as revenue'),
             )
                 ->whereIn('status', ['paid', 'approved'])
                 ->whereBetween('created_at', [$startDate, $endDate])
@@ -154,7 +154,7 @@ class ProfitAnalysisService
     {
         return Cache::remember("report.profit.top_margin.{$limit}", 3600, function () use ($limit) {
             return Product::whereHas('invoiceItems', fn($q) => $q->whereHas('invoice', fn($i) => $i->whereIn('status', ['paid', 'approved'])))
-                ->withCount(['invoiceItems as total_revenue' => fn($q) => $q->select(DB::raw('COALESCE(SUM(total), 0)'))
+                ->withCount(['invoiceItems as total_revenue' => fn($q) => $q->select(DB::raw('COALESCE(SUM(line_total), 0)'))
                     ->whereHas('invoice', fn($i) => $i->whereIn('status', ['paid', 'approved']))])
                 ->limit($limit)
                 ->get()
@@ -172,14 +172,14 @@ class ProfitAnalysisService
         return Cache::remember("report.profit.low_margin.{$limit}", 3600, function () use ($limit) {
             return InvoiceItem::select(
                 'product_id',
-                DB::raw('SUM(total) as revenue'),
-                DB::raw('SUM(unit_cost * quantity) as cost'),
-                DB::raw('SUM(total - (unit_cost * quantity)) as profit'),
+                DB::raw('SUM(line_total) as revenue'),
+                DB::raw('SUM(unit_price * quantity) as cost'),
+                DB::raw('SUM(line_total - (unit_price * quantity)) as profit'),
             )
                 ->whereHas('invoice', fn($q) => $q->whereIn('status', ['paid', 'approved']))
                 ->groupBy('product_id')
-                ->havingRaw('revenue > 0')
-                ->orderByRaw('(profit / revenue) ASC')
+                ->havingRaw('SUM(line_total) > 0')
+                ->orderByRaw('(SUM(line_total - (unit_price * quantity)) / SUM(line_total)) ASC')
                 ->limit($limit)
                 ->with('product:id,name,sku')
                 ->get()

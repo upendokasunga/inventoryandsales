@@ -87,8 +87,8 @@ class SalesReportService
             return InvoiceItem::select(
                 'product_id',
                 DB::raw('SUM(quantity) as total_quantity'),
-                DB::raw('SUM(total) as total_revenue'),
-                DB::raw('SUM(total - (unit_cost * quantity)) as gross_profit')
+                DB::raw('SUM(line_total) as total_revenue'),
+                DB::raw('SUM(line_total - (unit_price * quantity)) as gross_profit')
             )
                 ->whereHas('invoice', fn($q) => $q->whereIn('status', ['paid', 'approved'])
                     ->whereBetween('created_at', [$startDate, $endDate]))
@@ -106,11 +106,11 @@ class SalesReportService
         return Cache::remember("report.sales.top_categories.{$startDate}.{$endDate}.{$limit}", 3600, function () use ($startDate, $endDate, $limit) {
             return InvoiceItem::select(
                 'products.category_id',
-                DB::raw('SUM(invoice_items.total) as total_revenue'),
-                DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-                DB::raw('COUNT(DISTINCT invoice_items.invoice_id) as order_count')
+                DB::raw('SUM(sales_invoice_items.line_total) as total_revenue'),
+                DB::raw('SUM(sales_invoice_items.quantity) as total_quantity'),
+                DB::raw('COUNT(DISTINCT sales_invoice_items.invoice_id) as order_count')
             )
-                ->join('products', 'products.id', '=', 'invoice_items.product_id')
+                ->join('products', 'products.id', '=', 'sales_invoice_items.product_id')
                 ->whereHas('invoice', fn($q) => $q->whereIn('status', ['paid', 'approved'])
                     ->whereBetween('created_at', [$startDate, $endDate]))
                 ->groupBy('products.category_id')
@@ -151,7 +151,6 @@ class SalesReportService
                 DB::raw('SUM(amount) as total')
             )
                 ->whereBetween('payment_date', [$startDate, $endDate])
-                ->where('status', 'completed')
                 ->groupBy('payment_method')
                 ->get()
                 ->toArray();
@@ -182,7 +181,7 @@ class SalesReportService
 
         $cost = InvoiceItem::whereHas('invoice', fn($q) => $q->whereIn('status', ['paid', 'approved']))
             ->whereIn('invoice_id', (clone $query)->pluck('id'))
-            ->select(DB::raw('COALESCE(SUM(unit_cost * quantity), 0) as total_cost'))
+            ->select(DB::raw('COALESCE(SUM(unit_price * quantity), 0) as total_cost'))
             ->value('total_cost');
 
         $revenue = $stats->total_revenue ?? 0;

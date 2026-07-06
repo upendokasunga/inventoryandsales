@@ -90,11 +90,9 @@ class InventoryService
 
             $product->update(['current_stock' => $balanceAfter]);
 
-            if ($batchNumber) {
-                $this->batchService->createBatch(
-                    $product, $batchNumber, $quantity, $unitCost, $expiryDate
-                );
-            }
+            $this->batchService->createBatch(
+                $product, $batchNumber ?? 'BATCH-' . now()->timestamp, $quantity, $unitCost, $expiryDate
+            );
 
             $transaction = InventoryTransaction::create([
                 'product_id' => $product->id,

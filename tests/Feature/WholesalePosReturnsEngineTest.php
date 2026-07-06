@@ -21,6 +21,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\CreditNoteService;
 use App\Services\CreditService;
+use App\Services\InventoryService;
 use App\Services\InvoiceService;
 use App\Services\PaymentService;
 use App\Services\PosService;
@@ -269,10 +270,10 @@ class WholesalePosReturnsEngineTest extends TestCase
 
     public function test_invoice_has_invoice_number_in_correct_format(): void
     {
-        InvoiceNumberSequence::create([
-            'year' => now()->year,
-            'last_number' => 0,
-        ]);
+        InvoiceNumberSequence::firstOrCreate(
+            ['year' => now()->year],
+            ['last_number' => 0]
+        );
 
         $invoice = Invoice::factory()->create([
             'customer_id' => $this->customer->id,
@@ -878,10 +879,10 @@ class WholesalePosReturnsEngineTest extends TestCase
 
     public function test_credit_note_has_correct_number_format(): void
     {
-        CreditNoteNumberSequence::create([
-            'year' => now()->year,
-            'last_number' => 0,
-        ]);
+        CreditNoteNumberSequence::firstOrCreate(
+            ['year' => now()->year],
+            ['last_number' => 0]
+        );
 
         $creditNote = CreditNote::factory()->create([
             'customer_id' => $this->customer->id,

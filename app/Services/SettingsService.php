@@ -41,9 +41,11 @@ class SettingsService
 
     public function all()
     {
-        return Cache::remember($this->cacheKey, $this->ttl, function () {
-            return Setting::all();
+        $data = Cache::remember($this->cacheKey, $this->ttl, function () {
+            return Setting::all()->toArray();
         });
+
+        return Setting::hydrate($data);
     }
 
     public function has(string $key): bool

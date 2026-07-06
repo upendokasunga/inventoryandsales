@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Services\PosService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PosController extends Controller
@@ -23,7 +25,20 @@ class PosController extends Controller
     public function dashboard(): View
     {
         $stats = $this->posService->getDashboardStats();
-        return view('pos.dashboard', compact('stats'));
+
+        $chartLabels = range(1, now()->daysInMonth);
+        $dayExpr = DB::getDriverName() === 'sqlite'
+            ? "strftime('%d', created_at)"
+            : 'DAY(created_at)';
+        $chartData = Invoice::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->selectRaw("{$dayExpr} as day, SUM(total) as total")
+            ->groupBy('day')
+            ->pluck('total', 'day')
+            ->toArray();
+        $chartData = array_map(fn($d) => $chartData[$d] ?? 0, $chartLabels);
+
+        return view('pos.dashboard', compact('stats', 'chartLabels', 'chartData'));
     }
 
     public function lookupBarcode(Request $request): \Illuminate\Http\JsonResponse

@@ -36,7 +36,6 @@ return [
             'icon' => 'folder-tree',
             'route' => null,
             'children' => [
-                ['name' => 'Dashboard',          'route' => 'dashboard',                    'section' => null],
                 ['name' => 'Products',            'route' => 'products.index',              'section' => 'Products'],
                 ['name' => 'Categories',          'route' => 'categories.index',            'section' => 'Products'],
                 ['name' => 'Category Tree',       'route' => 'categories.tree',             'section' => 'Products'],

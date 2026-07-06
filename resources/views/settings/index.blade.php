@@ -1,60 +1,54 @@
 <x-app-layout>
-    <x-slot name="header">
-        {{ __('Settings') }}
-    </x-slot>
+    <x-slot name="header">{{ __('Settings') }}</x-slot>
+    <x-slot name="headerDescription">Configure system-wide settings and preferences.</x-slot>
 
     <div class="max-w-7xl mx-auto">
-        @if (session('success'))
-            <div class="mb-4 px-4 py-2 text-success-700 bg-success-50 border border-success-100 rounded-lg">{{ session('success') }}</div>
-        @endif
-
         <form action="{{ route('settings.update') }}" method="POST">
             @csrf @method('PATCH')
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60">
-                <div class="p-6">
-                    @if ($settings->isEmpty())
-                        <p class="text-sm text-slate-500">No settings configured yet.</p>
-                    @else
-                        <table class="min-w-full divide-y divide-slate-100">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Key</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Value</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Type</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Description</th>
+            <x-form-section title="System Configuration" description="Manage application settings and feature toggles.">
+                @if ($settings->isEmpty())
+                    <p class="text-sm text-slate-400">No settings configured yet.</p>
+                @else
+                    <table class="erp-table">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Key</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Value</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @foreach ($settings as $setting)
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 font-mono">{{ $setting->key }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">
+                                        <input type="hidden" name="settings[{{ $loop->index }}][key]" value="{{ $setting->key }}">
+                                        <input type="hidden" name="settings[{{ $loop->index }}][type]" value="{{ $setting->type }}">
+                                        @if ($setting->type === 'boolean')
+                                            <select name="settings[{{ $loop->index }}][value]" {{ $setting->is_editable ? '' : 'disabled' }} class="erp-input">
+                                                <option value="1" {{ $setting->value === '1' ? 'selected' : '' }}>True</option>
+                                                <option value="0" {{ $setting->value === '0' ? 'selected' : '' }}>False</option>
+                                            </select>
+                                        @else
+                                            <input type="text" name="settings[{{ $loop->index }}][value]" value="{{ $setting->value }}" {{ $setting->is_editable ? '' : 'disabled' }} class="erp-input">
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $setting->type }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $setting->description }}</td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-50">
-                                @foreach ($settings as $setting)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 font-mono">{{ $setting->key }}</td>
-                                        <td class="px-6 py-4 text-sm text-slate-500">
-                                            <input type="hidden" name="settings[{{ $loop->index }}][key]" value="{{ $setting->key }}">
-                                            <input type="hidden" name="settings[{{ $loop->index }}][type]" value="{{ $setting->type }}">
-                                            @if ($setting->type === 'boolean')
-                                                <select name="settings[{{ $loop->index }}][value]" {{ $setting->is_editable ? '' : 'disabled' }}
-                                                    class="erp-input">
-                                                    <option value="1" {{ $setting->value === '1' ? 'selected' : '' }}>True</option>
-                                                    <option value="0" {{ $setting->value === '0' ? 'selected' : '' }}>False</option>
-                                                </select>
-                                            @else
-                                                <input type="text" name="settings[{{ $loop->index }}][value]" value="{{ $setting->value }}" {{ $setting->is_editable ? '' : 'disabled' }}
-                                                    class="w-full erp-input">
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $setting->type }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $setting->description }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @endif
-                </div>
-            </div>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </x-form-section>
 
             @if ($settings->isNotEmpty())
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" class="erp-btn-primary">Save Settings</button>
+                    <button type="submit" class="erp-btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Save Settings
+                    </button>
                 </div>
             @endif
         </form>

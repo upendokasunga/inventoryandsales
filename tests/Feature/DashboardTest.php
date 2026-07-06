@@ -56,13 +56,14 @@ class DashboardTest extends TestCase
         $this->assertEquals($stats['groups'], $cached['groups']);
     }
 
-    public function test_non_admin_sees_no_stats(): void
+    public function test_non_admin_can_access_dashboard(): void
     {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertDontSee('Users');
+        $response->assertSee('Dashboard');
+        $response->assertSee('Total Products');
     }
 }

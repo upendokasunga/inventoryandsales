@@ -1,13 +1,20 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Customers') }}</x-slot>
-
-    <x-breadcrumbs :items="[['label' => 'Customers']]" />
+    <x-slot name="headerDescription">Manage your customer relationships — track balances, credit status, and engagement.</x-slot>
+    <x-slot name="headerActions">
+        <a href="{{ route('customers.dashboard') }}" class="erp-btn-secondary">Dashboard</a>
+        <a href="{{ route('customers.export-csv') }}" class="erp-btn-secondary">Export CSV</a>
+        <a href="{{ route('customers.create') }}" class="erp-btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Add Customer
+        </a>
+    </x-slot>
 
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
             <form method="GET" class="flex flex-wrap items-center gap-3">
                 <div class="relative">
-                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" name="search" placeholder="Search customers..." value="{{ request('search') }}"
                         class="erp-input pl-10 w-64">
                 </div>
@@ -24,71 +31,61 @@
                     @endforeach
                 </select>
                 <button type="submit" class="erp-btn-secondary">Filter</button>
-                <a href="{{ route('customers.index') }}" class="text-sm text-slate-500 hover:text-primary">Clear</a>
+                <a href="{{ route('customers.index') }}" class="text-sm text-slate-500 hover:text-primary transition">Clear</a>
             </form>
-            <div class="flex gap-2">
-                <a href="{{ route('customers.dashboard') }}" class="erp-btn-secondary">Dashboard</a>
-                <a href="{{ route('customers.export-csv') }}" class="erp-btn-secondary">Export CSV</a>
-                <a href="{{ route('customers.create') }}" class="erp-btn-primary">Add Customer</a>
-            </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-100">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Code</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Group</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contact</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Credit Limit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Outstanding</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse ($customers as $customer)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">{{ $customer->code }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('customers.show', $customer) }}" class="text-blue-600 hover:text-blue-500">{{ $customer->name }}</a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $customer->group?->name ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                    <div>{{ $customer->phone }}</div>
-                                    <div class="text-xs">{{ $customer->email }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{{ number_format($customer->credit_limit, 0) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm {{ $customer->outstanding_balance > 0 ? 'text-warning-600 font-medium' : 'text-slate-500' }}">{{ number_format($customer->outstanding_balance, 0) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @php
-                                        $badge = match($customer->credit_status) {
-                                            'good' => 'erp-badge-active',
-                                            'overdue' => 'erp-badge-inactive',
-                                            'suspended' => 'erp-badge-inactive',
-                                            default => 'erp-badge-inactive',
-                                        };
-                                    @endphp
-                                    <span class="{{ $badge }}">{{ ucfirst($customer->credit_status) }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                    <a href="{{ route('customers.show', $customer) }}" class="text-blue-600 hover:text-blue-500">View</a>
-                                    <a href="{{ route('customers.edit', $customer) }}" class="text-blue-600 hover:text-blue-500">Edit</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-4 text-center text-sm text-slate-500">No customers found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-6 py-4 border-t border-slate-100">
-                {{ $customers->appends(request()->query())->links() }}
-            </div>
+        <x-table-card :empty="count($customers) === 0" emptyMessage="No customers found. Add your first customer to get started." colspan="8">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Group</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Credit Limit</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Outstanding</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse ($customers as $customer)
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">{{ $customer->code }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{{ route('customers.show', $customer) }}" class="text-primary hover:text-primary/80 transition">{{ $customer->name }}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $customer->group?->name ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            <div>{{ $customer->phone }}</div>
+                            <div class="text-xs text-slate-400">{{ $customer->email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{{ number_format($customer->credit_limit, 0) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm {{ $customer->outstanding_balance > 0 ? 'text-warning-600 font-medium' : 'text-slate-500' }}">{{ number_format($customer->outstanding_balance, 0) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $badge = match($customer->credit_status) {
+                                    'good' => 'erp-badge-active',
+                                    'overdue' => 'erp-badge-inactive',
+                                    'suspended' => 'erp-badge-inactive',
+                                    default => 'erp-badge-inactive',
+                                };
+                            @endphp
+                            <span class="{{ $badge }}">{{ ucfirst($customer->credit_status) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <x-action-links
+                                :view="route('customers.show', $customer)"
+                                :edit="route('customers.edit', $customer)"
+                            />
+                        </td>
+                    </tr>
+                @empty
+                @endforelse
+            </tbody>
+        </x-table-card>
+        <div class="mt-4">
+            {{ $customers->appends(request()->query())->links() }}
         </div>
     </div>
 </x-app-layout>

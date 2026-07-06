@@ -36,30 +36,24 @@
 @endphp
 
 <div x-data="erpSubmenu"
-     x-show="$store.erp.activeModule !== null"
-     class="bg-white border-b border-slate-200/60 shadow-sm"
+     x-show="$store.erp.activeModule !== null && hasChildren"
+     class="bg-white rounded-2xl border border-gray-100/80 shadow-premium-xl mx-6 lg:mx-8 mt-8"
      style="{{ $initialActive !== null ? '' : 'display: none;' }}">
-    <div class="px-4 lg:px-6">
-        <div class="flex items-center h-10">
-            <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                <span x-text="activeModuleName"></span>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-1 pb-2 overflow-x-auto scrollbar-none">
+    <div class="px-6 lg:px-8">
+        <div class="flex items-center gap-1 overflow-x-auto scrollbar-none py-2.5">
             <template x-for="(child, idx) in children" :key="idx">
                 <template x-if="child.routeExists">
                     <a :href="child.url"
-                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition whitespace-nowrap"
+                       class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-150 whitespace-nowrap"
                        :class="activeChild === idx
-                           ? 'bg-primary text-white shadow-sm'
-                           : 'text-slate-600 hover:text-primary hover:bg-primary-50'"
+                           ? 'bg-primary text-white shadow-sm shadow-primary-500/20'
+                           : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'"
                        @click="setActiveChild(idx)">
                         <span x-text="child.name"></span>
                     </a>
                 </template>
                 <template x-if="!child.routeExists">
-                    <span class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-slate-300 cursor-not-allowed whitespace-nowrap"
+                    <span class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-xl text-gray-300 cursor-not-allowed whitespace-nowrap"
                           x-text="child.name"
                           title="Coming soon"></span>
                 </template>

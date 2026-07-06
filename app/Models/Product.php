@@ -51,7 +51,17 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
     public function productUnits(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class);
+    }
+
+    public function units(): HasMany
     {
         return $this->hasMany(ProductUnit::class);
     }
@@ -59,6 +69,16 @@ class Product extends Model
     public function priceListItems(): HasMany
     {
         return $this->hasMany(PriceListItem::class);
+    }
+
+    public function inventoryTransactions(): HasMany
+    {
+        return $this->hasMany(InventoryTransaction::class);
+    }
+
+    public function invoiceItems(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
     }
 
     public function scopeActive($query)

@@ -42,18 +42,18 @@ class SupplierReportService
         return Cache::remember($key, 3600, function () use ($supplierId) {
             $query = SupplierPerformance::select(
                 'supplier_id',
-                DB::raw('COUNT(*) as total_orders'),
-                DB::raw('SUM(CASE WHEN is_on_time = 1 THEN 1 ELSE 0 END) as on_time_deliveries'),
-                DB::raw('SUM(CASE WHEN is_on_time = 0 THEN 1 ELSE 0 END) as late_deliveries'),
-                DB::raw('AVG(CASE WHEN delivery_date IS NOT NULL AND expected_date IS NOT NULL THEN DATEDIFF(delivery_date, expected_date) ELSE NULL END) as avg_delay_days'),
+                'total_orders',
+                DB::raw('on_time_orders as on_time_deliveries'),
+                DB::raw('late_orders as late_deliveries'),
+                DB::raw('avg_lead_time_days as avg_delay_days'),
+                'on_time_rate',
             );
 
             if ($supplierId) {
                 $query->where('supplier_id', $supplierId);
             }
 
-            $performances = $query->groupBy('supplier_id')
-                ->with('supplier:id,name,email,phone')
+            $performances = $query->with('supplier:id,name,email,phone')
                 ->take(1000)->get()
                 ->map(fn($p) => [
                     'supplier_id' => $p->supplier_id,
@@ -61,7 +61,7 @@ class SupplierReportService
                     'total_orders' => (int) $p->total_orders,
                     'on_time_deliveries' => (int) $p->on_time_deliveries,
                     'late_deliveries' => (int) $p->late_deliveries,
-                    'on_time_rate' => $p->total_orders > 0 ? round(($p->on_time_deliveries / $p->total_orders) * 100, 2) : 0,
+                    'on_time_rate' => (float) $p->on_time_rate,
                     'avg_delay_days' => round((float) ($p->avg_delay_days ?? 0), 1),
                 ])->toArray();
 

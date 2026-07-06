@@ -1,87 +1,74 @@
 <x-app-layout>
     <x-slot name="header">Credit Notes</x-slot>
+    <x-slot name="headerDescription">Manage credit notes issued to customers for returns and adjustments.</x-slot>
 
-    <x-breadcrumbs :items="[['label' => 'Returns'], ['label' => 'Credit Notes']]" />
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <p class="text-xs text-slate-400">Issued</p>
-            <p class="text-lg font-bold text-slate-800">{{ $stats['total_issued'] }}</p>
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <x-stats-card title="Issued" :value="$stats['total_issued']" color="primary" />
+            <x-stats-card title="Applied" :value="$stats['total_applied']" color="success" />
+            <x-stats-card title="Total Amount" :value="number_format($stats['total_amount'], 2)" color="warning" />
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <p class="text-xs text-slate-400">Applied</p>
-            <p class="text-lg font-bold text-success">{{ $stats['total_applied'] }}</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <p class="text-xs text-slate-400">Total Amount</p>
-            <p class="text-lg font-bold text-primary">{{ number_format($stats['total_amount'], 2) }}</p>
-        </div>
-    </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div>
-                <label class="text-xs text-slate-500 block mb-1">Status</label>
-                <select name="status" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="">All</option>
-                    @foreach(\App\Models\CreditNote::STATUSES as $s)
-                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-xs text-slate-500 block mb-1">From</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
-            </div>
-            <div>
-                <label class="text-xs text-slate-500 block mb-1">To</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
-            </div>
-            <button type="submit" class="px-4 py-2 bg-primary text-white text-sm rounded-lg">Filter</button>
-            <a href="{{ route('credit-notes.index') }}" class="px-4 py-2 border border-slate-200 text-slate-600 text-sm rounded-lg">Reset</a>
-        </form>
-    </div>
+        <div class="erp-card mb-6">
+            <form method="GET" class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="text-xs font-medium text-slate-500 block mb-1.5">Status</label>
+                    <select name="status" class="erp-input">
+                        <option value="">All</option>
+                        @foreach(\App\Models\CreditNote::STATUSES as $s)
+                            <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-slate-500 block mb-1.5">From</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="erp-input">
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-slate-500 block mb-1.5">To</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="erp-input">
+                </div>
+                <button type="submit" class="erp-btn-primary">Filter</button>
+                <a href="{{ route('credit-notes.index') }}" class="erp-btn-secondary">Reset</a>
+            </form>
+        </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
-                    <tr>
-                        <th class="text-left px-4 py-3">CN #</th>
-                        <th class="text-left px-4 py-3">Customer</th>
-                        <th class="text-left px-4 py-3">Return</th>
-                        <th class="text-right px-4 py-3">Amount</th>
-                        <th class="text-left px-4 py-3">Method</th>
-                        <th class="text-center px-4 py-3">Status</th>
-                        <th class="text-left px-4 py-3">Date</th>
-                        <th class="text-center px-4 py-3"></th>
+        <x-table-card :empty="count($creditNotes) === 0" emptyMessage="No credit notes found." colspan="8">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">CN #</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Customer</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Return</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Method</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse ($creditNotes as $cn)
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{{ $cn->credit_note_number }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $cn->customer->name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $cn->salesReturn->return_number ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-success">{{ number_format($cn->amount, 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-slate-500">{{ $cn->refund_method ? str_replace('_', ' ', $cn->refund_method) : '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            @php
+                                $sc = ['issued' => 'erp-badge-approved', 'applied' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                            @endphp
+                            <span class="{{ $sc[$cn->status] ?? 'erp-badge-draft' }}">{{ ucfirst($cn->status) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $cn->issued_date->format('d M Y') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <x-action-links :view="route('credit-notes.show', $cn)" />
+                        </td>
                     </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @forelse ($creditNotes as $cn)
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-4 py-3 font-medium text-primary">{{ $cn->credit_note_number }}</td>
-                            <td class="px-4 py-3">{{ $cn->customer->name }}</td>
-                            <td class="px-4 py-3">{{ $cn->salesReturn->return_number ?? '-' }}</td>
-                            <td class="px-4 py-3 text-right font-medium text-success">{{ number_format($cn->amount, 2) }}</td>
-                            <td class="px-4 py-3 capitalize text-slate-500">{{ $cn->refund_method ? str_replace('_', ' ', $cn->refund_method) : '-' }}</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-1 text-xs rounded-full font-medium
-                                    @if($cn->status === 'issued') bg-blue-100 text-blue-700
-                                    @elseif($cn->status === 'applied') bg-green-100 text-green-700
-                                    @else bg-red-100 text-red-700 @endif">
-                                    {{ ucfirst($cn->status) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-slate-500">{{ $cn->issued_date->format('d M Y') }}</td>
-                            <td class="px-4 py-3 text-center"><a href="{{ route('credit-notes.show', $cn) }}" class="text-primary hover:underline text-xs">View</a></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No credit notes found.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="p-4 border-t border-slate-100">{{ $creditNotes->appends(request()->query())->links() }}</div>
+                @empty
+                @endforelse
+            </tbody>
+        </x-table-card>
+        <div class="mt-4">{{ $creditNotes->appends(request()->query())->links() }}</div>
     </div>
 </x-app-layout>

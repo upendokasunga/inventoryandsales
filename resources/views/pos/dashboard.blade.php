@@ -74,10 +74,10 @@
         new Chart(document.getElementById("salesTrendChart"), {
             type: "line",
             data: {
-                labels: @json(range(1, now()->daysInMonth)),
+                labels: @json($chartLabels ?? []),
                 datasets: [{
                     label: "Daily Sales",
-                    data: @json(\App\Models\Invoice::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->selectRaw('DAY(created_at) as day, SUM(total) as total')->groupBy('day')->pluck('total', 'day')),
+                    data: @json($chartData ?? []),
                     borderColor: "#1E4A92",
                     backgroundColor: "rgba(30, 74, 146, 0.1)",
                     fill: true,

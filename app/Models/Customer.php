@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
@@ -41,6 +42,23 @@ class Customer extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
+    }
+
+    public function priceLists(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            PriceList::class,
+            CustomerGroup::class,
+            'id',
+            'customer_group_id',
+            'customer_group_id',
+            'id'
+        );
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function creditTransactions(): HasMany

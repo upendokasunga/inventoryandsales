@@ -94,8 +94,7 @@ class CustomerReportService
     {
         $key = $customerId ? "report.customers.payment_behaviour.{$customerId}" : 'report.customers.payment_behaviour';
         return Cache::remember($key, 3600, function () use ($customerId) {
-            $query = Payment::where('status', 'completed')
-                ->select(
+            $query = Payment::select(
                     'payment_method',
                     DB::raw('COUNT(*) as count'),
                     DB::raw('SUM(amount) as total'),
@@ -199,7 +198,7 @@ class CustomerReportService
             $cost = InvoiceItem::whereHas('invoice', fn($q) => $q
                 ->where('customer_id', $customerId)
                 ->whereIn('status', ['paid', 'approved']))
-                ->select(DB::raw('COALESCE(SUM(unit_cost * quantity), 0) as total_cost'))
+                ->select(DB::raw('COALESCE(SUM(unit_price * quantity), 0) as total_cost'))
                 ->value('total_cost');
 
             $revenue = (float) ($data->total_revenue ?? 0);

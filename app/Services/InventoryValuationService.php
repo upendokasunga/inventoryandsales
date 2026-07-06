@@ -14,6 +14,8 @@ class InventoryValuationService
             ? "inventory.valuation.{$productId}"
             : 'inventory.valuation.summary';
 
+        Cache::forget($cacheKey);
+
         return Cache::remember($cacheKey, 3600, function () use ($productId) {
             $query = InventoryBalance::with('product');
 
@@ -37,7 +39,7 @@ class InventoryValuationService
                     'quantity_on_hand' => $b->quantity_on_hand,
                     'average_cost' => $b->average_cost,
                     'total_value' => $b->total_value,
-                ]),
+                ])->toArray(),
             ];
         });
     }

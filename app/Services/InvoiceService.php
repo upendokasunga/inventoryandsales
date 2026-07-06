@@ -83,7 +83,8 @@ class InvoiceService
             $data['balance_due'] = $data['total'] - ($data['amount_paid'] ?? 0);
             $data['created_by'] = $data['created_by'] ?? auth()->id();
             $data['invoice_date'] = $data['invoice_date'] ?? now();
-            $data['payment_status'] = $data['amount_paid'] >= $data['total'] ? 'paid' : ($data['amount_paid'] > 0 ? 'partial' : 'pending');
+            $amountPaid = $data['amount_paid'] ?? 0;
+            $data['payment_status'] = $amountPaid >= $data['total'] ? 'paid' : ($amountPaid > 0 ? 'partial' : 'pending');
 
             $invoice = Invoice::create($data);
             $invoice->items()->saveMany($invoiceItems);
