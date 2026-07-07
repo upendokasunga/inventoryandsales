@@ -55,6 +55,19 @@ class ProductService
     {
         $data['slug'] = Str::slug($data['name']);
 
+        if (empty($data['parent_product_id'])) {
+            $existing = Product::whereNull('parent_product_id')
+                ->where('name', $data['name'])
+                ->first();
+
+            if ($existing) {
+                throw new \InvalidArgumentException(
+                    "A product with the name '{$data['name']}' already exists. "
+                    . "Please register it as a sub-product of the existing product instead."
+                );
+            }
+        }
+
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
             $data['image'] = $data['image']->store('products', 'public');
         }
@@ -231,6 +244,16 @@ class ProductService
 
     public function delete(Product $product): void
     {
+        $onHandStock = \App\Models\InventoryTransaction::where('product_id', $product->id)
+            ->selectRaw('COALESCE(SUM(CASE WHEN type IN (\'in\',\'receive\',\'received\',\'adjust_in\',\'adjustment_in\',\'transfer_in\',\'opening\') THEN quantity ELSE 0 END) - SUM(CASE WHEN type IN (\'out\',\'issue\',\'issued\',\'adjust_out\',\'adjustment_out\',\'transfer_out\',\'consumption\') THEN quantity ELSE 0 END), 0) as balance')
+            ->value('balance');
+
+        if ($onHandStock > 0) {
+            throw new \InvalidArgumentException(
+                "Cannot delete product '{$product->name}'. It still has {$onHandStock} units in stock."
+            );
+        }
+
         if ($product->barcode_image) {
             Storage::disk('public')->delete($product->barcode_image);
         }

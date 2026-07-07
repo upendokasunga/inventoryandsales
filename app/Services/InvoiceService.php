@@ -86,13 +86,41 @@ class InvoiceService
             $invoiceItems = [];
             $soItems = [];
             foreach ($items as $item) {
+                $productId = $item['product_id'];
+                $subProductId = null;
+                $storeId = $item['store_id'] ?? $data['store_id'] ?? null;
+
+                if (!empty($item['sub_product_id'])) {
+                    if (str_contains((string) $item['sub_product_id'], '|')) {
+                        $parts = explode('|', (string) $item['sub_product_id']);
+                        $subProductId = $parts[0];
+                        if (!empty($parts[1])) {
+                            $storeId = $parts[1];
+                        }
+                    } else {
+                        $subProductId = $item['sub_product_id'];
+                    }
+                }
+
+                $product = \App\Models\Product::find($productId);
+                if ($product && $product->parent_product_id) {
+                    $subProductId = $productId;
+                    $productId = $product->parent_product_id;
+                }
+
+                if ($product && $product->has_variants && $product->variants()->exists() && !$subProductId) {
+                    throw new \InvalidArgumentException("Product {$product->name} requires a variant selection.");
+                }
+
                 $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                 $subtotal += $item['unit_price'] * $item['quantity'];
                 $totalTax += $item['tax'] ?? 0;
                 $totalDiscount += $item['discount'] ?? 0;
 
                 $invoiceItems[] = new InvoiceItem([
-                    'product_id' => $item['product_id'],
+                    'product_id' => $productId,
+                    'sub_product_id' => $subProductId,
+                    'store_id' => $storeId,
                     'product_unit_id' => $item['product_unit_id'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
@@ -102,7 +130,7 @@ class InvoiceService
                 ]);
 
                 $soItems[] = new SalesOrderItem([
-                    'product_id' => $item['product_id'],
+                    'product_id' => $productId,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount' => $item['discount'] ?? 0,
@@ -164,13 +192,37 @@ class InvoiceService
                 $invoice->items()->delete();
 
                 foreach ($items as $item) {
+                    $productId = $item['product_id'];
+                    $subProductId = null;
+                    $storeId = $item['store_id'] ?? null;
+
+                    if (!empty($item['sub_product_id'])) {
+                        if (str_contains((string) $item['sub_product_id'], '|')) {
+                            $parts = explode('|', (string) $item['sub_product_id']);
+                            $subProductId = $parts[0];
+                            if (!empty($parts[1])) {
+                                $storeId = $parts[1];
+                            }
+                        } else {
+                            $subProductId = $item['sub_product_id'];
+                        }
+                    }
+
+                    $product = \App\Models\Product::find($productId);
+                    if ($product && $product->parent_product_id) {
+                        $subProductId = $productId;
+                        $productId = $product->parent_product_id;
+                    }
+
                     $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                     $subtotal += $item['unit_price'] * $item['quantity'];
                     $totalTax += $item['tax'] ?? 0;
                     $totalDiscount += $item['discount'] ?? 0;
 
                     $invoice->items()->create([
-                        'product_id' => $item['product_id'],
+                        'product_id' => $productId,
+                        'sub_product_id' => $subProductId,
+                        'store_id' => $storeId,
                         'product_unit_id' => $item['product_unit_id'] ?? null,
                         'quantity' => $item['quantity'],
                         'unit_price' => $item['unit_price'],

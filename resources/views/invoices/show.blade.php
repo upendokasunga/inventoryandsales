@@ -58,7 +58,15 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach($invoice->items as $item)
                             <tr>
-                                <td class="px-3 py-2.5">{{ $item->product->name ?? 'N/A' }}</td>
+                                <td class="px-3 py-2.5">
+                                    {{ $item->product->name ?? 'N/A' }}
+                                    @if($item->subProduct)
+                                        <br><span class="text-xs text-slate-400">Variant: {{ $item->subProduct->name }}</span>
+                                    @endif
+                                    @if($item->store)
+                                        <br><span class="text-xs text-slate-400">Store: {{ $item->store->name }}</span>
+                                    @endif
+                                </td>
                                 <td class="px-3 py-2.5 text-center">{{ $item->quantity }} {{ $item->unit?->name ?? '' }}</td>
                                 <td class="px-3 py-2.5 text-right">{{ number_format($item->unit_price, 2) }}</td>
                                 <td class="px-3 py-2.5 text-right">{{ number_format($item->discount, 2) }}</td>

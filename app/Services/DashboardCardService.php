@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DashboardCardConfig;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardCardService
@@ -12,9 +13,22 @@ class DashboardCardService
 
     public function getAll(): iterable
     {
-        return Cache::remember($this->cacheKey, $this->ttl, function () {
-            return DashboardCardConfig::orderBy('sort_order')->get();
-        });
+        $cached = Cache::get($this->cacheKey);
+
+        if ($cached !== null && is_array($cached)) {
+            return Collection::make(
+                array_map(fn(array $item) => (object) $item, $cached)
+            );
+        }
+
+        if ($cached !== null) {
+            $this->flushCache();
+        }
+
+        $items = DashboardCardConfig::orderBy('sort_order')->get();
+        Cache::put($this->cacheKey, $items->toArray(), $this->ttl);
+
+        return $items;
     }
 
     public function getEnabledBySection(string $section): iterable

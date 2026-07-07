@@ -47,13 +47,13 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.unit', 'payments', 'creator', 'approver']);
+        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit', 'payments', 'creator', 'approver']);
         return view('invoices.show', compact('invoice'));
     }
 
     public function edit(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.unit']);
+        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
         return view('invoices.edit', compact('invoice'));
     }
 

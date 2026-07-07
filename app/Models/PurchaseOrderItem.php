@@ -13,8 +13,8 @@ class PurchaseOrderItem extends Model
     use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
-        'purchase_order_id', 'product_id', 'quantity',
-        'unit_price', 'subtotal', 'received_quantity',
+        'purchase_order_id', 'product_id', 'product_make', 'quantity',
+        'unit_price', 'selling_price', 'subtotal', 'received_quantity',
     ];
 
     protected function casts(): array
@@ -22,6 +22,7 @@ class PurchaseOrderItem extends Model
         return [
             'quantity' => 'decimal:2',
             'unit_price' => 'decimal:2',
+            'selling_price' => 'decimal:2',
             'subtotal' => 'decimal:2',
             'received_quantity' => 'decimal:2',
         ];

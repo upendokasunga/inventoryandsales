@@ -25,6 +25,8 @@ class StoreInvoiceRequest extends FormRequest
             'notes' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.sub_product_id' => 'nullable|exists:products,id',
+            'items.*.store_id' => 'nullable|exists:stores,id',
             'items.*.product_unit_id' => 'nullable|exists:product_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',

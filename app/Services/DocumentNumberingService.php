@@ -33,9 +33,22 @@ class DocumentNumberingService
 
     public function getAllConfigs(): iterable
     {
-        return Cache::remember($this->cacheKey, 3600, function () {
-            return DocumentNumberingConfig::orderBy('document_type')->get();
-        });
+        $cached = Cache::get($this->cacheKey);
+
+        if ($cached !== null && is_array($cached)) {
+            return collect(
+                array_map(fn(array $item) => (object) $item, $cached)
+            );
+        }
+
+        if ($cached !== null) {
+            Cache::forget($this->cacheKey);
+        }
+
+        $configs = DocumentNumberingConfig::orderBy('document_type')->get();
+        Cache::put($this->cacheKey, $configs->toArray(), 3600);
+
+        return $configs;
     }
 
     public function getConfig(string $documentType): ?DocumentNumberingConfig

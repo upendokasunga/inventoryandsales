@@ -17,6 +17,8 @@ class InvoiceItem extends Model
         'uuid',
         'invoice_id',
         'product_id',
+        'sub_product_id',
+        'store_id',
         'product_unit_id',
         'quantity',
         'unit_price',
@@ -44,6 +46,16 @@ class InvoiceItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function subProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'sub_product_id');
+    }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'store_id');
     }
 
     public function unit(): BelongsTo
