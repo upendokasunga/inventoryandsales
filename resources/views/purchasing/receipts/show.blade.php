@@ -7,6 +7,7 @@
         <div class="mb-4 flex items-center justify-between">
             <a href="{{ route('purchasing.receipts.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
+                <a href="{{ route('purchasing.receipts.print', $goodsReceipt) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
                 @if ($goodsReceipt->status === 'draft')
                     <form action="{{ route('purchasing.receipts.complete', $goodsReceipt) }}" method="POST" class="inline"
                         onsubmit="return confirm('Complete this receipt? This will update order quantities.');">

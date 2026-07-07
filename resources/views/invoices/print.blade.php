@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>{{ $invoice->status === 'proforma' ? 'Proforma Invoice' : 'Invoice' }} {{ $invoice->invoice_number }}</title>
     <style>
         @page { margin: 20mm; }
         body { font-family: 'Inter', sans-serif; font-size: 12px; color: #1e293b; }
@@ -30,7 +30,7 @@
             <p>{{ $business['phone'] }} | {{ $business['email'] }}</p>
         </div>
         <div style="text-align:right">
-            <div class="invoice-title">INVOICE</div>
+            <div class="invoice-title">{{ $invoice->status === 'proforma' ? 'PROFORMA INVOICE' : 'INVOICE' }}</div>
             <p><strong>{{ $invoice->invoice_number }}</strong></p>
             <p>{{ $invoice->invoice_date->format('d M Y') }}</p>
             <span class="badge badge-{{ $invoice->payment_status }}">{{ ucfirst($invoice->payment_status) }}</span>

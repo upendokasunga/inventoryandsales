@@ -6,22 +6,27 @@ use App\Http\Requests\StoreStockAdjustmentRequest;
 use App\Http\Requests\UpdateStockAdjustmentRequest;
 use App\Models\Product;
 use App\Models\StockAdjustment;
+use App\Services\CentralApprovalService;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class StockAdjustmentController extends Controller
 {
     public function __construct(
         protected InventoryService $inventoryService,
+        protected CentralApprovalService $centralApproval,
     ) {}
 
     public function index(Request $request)
     {
+        $tab = $request->get('tab', 'all');
+
         $query = StockAdjustment::with(['creator', 'items.product']);
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($tab !== 'all') {
+            $query->where('status', $tab);
         }
 
         if ($request->filled('type')) {
@@ -30,7 +35,16 @@ class StockAdjustmentController extends Controller
 
         $adjustments = $query->latest()->paginate(20);
 
-        return view('stock-adjustments.index', compact('adjustments'));
+        $counts = [
+            'all' => StockAdjustment::count(),
+            'draft' => StockAdjustment::where('status', 'draft')->count(),
+            'pending_approval' => StockAdjustment::where('status', 'pending_approval')->count(),
+            'approved' => StockAdjustment::where('status', 'approved')->count(),
+            'completed' => StockAdjustment::where('status', 'completed')->count(),
+            'cancelled' => StockAdjustment::where('status', 'cancelled')->count(),
+        ];
+
+        return view('stock-adjustments.index', compact('adjustments', 'tab', 'counts'));
     }
 
     public function create()
@@ -80,6 +94,14 @@ class StockAdjustmentController extends Controller
     {
         $stockAdjustment->load(['items.product', 'creator', 'approver']);
         return view('stock-adjustments.show', compact('stockAdjustment'));
+    }
+
+    public function print(StockAdjustment $stockAdjustment): Response
+    {
+        $stockAdjustment->load(['items.product', 'creator', 'approver']);
+        $data = app(\App\Services\PrintDocumentService::class)->getLetterheadData();
+        $data['stockAdjustment'] = $stockAdjustment;
+        return app(\App\Services\PrintDocumentService::class)->streamPdf('print.stock-adjustment', $data, "adj-{$stockAdjustment->adjustment_number}.pdf");
     }
 
     public function edit(StockAdjustment $stockAdjustment)
@@ -134,32 +156,26 @@ class StockAdjustmentController extends Controller
 
     public function submitForApproval(StockAdjustment $stockAdjustment)
     {
-        if ($stockAdjustment->status !== 'draft') {
+        try {
+            $this->centralApproval->submit($stockAdjustment);
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Only draft adjustments can be submitted.');
+                ->with('success', 'Stock adjustment submitted for approval.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('stock-adjustments.show', $stockAdjustment)
+                ->with('error', $e->getMessage());
         }
-
-        $stockAdjustment->update(['status' => 'pending_approval']);
-
-        return redirect()->route('stock-adjustments.show', $stockAdjustment)
-            ->with('success', 'Stock adjustment submitted for approval.');
     }
 
     public function approve(StockAdjustment $stockAdjustment)
     {
-        if ($stockAdjustment->status !== 'pending_approval') {
+        try {
+            $this->centralApproval->approve($stockAdjustment);
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Adjustment is not pending approval.');
+                ->with('success', 'Stock adjustment approved.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('stock-adjustments.show', $stockAdjustment)
+                ->with('error', $e->getMessage());
         }
-
-        $stockAdjustment->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
-
-        return redirect()->route('stock-adjustments.show', $stockAdjustment)
-            ->with('success', 'Stock adjustment approved.');
     }
 
     public function complete(StockAdjustment $stockAdjustment)

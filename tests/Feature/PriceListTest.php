@@ -35,11 +35,10 @@ class PriceListTest extends TestCase
         $this->customerGroup = CustomerGroup::factory()->create(["name" => "Wholesale"]);
     }
 
-    public function test_price_list_dashboard_is_accessible(): void
+    public function test_price_list_dashboard_redirects_to_main(): void
     {
         $response = $this->actingAs($this->admin)->get(route("price-lists.dashboard"));
-        $response->assertStatus(200);
-        $response->assertSee("Pricing Dashboard");
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_price_list_index_is_accessible(): void
@@ -63,7 +62,6 @@ class PriceListTest extends TestCase
             "name" => "Wholesale Pricing 2026",
             "description" => "Standard wholesale prices",
             "customer_group_id" => $this->customerGroup->id,
-            "currency" => "TZS",
             "is_active" => true,
             "items" => [
                 [
@@ -85,7 +83,6 @@ class PriceListTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->post(route("price-lists.store"), [
             "name" => "",
-            "currency" => "TZS",
             "items" => [
                 [
                     "product_id" => $this->product->id,
@@ -103,7 +100,6 @@ class PriceListTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->post(route("price-lists.store"), [
             "name" => "Empty List",
-            "currency" => "TZS",
             "items" => [],
         ]);
 
@@ -116,7 +112,6 @@ class PriceListTest extends TestCase
 
         $response = $this->actingAs($this->admin)->patch(route("price-lists.update", $priceList), [
             "name" => "Updated Pricing",
-            "currency" => "TZS",
             "is_active" => true,
             "items" => [
                 [
@@ -188,7 +183,6 @@ class PriceListTest extends TestCase
     {
         $this->actingAs($this->admin)->post(route("price-lists.store"), [
             "name" => "Audited List",
-            "currency" => "TZS",
             "items" => [
                 [
                     "product_id" => $this->product->id,
@@ -231,7 +225,6 @@ class PriceListTest extends TestCase
 
         $response = $this->actingAs($this->admin)->patch(route("price-lists.update", $priceList), [
             "name" => "Overlap Test Updated",
-            "currency" => "TZS",
             "is_active" => true,
             "items" => [
                 [
@@ -260,7 +253,6 @@ class PriceListTest extends TestCase
 
         $response = $this->actingAs($this->admin)->patch(route("price-lists.update", $priceList), [
             "name" => "Non Overlap",
-            "currency" => "TZS",
             "is_active" => true,
             "items" => [
                 [
@@ -289,7 +281,6 @@ class PriceListTest extends TestCase
 
         $this->actingAs($this->admin)->post(route("price-lists.store"), [
             "name" => "Cache Test",
-            "currency" => "TZS",
             "items" => [
                 [
                     "product_id" => $this->product->id,

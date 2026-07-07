@@ -14,7 +14,6 @@ use App\Models\SupplierPerformance;
 use App\Models\SupplierPriceHistory;
 use App\Models\User;
 use App\Services\GoodsReceiptService;
-use App\Services\PurchaseApprovalService;
 use App\Services\PurchaseOrderService;
 use App\Services\PurchaseSuggestionService;
 use App\Services\SupplierAnalyticsService;
@@ -607,7 +606,6 @@ class PurchasingEngineTest extends TestCase
             'unit_price' => 1500,
             'previous_price' => 1200,
             'price_change' => 300,
-            'currency' => 'TZS',
             'effective_date' => now()->format('Y-m-d'),
         ]);
 

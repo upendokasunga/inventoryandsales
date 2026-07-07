@@ -9,25 +9,27 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <x-stats-card title="Total Orders" :value="$stats['total']" color="primary" />
-            <x-stats-card title="Draft" :value="$stats['draft']" color="slate" />
-            <x-stats-card title="Pending Approval" :value="$stats['pending_approval']" color="warning" />
-            <x-stats-card title="Completed" :value="$stats['completed']" color="success" />
+        <div class="mb-6 border-b border-slate-200/60">
+            <nav class="flex gap-6 -mb-px overflow-x-auto">
+                @php $tabs = ['all' => 'All', 'draft' => 'Draft', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'sent' => 'Sent', 'partially_received' => 'Partial', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
+                @foreach ($tabs as $key => $label)
+                    <a href="{{ route('purchasing.orders.index', ['tab' => $key] + request()->except(['tab', 'status'])) }}"
+                       class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
+                       {{ ($tab ?? 'all') === $key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                        {{ $label }}
+                        <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{{ $stats[$key === 'all' ? 'total' : $key] ?? 0 }}</span>
+                    </a>
+                @endforeach
+            </nav>
         </div>
 
         <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
             <form method="GET" class="flex gap-2 flex-wrap">
+                <input type="hidden" name="tab" value="{{ $tab ?? 'all' }}">
                 <div class="relative">
                     <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Search PO # or supplier..." class="erp-input pl-10">
                 </div>
-                <select name="status" class="erp-input" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    @foreach (['draft', 'pending_approval', 'approved', 'sent', 'partially_received', 'completed', 'cancelled'] as $s)
-                        <option value="{{ $s }}" {{ ($filters['status'] ?? '') == $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $s)) }}</option>
-                    @endforeach
-                </select>
                 <select name="supplier_id" class="erp-input" onchange="this.form.submit()">
                     <option value="">All Suppliers</option>
                     @foreach ($suppliers as $id => $name)
@@ -38,7 +40,7 @@
             </form>
         </div>
 
-        <x-table-card :empty="count($orders) === 0" emptyMessage="No purchase orders found. Create one to get started." colspan="6">
+        <x-table-card :empty="count($orders) === 0" emptyMessage="No purchase orders found." colspan="6">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PO #</th>

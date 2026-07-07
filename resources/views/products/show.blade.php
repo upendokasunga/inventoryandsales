@@ -70,6 +70,18 @@
                             <span class="text-xs font-medium text-slate-500 uppercase">Reorder Level</span>
                             <p class="mt-1 text-sm text-slate-800">{{ $product->reorder_level }}</p>
                         </div>
+                        @if ($product->parentProduct)
+                        <div>
+                            <span class="text-xs font-medium text-slate-500 uppercase">Parent Product</span>
+                            <p class="mt-1 text-sm"><a href="{{ route('products.show', $product->parentProduct) }}" class="text-primary hover:underline">{{ $product->parentProduct->name }}</a></p>
+                        </div>
+                        @endif
+                        @if ($product->has_variants)
+                        <div>
+                            <span class="text-xs font-medium text-slate-500 uppercase">Variants</span>
+                            <p class="mt-1 text-sm text-slate-800">{{ $product->variants->count() }} variant(s)</p>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -160,6 +172,84 @@
                         @endforelse
                     </div>
                 </div>
+
+                @if ($product->has_variants)
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-blue-100">
+                        <h3 class="text-lg font-semibold text-slate-800">
+                            Variants / Sub-Products
+                            <span class="ml-2 text-sm font-normal text-slate-400">({{ $product->variants->count() }})</span>
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        @if ($product->variant_attributes)
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            @foreach ($product->variant_attributes as $key => $value)
+                                <span class="inline-flex items-center bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full">{{ $key }}: {{ $value }}</span>
+                            @endforeach
+                        </div>
+                        @endif
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-100">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">SKU</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Attributes</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Purchase</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Selling</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Stock</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @forelse ($product->variants as $variant)
+                                        @php $firstUnit = $variant->productUnits->first(); @endphp
+                                        <tr class="hover:bg-slate-50/50 transition">
+                                            <td class="px-4 py-3 text-sm font-mono text-slate-800">{{ $variant->sku }}</td>
+                                            <td class="px-4 py-3 text-sm">
+                                                <a href="{{ route('products.show', $variant) }}" class="text-primary hover:underline font-medium">{{ $variant->name }}</a>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-slate-600">
+                                                @if ($variant->variant_attributes)
+                                                    @foreach ($variant->variant_attributes as $k => $v)
+                                                        <span class="inline-block bg-slate-100 text-slate-700 text-xs px-1.5 py-0.5 rounded mr-1 mb-1">{{ $k }}: {{ $v }}</span>
+                                                    @endforeach
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right text-slate-600">
+                                                {{ $firstUnit?->purchase_price ? 'TSh ' . number_format($firstUnit->purchase_price, 0) : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right font-medium text-slate-800">
+                                                {{ $firstUnit?->selling_price ? 'TSh ' . number_format($firstUnit->selling_price, 0) : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-center">
+                                                <span class="font-mono {{ ($variant->current_stock ?? 0) <= $variant->reorder_level ? 'text-red-600' : 'text-slate-700' }}">
+                                                    {{ $variant->current_stock ?? 0 }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                @if ($variant->is_active)
+                                                    <span class="erp-badge-active">Active</span>
+                                                @else
+                                                    <span class="erp-badge-inactive">Inactive</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-8 text-center text-sm text-slate-500">
+                                                No variants yet. 
+                                                <a href="{{ route('products.edit', $product) }}" class="text-primary hover:underline">Edit product</a> to add variants.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
 
             <div class="space-y-6">

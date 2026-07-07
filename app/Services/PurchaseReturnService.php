@@ -14,6 +14,7 @@ class PurchaseReturnService
 {
     public function __construct(
         protected InventoryService $inventoryService,
+        protected DocumentNumberingService $numberingService,
     ) {}
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
@@ -106,24 +107,7 @@ class PurchaseReturnService
 
     protected function generateReturnNumber(): string
     {
-        $year = now()->year;
-
-        return DB::transaction(function () use ($year) {
-            $sequence = ReturnNumberSequence::where('year', $year)
-                ->where('type', 'PR')
-                ->lockForUpdate()
-                ->firstOrCreate(
-                    ['year' => $year, 'type' => 'PR'],
-                    ['last_number' => 0]
-                );
-
-            $sequence->increment('last_number');
-            $sequence->fresh();
-
-            $number = $sequence->last_number;
-
-            return 'PR-' . $year . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
-        });
+        return $this->numberingService->generateNumber('purchase_return', 'PR');
     }
 
     public function reject(PurchaseReturn $purchaseReturn): void

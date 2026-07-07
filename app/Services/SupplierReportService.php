@@ -132,7 +132,7 @@ class SupplierReportService
         return Cache::remember($key, 3600, function () use ($supplierId) {
             return SupplierPriceHistory::where('supplier_id', $supplierId)
                 ->with('product:id,name,sku')
-                ->orderByDesc('changed_at')
+                ->orderByDesc('effective_date')
                 ->limit(50)
                 ->get()
                 ->map(fn($h) => [
@@ -141,7 +141,7 @@ class SupplierReportService
                     'previous_price' => (float) $h->previous_price,
                     'new_price' => (float) $h->price,
                     'change_percent' => $h->previous_price > 0 ? round((($h->price - $h->previous_price) / $h->previous_price) * 100, 2) : 0,
-                    'changed_at' => $h->changed_at,
+                    'changed_at' => $h->effective_date,
                 ])->toArray();
         });
     }

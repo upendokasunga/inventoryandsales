@@ -1,93 +1,66 @@
 <x-app-layout>
-    <x-slot name="header">
-        {{ __('Goods Receipts') }}
+    <x-slot name="header">{{ __('Goods Receipts') }}</x-slot>
+    <x-slot name="headerDescription">Track goods receipts against purchase orders.</x-slot>
+    <x-slot name="headerActions">
+        <a href="{{ route('purchasing.receipts.create') }}" class="erp-btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Create Goods Receipt
+        </a>
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
-        @if (session('success'))
-            <div class="mb-4 px-4 py-2 text-success-700 bg-success-50 border border-success-100 rounded-lg">{{ session('success') }}</div>
-        @endif
-
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-4">
-                <p class="text-sm text-slate-500">Total Receipts</p>
-                <p class="text-2xl font-bold text-slate-800">{{ $stats['total'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-4">
-                <p class="text-sm text-slate-500">Draft</p>
-                <p class="text-2xl font-bold text-amber-600">{{ $stats['draft'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-4">
-                <p class="text-sm text-slate-500">Completed</p>
-                <p class="text-2xl font-bold text-green-600">{{ $stats['completed'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-4">
-                <p class="text-sm text-slate-500">Cancelled</p>
-                <p class="text-2xl font-bold text-red-600">{{ $stats['cancelled'] }}</p>
-            </div>
+        <div class="mb-6 border-b border-slate-200/60">
+            <nav class="flex gap-6 -mb-px overflow-x-auto">
+                @php $tabs = ['all' => 'All', 'draft' => 'Draft', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
+                @foreach ($tabs as $key => $label)
+                    <a href="{{ route('purchasing.receipts.index', ['tab' => $key] + request()->except(['tab', 'status'])) }}"
+                       class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
+                       {{ ($tab ?? 'all') === $key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                        {{ $label }}
+                        <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{{ $stats[$key === 'all' ? 'total' : $key] ?? 0 }}</span>
+                    </a>
+                @endforeach
+            </nav>
         </div>
 
-        <div class="mb-4 flex items-center justify-between">
-            <div>
-                <a href="{{ route('purchasing.receipts.create') }}" class="inline-flex items-center px-4 py-2 erp-btn-primary">
-                    Create Goods Receipt
-                </a>
-            </div>
-            <form method="GET" class="flex gap-2">
-                <select name="status" class="erp-input" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    @foreach (['draft', 'completed', 'cancelled'] as $s)
-                        <option value="{{ $s }}" {{ ($filters['status'] ?? '') == $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
-                    @endforeach
-                </select>
-            </form>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
-            <div class="p-6">
-                <table class="min-w-full divide-y divide-slate-100">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Receipt #</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">PO #</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Supplier</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Created By</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse ($receipts as $receipt)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
-                                    <a href="{{ route('purchasing.receipts.show', $receipt) }}" class="text-blue-600 hover:text-blue-500">
-                                        {{ $receipt->receipt_number ?? $receipt->id }}
-                                    </a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->po_number ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->supplier?->name ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->receipt_date?->format('M d, Y') ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @php
-                                        $c = ['draft' => 'bg-amber-100 text-amber-700', 'completed' => 'bg-green-100 text-green-700', 'cancelled' => 'bg-red-100 text-red-700'];
-                                    @endphp
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full {{ $c[$receipt->status] ?? 'bg-slate-100 text-slate-600' }}">{{ ucfirst($receipt->status) }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->creator?->name ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('purchasing.receipts.show', $receipt) }}" class="text-blue-600 hover:text-blue-500">View</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-sm text-slate-500">No goods receipts found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="mt-4">{{ $receipts->links() }}</div>
-            </div>
-        </div>
+        <x-table-card :empty="count($receipts) === 0" emptyMessage="No goods receipts found." colspan="7">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Receipt #</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PO #</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Supplier</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created By</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse ($receipts as $receipt)
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
+                            <a href="{{ route('purchasing.receipts.show', $receipt) }}" class="text-primary hover:text-primary/80 transition">{{ $receipt->receipt_number ?? $receipt->id }}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->po_number ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->supplier?->name ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->receipt_date?->format('M d, Y') ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $c = ['draft' => 'erp-badge-draft', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                            @endphp
+                            <span class="{{ $c[$receipt->status] ?? 'erp-badge-draft' }}">{{ ucfirst($receipt->status) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->creator?->name ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <x-action-links
+                                :view="route('purchasing.receipts.show', $receipt)"
+                            />
+                        </td>
+                    </tr>
+                @empty
+                @endforelse
+            </tbody>
+        </x-table-card>
+        <div class="mt-4">{{ $receipts->links() }}</div>
     </div>
 </x-app-layout>

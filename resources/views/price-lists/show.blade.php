@@ -16,7 +16,7 @@
 
                     <div class="grid grid-cols-2 gap-4 text-sm mb-4">
                         <div><span class="text-slate-500">Customer Group:</span> <span class="font-medium">{{ $priceList->customerGroup?->name ?? 'General' }}</span></div>
-                        <div><span class="text-slate-500">Currency:</span> <span class="font-medium">{{ $priceList->currency }}</span></div>
+                        <div><span class="text-slate-500">Currency:</span> <span class="font-medium">TZS</span></div>
                         <div><span class="text-slate-500">Valid:</span> <span class="font-medium">{{ $priceList->valid_from?->format('Y-m-d') ?? '∞' }} - {{ $priceList->valid_until?->format('Y-m-d') ?? '∞' }}</span></div>
                         <div>
                             <span class="text-slate-500">Status:</span>

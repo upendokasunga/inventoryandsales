@@ -20,6 +20,7 @@ class Product extends Model
         'category_id', 'name', 'slug', 'sku', 'barcode', 'barcode_image',
         'description', 'tax_rate', 'tax_inclusive', 'is_active',
         'track_stock', 'reorder_level', 'current_stock', 'safety_stock', 'image', 'weight',
+        'parent_product_id', 'has_variants', 'variant_attributes',
     ];
 
     protected function casts(): array
@@ -29,10 +30,12 @@ class Product extends Model
             'tax_inclusive' => 'boolean',
             'is_active' => 'boolean',
             'track_stock' => 'boolean',
+            'has_variants' => 'boolean',
             'reorder_level' => 'decimal:3',
             'current_stock' => 'decimal:3',
             'safety_stock' => 'decimal:3',
             'weight' => 'decimal:3',
+            'variant_attributes' => 'array',
         ];
     }
 
@@ -49,6 +52,26 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function parentProduct(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_product_id');
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_product_id');
+    }
+
+    public function scopeParents($query)
+    {
+        return $query->whereNull('parent_product_id');
+    }
+
+    public function scopeVariants($query)
+    {
+        return $query->whereNotNull('parent_product_id');
     }
 
     public function supplier(): BelongsTo

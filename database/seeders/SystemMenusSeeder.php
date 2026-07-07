@@ -50,6 +50,8 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Categories',           'route' => 'categories.index',         'icon' => 'folder-tree',   'module' => 'Master Data',    'sort_order' => 11, 'parent' => 'Master Data',      'section' => 'Products'],
             ['name' => 'Category Tree',        'route' => 'categories.tree',          'icon' => 'folder-tree',   'module' => 'Master Data',    'sort_order' => 12, 'parent' => 'Master Data',      'section' => 'Products'],
             ['name' => 'Units',                'route' => 'units.index',              'icon' => 'ruler',         'module' => 'Master Data',    'sort_order' => 13, 'parent' => 'Master Data',      'section' => 'Products'],
+            ['name' => 'Warehouses',           'route' => 'warehouses.index',         'icon' => 'archive',      'module' => 'Inventory',      'sort_order' => 14, 'parent' => 'Master Data',      'section' => 'Products'],
+            ['name' => 'Branches',             'route' => 'branches.index',           'icon' => 'office-building','module' => 'Administration', 'sort_order' => 15, 'parent' => 'Master Data',      'section' => 'Products'],
 
             // ── Master Data → Customers ──
             ['name' => 'Customers',            'route' => 'customers.index',          'icon' => 'shopping-cart', 'module' => 'Sales',         'sort_order' => 20, 'parent' => 'Master Data',      'section' => 'Customers'],
@@ -77,7 +79,9 @@ class SystemMenusSeeder extends Seeder
             // ── Inventory → Stock Operations ──
             ['name' => 'Inventory Dashboard',  'route' => 'inventory.index',         'icon' => 'archive',        'module' => 'Inventory', 'sort_order' => 10, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
             ['name' => 'Stock Adjustments',    'route' => 'stock-adjustments.index',  'icon' => 'adjustments',    'module' => 'Inventory', 'sort_order' => 11, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
-            ['name' => 'Reservations',         'route' => 'sales.reservations.index', 'icon' => 'lock-closed',    'module' => 'Sales',     'sort_order' => 12, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
+            ['name' => 'Store Requests',       'route' => 'store-requests.index',     'icon' => 'document-text',  'module' => 'Inventory', 'sort_order' => 12, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
+            ['name' => 'Stock Transfers',      'route' => 'stock-transfers.index',    'icon' => 'arrow-trending-up','module' => 'Inventory','sort_order' => 13, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
+            ['name' => 'Reservations',         'route' => 'sales.reservations.index', 'icon' => 'lock-closed',    'module' => 'Sales',     'sort_order' => 14, 'parent' => 'Inventory', 'section' => 'Stock Operations'],
 
             // ── Inventory → Batch Management ──
             ['name' => 'Batch Tracking',       'route' => 'inventory.batches',        'icon' => 'cube',           'module' => 'Inventory', 'sort_order' => 20, 'parent' => 'Inventory', 'section' => 'Batch Management'],
@@ -92,20 +96,31 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'POS Dashboard',        'route' => 'pos.dashboard',            'icon' => 'chart-pie',      'module' => 'Point of Sale', 'sort_order' => 21, 'parent' => 'Sales', 'section' => 'POS'],
             ['name' => 'Invoices',             'route' => 'invoices.index',           'icon' => 'document-text',  'module' => 'Sales',         'sort_order' => 22, 'parent' => 'Sales', 'section' => 'POS'],
             ['name' => 'Payments',             'route' => 'payments.index',           'icon' => 'cash',           'module' => 'Sales',         'sort_order' => 23, 'parent' => 'Sales', 'section' => 'POS'],
+            ['name' => 'Customer Advances',    'route' => 'customer-advances.index',   'icon' => 'banknotes',      'module' => 'Sales',         'sort_order' => 24, 'parent' => 'Sales', 'section' => 'POS'],
 
             // ── Sales → Returns ──
             ['name' => 'Sales Returns',        'route' => 'sales-returns.index',      'icon' => 'refresh',        'module' => 'Sales', 'sort_order' => 30, 'parent' => 'Sales', 'section' => 'Returns'],
             ['name' => 'Credit Notes',         'route' => 'credit-notes.index',       'icon' => 'document-text',  'module' => 'Sales', 'sort_order' => 31, 'parent' => 'Sales', 'section' => 'Returns'],
             ['name' => 'Refunds',              'route' => 'refunds.index',            'icon' => 'currency-dollar','module' => 'Sales', 'sort_order' => 32, 'parent' => 'Sales', 'section' => 'Returns'],
 
+            // ── Finance → Accounting ──
+            ['name' => 'Chart of Accounts',    'route' => 'accounts.index',           'icon' => 'book-open',     'module' => 'Finance',    'sort_order' => 10, 'parent' => 'Finance', 'section' => 'Accounting'],
+            ['name' => 'Journal Entries',      'route' => 'journal-entries.index',    'icon' => 'pencil-square', 'module' => 'Finance',    'sort_order' => 11, 'parent' => 'Finance', 'section' => 'Accounting'],
+            ['name' => 'Expenses',             'route' => 'expenses.index',           'icon' => 'currency-dollar','module' => 'Finance',   'sort_order' => 12, 'parent' => 'Finance', 'section' => 'Accounting'],
+            ['name' => 'Expense Categories',   'route' => 'expense-categories.index', 'icon' => 'tag',           'module' => 'Finance',    'sort_order' => 13, 'parent' => 'Finance', 'section' => 'Accounting'],
+
             // ── Finance → Profitability ──
-            ['name' => 'Profit Analysis',      'route' => 'reports.profit',           'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 10, 'parent' => 'Finance', 'section' => 'Profitability'],
+            ['name' => 'Profit Analysis',      'route' => 'reports.profit',           'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 20, 'parent' => 'Finance', 'section' => 'Profitability'],
 
             // ── Finance → Taxation ──
-            ['name' => 'Tax Reports',          'route' => 'reports.tax',              'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 20, 'parent' => 'Finance', 'section' => 'Taxation'],
+            ['name' => 'Tax Reports',          'route' => 'reports.tax',              'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 30, 'parent' => 'Finance', 'section' => 'Taxation'],
 
             // ── Finance → Payments ──
-            ['name' => 'Payment Reports',      'route' => 'reports.payments',         'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 30, 'parent' => 'Finance', 'section' => 'Payments'],
+            ['name' => 'Payment Reports',      'route' => 'reports.payments',         'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 40, 'parent' => 'Finance', 'section' => 'Payments'],
+
+            // ── Finance → Banking ──
+            ['name' => 'Bank Accounts',        'route' => 'bank-accounts.index',       'icon' => 'banknotes',      'module' => 'Finance', 'sort_order' => 50, 'parent' => 'Finance', 'section' => 'Banking'],
+            ['name' => 'Reconciliations',      'route' => 'bank-reconciliations.index', 'icon' => 'check-badge',   'module' => 'Finance', 'sort_order' => 51, 'parent' => 'Finance', 'section' => 'Banking'],
 
             // ── Reports & Analytics ──
             ['name' => 'Sales Reports',        'route' => 'reports.sales',            'icon' => 'chart-bar',  'module' => 'Reporting', 'sort_order' => 10, 'parent' => 'Reports & Analytics', 'section' => 'Sales Reports'],
@@ -117,10 +132,13 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Users',                'route' => 'users.index',              'icon' => 'users',       'module' => 'Authentication', 'sort_order' => 10, 'parent' => 'Administration', 'section' => 'Users & Security'],
             ['name' => 'Groups',               'route' => 'groups.index',             'icon' => 'user-group',  'module' => 'Authentication', 'sort_order' => 11, 'parent' => 'Administration', 'section' => 'Users & Security'],
             ['name' => 'Menus',                'route' => 'menus.index',              'icon' => 'menu',        'module' => 'Authentication', 'sort_order' => 12, 'parent' => 'Administration', 'section' => 'Users & Security'],
+            ['name' => 'Approval Levels',      'route' => 'approval-configurations.index', 'icon' => 'check-badge','module' => 'Administration','sort_order' => 13, 'parent' => 'Administration', 'section' => 'Users & Security'],
 
             // ── Administration → System ──
             ['name' => 'Settings',             'route' => 'settings.index',           'icon' => 'cog',         'module' => 'System',         'sort_order' => 20, 'parent' => 'Administration', 'section' => 'System'],
-            ['name' => 'Audit Logs',           'route' => 'audit-logs.index',         'icon' => 'clipboard-list', 'module' => 'System',      'sort_order' => 21, 'parent' => 'Administration', 'section' => 'System'],
+            ['name' => 'Dashboard Cards',      'route' => 'settings.dashboard-cards.index', 'icon' => 'cog',    'module' => 'System',         'sort_order' => 21, 'parent' => 'Administration', 'section' => 'System'],
+            ['name' => 'Document Numbering',   'route' => 'settings.document-numbering.index', 'icon' => 'cog', 'module' => 'System',         'sort_order' => 22, 'parent' => 'Administration', 'section' => 'System'],
+            ['name' => 'Audit Logs',           'route' => 'audit-logs.index',         'icon' => 'clipboard-list', 'module' => 'System',      'sort_order' => 23, 'parent' => 'Administration', 'section' => 'System'],
 
             // ── Administration → Reports ──
             ['name' => 'Scheduled Reports',    'route' => 'reports.scheduled.index',  'icon' => 'chart-bar',   'module' => 'Reporting',      'sort_order' => 30, 'parent' => 'Administration', 'section' => 'Reports'],

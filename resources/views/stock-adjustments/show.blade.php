@@ -5,6 +5,7 @@
         <div class="mb-4 flex items-center justify-between">
             <a href="{{ route('stock-adjustments.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
+                <a href="{{ route('stock-adjustments.print', $stockAdjustment) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
                 @if ($stockAdjustment->status === 'draft')
                     <a href="{{ route('stock-adjustments.edit', $stockAdjustment) }}" class="erp-btn-primary">Edit</a>
                     <form action="{{ route('stock-adjustments.complete', $stockAdjustment) }}" method="POST" class="inline"

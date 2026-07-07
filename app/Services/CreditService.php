@@ -104,7 +104,7 @@ class CreditService
             'amount' => $amount,
             'balance_before' => $balanceBefore,
             'balance_after' => $balanceAfter,
-            'currency' => 'TZS',
+
             'description' => $description ?? ucfirst($type) . ' transaction',
             'reference_type' => $referenceType,
             'reference_id' => $referenceId,

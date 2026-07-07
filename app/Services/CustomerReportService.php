@@ -48,7 +48,7 @@ class CustomerReportService
             $payments = Payment::whereHas('invoice', fn($q) => $q->where('customer_id', $customerId))
                 ->whereBetween('payment_date', [$startDate, $endDate])
                 ->orderBy('payment_date')
-                ->take(1000)->get(['id', 'invoice_id', 'amount', 'payment_method', 'payment_date', 'reference'])
+                ->take(1000)->get(['id', 'invoice_id', 'amount', 'payment_method', 'payment_date', 'reference_number'])
                 ->toArray();
 
             $transactions = CustomerCreditTransaction::where('customer_id', $customerId)

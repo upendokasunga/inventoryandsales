@@ -30,6 +30,8 @@
                                                 <option value="1" {{ $setting->value === '1' ? 'selected' : '' }}>True</option>
                                                 <option value="0" {{ $setting->value === '0' ? 'selected' : '' }}>False</option>
                                             </select>
+                                        @elseif ($setting->type === 'text' || $setting->type === 'textarea')
+                                            <textarea name="settings[{{ $loop->index }}][value]" {{ $setting->is_editable ? '' : 'disabled' }} class="erp-input" rows="3">{{ $setting->value }}</textarea>
                                         @else
                                             <input type="text" name="settings[{{ $loop->index }}][value]" value="{{ $setting->value }}" {{ $setting->is_editable ? '' : 'disabled' }} class="erp-input">
                                         @endif

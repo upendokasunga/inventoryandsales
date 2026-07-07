@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
             SequenceSeeder::class,
             SettingsSeeder::class,
             SuperAdminUserSeeder::class,
+            ApprovalSeeder::class,
+            DashboardCardConfigSeeder::class,
+            DocumentNumberingConfigSeeder::class,
         ]);
     }
 }

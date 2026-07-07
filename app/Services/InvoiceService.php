@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,29 @@ class InvoiceService
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
     {
         $query = Invoice::with(['customer', 'creator', 'items.product']);
+
+        $tab = $filters['tab'] ?? 'all';
+
+        if ($tab === 'draft') {
+            $query->where('status', 'draft');
+        } elseif ($tab === 'proforma') {
+            $query->where('status', 'proforma');
+        } elseif ($tab === 'pending_approval') {
+            $query->where('status', 'pending_approval');
+        } elseif ($tab === 'posted' || $tab === 'approved') {
+            $query->whereIn('status', ['approved', 'posted']);
+        } elseif ($tab === 'paid') {
+            $query->where('payment_status', 'paid');
+        } elseif ($tab === 'partial') {
+            $query->where('payment_status', 'partial');
+        } elseif ($tab === 'overdue') {
+            $query->whereIn('payment_status', ['pending', 'partial'])
+                ->where('invoice_date', '<', now());
+        } elseif ($tab === 'cancelled') {
+            $query->where('status', 'cancelled');
+        } elseif ($tab === 'reversed') {
+            $query->where('status', 'reversed');
+        }
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -59,6 +84,7 @@ class InvoiceService
             $totalDiscount = 0;
 
             $invoiceItems = [];
+            $soItems = [];
             foreach ($items as $item) {
                 $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                 $subtotal += $item['unit_price'] * $item['quantity'];
@@ -74,6 +100,17 @@ class InvoiceService
                     'tax' => $item['tax'] ?? 0,
                     'line_total' => $lineTotal,
                 ]);
+
+                $soItems[] = new SalesOrderItem([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'discount' => $item['discount'] ?? 0,
+                    'tax' => $item['tax'] ?? 0,
+                    'subtotal' => $item['unit_price'] * $item['quantity'],
+                    'total' => $lineTotal,
+                    'fulfilled_quantity' => $item['quantity'],
+                ]);
             }
 
             $data['subtotal'] = $subtotal;
@@ -85,6 +122,23 @@ class InvoiceService
             $data['invoice_date'] = $data['invoice_date'] ?? now();
             $amountPaid = $data['amount_paid'] ?? 0;
             $data['payment_status'] = $amountPaid >= $data['total'] ? 'paid' : ($amountPaid > 0 ? 'partial' : 'pending');
+
+            $so = SalesOrder::create([
+                'customer_id' => $data['customer_id'],
+                'so_number' => 'SO-' . strtoupper(\Illuminate\Support\Str::random(8)),
+                'order_date' => $data['invoice_date'],
+                'status' => 'invoiced',
+                'subtotal' => $subtotal,
+                'discount' => $data['discount'] ?? 0,
+                'tax' => $data['tax'] ?? $totalTax,
+                'total' => $data['total'],
+                'notes' => $data['notes'] ?? null,
+                'created_by' => auth()->id(),
+                'invoiced_by' => auth()->id(),
+                'invoiced_at' => now(),
+            ]);
+            $so->items()->saveMany($soItems);
+            $data['sales_order_id'] = $so->id;
 
             $invoice = Invoice::create($data);
             $invoice->items()->saveMany($invoiceItems);

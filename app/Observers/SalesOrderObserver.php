@@ -3,28 +3,19 @@
 namespace App\Observers;
 
 use App\Models\SalesOrder;
-use App\Models\SoNumberSequence;
+use App\Services\DocumentNumberingService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class SalesOrderObserver
 {
+    public function __construct(
+        protected DocumentNumberingService $numberingService
+    ) {}
+
     public function creating(SalesOrder $salesOrder): void
     {
         if (empty($salesOrder->so_number)) {
-            DB::transaction(function () use ($salesOrder) {
-                $year = now()->year;
-
-                $sequence = SoNumberSequence::firstOrCreate(
-                    ['year' => $year],
-                    ['last_number' => 0]
-                );
-
-                $sequence->lockForUpdate();
-                $sequence->increment('last_number');
-
-                $salesOrder->so_number = 'SO-' . $year . '-' . str_pad($sequence->fresh()->last_number, 6, '0', STR_PAD_LEFT);
-            });
+            $salesOrder->so_number = $this->numberingService->generateNumber('sales_order');
         }
     }
 

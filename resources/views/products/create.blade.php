@@ -83,6 +83,74 @@
                                 class="erp-input">
                             <span class="ml-2 text-sm text-slate-700">Active</span>
                         </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="has_variants" value="1" {{ old('has_variants') ? 'checked' : '' }}
+                                class="erp-input">
+                            <span class="ml-2 text-sm text-slate-700">Has Variants</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6" id="variant-section" style="{{ old('has_variants') ? '' : 'display:none' }}">
+                <div class="px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-slate-800">Variants / Sub-Products</h3>
+                    <button type="button" id="generate-variants" class="erp-btn-primary text-xs">
+                        Generate Variants
+                    </button>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-slate-500 mb-3">Define attribute keys (e.g., Size, Color) and their comma-separated values. Click <strong>Generate Variants</strong> to create all combinations.</p>
+                    <div id="variant-attributes-container">
+                        @php $attrs = old('variant_attributes', []); @endphp
+                        @if (is_array($attrs) && count($attrs) > 0)
+                            @foreach ($attrs as $key => $value)
+                                <div class="attribute-row grid grid-cols-12 gap-3 mb-3">
+                                    <div class="col-span-5">
+                                        <input type="text" name="variant_attributes[{{ $loop->index }}][key]" value="{{ $key }}" placeholder="Attribute name (e.g. Size)" class="block w-full erp-input text-sm">
+                                    </div>
+                                    <div class="col-span-5">
+                                        <input type="text" name="variant_attributes[{{ $loop->index }}][value]" value="{{ $value }}" placeholder="Values (comma-separated, e.g. S,M,L,XL)" class="block w-full erp-input text-sm">
+                                    </div>
+                                    <div class="col-span-2 pt-1">
+                                        <button type="button" class="remove-attribute text-red-500 hover:text-red-700 text-sm">Remove</button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="attribute-row grid grid-cols-12 gap-3 mb-3">
+                                <div class="col-span-5">
+                                    <input type="text" name="variant_attributes[0][key]" placeholder="Attribute name (e.g. Size)" class="block w-full erp-input text-sm">
+                                </div>
+                                <div class="col-span-5">
+                                    <input type="text" name="variant_attributes[0][value]" placeholder="Values (comma-separated, e.g. S,M,L,XL)" class="block w-full erp-input text-sm">
+                                </div>
+                                <div class="col-span-2 pt-1">
+                                    <button type="button" class="remove-attribute text-red-500 hover:text-red-700 text-sm">Remove</button>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                    <button type="button" id="add-attribute" class="mt-2 text-sm text-primary hover:text-primary/80">+ Add Attribute</button>
+                </div>
+
+                <div class="px-6 pb-6" id="variants-table-wrapper" style="display:none;">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3">Generated Variants</h4>
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-slate-100 text-sm">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">SKU</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Barcode</th>
+                                    <th class="px-3 py-2 text-right text-xs font-medium text-slate-500 uppercase">Purchase Price</th>
+                                    <th class="px-3 py-2 text-right text-xs font-medium text-slate-500 uppercase">Selling Price</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-slate-500 uppercase">Active</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-slate-500 uppercase"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50" id="variants-tbody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -197,6 +265,145 @@
             const count = document.querySelectorAll('.unit-row').length;
             document.getElementById('no-units').classList.toggle('hidden', count > 0);
         }
+
+        const hasVariantsCb = document.querySelector('input[name="has_variants"]');
+        const variantSection = document.getElementById('variant-section');
+        if (hasVariantsCb) {
+            hasVariantsCb.addEventListener('change', function() {
+                variantSection.style.display = this.checked ? '' : 'none';
+            });
+        }
+
+        let attrIndex = {{ is_array(old('variant_attributes', [])) ? count(old('variant_attributes', [])) : 1 }};
+        document.getElementById('add-attribute')?.addEventListener('click', function() {
+            const container = document.getElementById('variant-attributes-container');
+            const template = document.querySelector('.attribute-row').cloneNode(true);
+            template.querySelectorAll('[name]').forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) input.setAttribute('name', name.replace(/\[\d+\]/, '[' + attrIndex + ']'));
+                if (input.type !== 'checkbox') input.value = '';
+            });
+            template.querySelector('.remove-attribute').addEventListener('click', function() { template.remove(); });
+            container.appendChild(template);
+            attrIndex++;
+        });
+        document.querySelectorAll('.remove-attribute').forEach(btn => {
+            btn.addEventListener('click', function() { this.closest('.attribute-row').remove(); });
+        });
+
+        function getVariantAttributes() {
+            const rows = document.querySelectorAll('#variant-attributes-container .attribute-row');
+            const attrs = [];
+            rows.forEach(row => {
+                const key = row.querySelector('input[name*="[key]"]')?.value?.trim();
+                const value = row.querySelector('input[name*="[value]"]')?.value?.trim();
+                if (key && value) attrs.push({ key, value });
+            });
+            return attrs;
+        }
+
+        function cartesianProduct(attrs) {
+            if (attrs.length === 0) return [];
+            const keys = attrs.map(a => a.key);
+            const values = attrs.map(a => a.value.split(',').map(v => v.trim()).filter(v => v));
+            if (values.some(v => v.length === 0)) return [];
+
+            function combine(arrays, prefix = []) {
+                if (arrays.length === 0) return [prefix];
+                const [first, ...rest] = arrays;
+                const result = [];
+                for (const val of first) {
+                    result.push(...combine(rest, [...prefix, val]));
+                }
+                return result;
+            }
+
+            return combine(values).map(combo => {
+                const obj = {};
+                keys.forEach((k, i) => { obj[k] = combo[i]; });
+                return obj;
+            });
+        }
+
+        let variantIndex = 0;
+
+        function renderVariants(combinations, parentName) {
+            const tbody = document.getElementById('variants-tbody');
+            tbody.innerHTML = '';
+            const wrapper = document.getElementById('variants-table-wrapper');
+            if (combinations.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+            wrapper.style.display = '';
+
+            combinations.forEach((combo, idx) => {
+                const parts = Object.values(combo);
+                const varName = parentName + ' - ' + parts.join(' / ');
+                const attrStr = JSON.stringify(combo);
+                const skuHint = parentName.substring(0, 3).toUpperCase() + '-' + parts.map(p => p.substring(0, 3).toUpperCase()).join('-');
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/50';
+                tr.innerHTML = `
+                    <td class="px-3 py-2">
+                        <input type="hidden" name="variants[${variantIndex}][attributes]" value='${attrStr}'>
+                        <input type="text" name="variants[${variantIndex}][name]" value="${varName}" class="erp-input text-xs w-48" required>
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="text" name="variants[${variantIndex}][sku]" value="${skuHint}" class="erp-input text-xs font-mono w-32">
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="text" name="variants[${variantIndex}][barcode]" value="" class="erp-input text-xs font-mono w-28">
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="number" step="0.01" min="0" name="variants[${variantIndex}][purchase_price]" value="" placeholder="0.00" class="erp-input text-xs w-24 text-right">
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="number" step="0.01" min="0" name="variants[${variantIndex}][selling_price]" value="" placeholder="0.00" class="erp-input text-xs w-24 text-right">
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                        <input type="hidden" name="variants[${variantIndex}][is_active]" value="0">
+                        <input type="checkbox" name="variants[${variantIndex}][is_active]" value="1" checked class="erp-input">
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                        <button type="button" class="remove-variant text-red-400 hover:text-red-600" title="Remove variant">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </td>
+                `;
+                tr.querySelector('.remove-variant')?.addEventListener('click', function() {
+                    tr.remove();
+                    if (tbody.children.length === 0) wrapper.style.display = 'none';
+                });
+                tbody.appendChild(tr);
+                variantIndex++;
+            });
+        }
+
+        document.getElementById('generate-variants')?.addEventListener('click', function() {
+            const attrs = getVariantAttributes();
+            const combos = cartesianProduct(attrs);
+            const parentName = document.getElementById('name')?.value?.trim() || 'Product';
+            renderVariants(combos, parentName);
+        });
+
+        document.getElementById('name')?.addEventListener('input', function() {
+            const parentName = this.value?.trim() || 'Product';
+            const rows = document.querySelectorAll('#variants-tbody tr');
+            if (rows.length > 0 && !document.querySelector('#variants-tbody tr td input')) return;
+            rows.forEach((row, idx) => {
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                if (nameInput) {
+                    const attrs = getVariantAttributes();
+                    const combos = cartesianProduct(attrs);
+                    if (combos[idx]) {
+                        const parts = Object.values(combos[idx]);
+                        nameInput.value = parentName + ' - ' + parts.join(' / ');
+                    }
+                }
+            });
+        });
     </script>
     @endpush
 </x-app-layout>

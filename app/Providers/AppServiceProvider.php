@@ -61,14 +61,14 @@ use App\Services\PriceListService;
 use App\Services\PriceRuleService;
 use App\Services\PricingService;
 use App\Services\PricingSimulationService;
-use App\Services\PurchaseApprovalService;
+use App\Services\CentralApprovalService;
+use App\Services\PrintDocumentService;
 use App\Services\PurchaseOrderService;
 use App\Services\PurchaseReturnService;
 use App\Services\PurchaseSuggestionService;
 use App\Services\ReceiptService;
 use App\Services\RefundService;
 use App\Services\ReservationService;
-use App\Services\SalesOrderApprovalService;
 use App\Services\SalesOrderService;
 use App\Services\SalesReturnService;
 use App\Services\SettingsService;
@@ -87,6 +87,8 @@ use App\Services\PaymentReportService;
 use App\Services\DashboardAnalyticsService;
 use App\Services\KpiService;
 use App\Services\ScheduledReportService;
+use App\Services\AdvanceService;
+use App\Services\BankingService;
 use App\Services\ExportService;
 use Illuminate\Support\ServiceProvider;
 
@@ -111,7 +113,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CustomerAnalyticsService::class);
         $this->app->singleton(PurchaseSuggestionService::class);
         $this->app->singleton(PurchaseOrderService::class);
-        $this->app->singleton(PurchaseApprovalService::class);
+        $this->app->singleton(CentralApprovalService::class);
+        $this->app->singleton(PrintDocumentService::class);
         $this->app->singleton(GoodsReceiptService::class);
         $this->app->singleton(SupplierAnalyticsService::class);
         $this->app->singleton(InventoryService::class);
@@ -121,7 +124,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(InventoryValuationService::class);
         $this->app->singleton(InventoryAnalyticsService::class);
         $this->app->singleton(SalesOrderService::class);
-        $this->app->singleton(SalesOrderApprovalService::class);
         $this->app->singleton(ReservationService::class);
         $this->app->singleton(FulfillmentService::class);
         $this->app->singleton(PosService::class);
@@ -143,7 +145,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(DashboardAnalyticsService::class);
         $this->app->singleton(KpiService::class);
         $this->app->singleton(ScheduledReportService::class);
+        $this->app->singleton(AdvanceService::class);
+        $this->app->singleton(BankingService::class);
         $this->app->singleton(ExportService::class);
+        $this->app->singleton(DocumentNumberingService::class);
+        $this->app->singleton(DashboardCardService::class);
     }
 
     public function boot(): void

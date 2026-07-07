@@ -15,6 +15,7 @@ class SalesReturnService
     public function __construct(
         protected InventoryService $inventoryService,
         protected CreditNoteService $creditNoteService,
+        protected DocumentNumberingService $numberingService,
     ) {}
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
@@ -130,24 +131,7 @@ class SalesReturnService
 
     protected function generateReturnNumber(): string
     {
-        $year = now()->year;
-
-        return DB::transaction(function () use ($year) {
-            $sequence = ReturnNumberSequence::where('year', $year)
-                ->where('type', 'SR')
-                ->lockForUpdate()
-                ->firstOrCreate(
-                    ['year' => $year, 'type' => 'SR'],
-                    ['last_number' => 0]
-                );
-
-            $sequence->increment('last_number');
-            $sequence->fresh();
-
-            $number = $sequence->last_number;
-
-            return 'SR-' . $year . '-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
-        });
+        return $this->numberingService->generateNumber('sales_return', 'SR');
     }
 
     public function getStats(): array

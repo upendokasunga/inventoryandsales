@@ -54,7 +54,7 @@
                                     <a href="{{ route('price-lists.show', $priceList) }}" class="text-blue-600 hover:text-blue-500">{{ $priceList->name }}</a>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $priceList->customerGroup?->name ?? 'General' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $priceList->currency }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">TZS</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if ($priceList->isExpired())
                                         <span class="erp-badge-inactive">Expired</span>

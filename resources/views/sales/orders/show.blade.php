@@ -9,6 +9,7 @@
         <div class="mb-4 flex items-center justify-between">
             <a href="{{ route('sales.orders.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
+                <a href="{{ route('sales.orders.print', $salesOrder) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
                 @if ($salesOrder->status === 'draft')
                     <a href="{{ route('sales.orders.edit', $salesOrder) }}" class="erp-btn-primary">Edit</a>
                     <form action="{{ route('sales.orders.submit-approval', $salesOrder) }}" method="POST" class="inline">

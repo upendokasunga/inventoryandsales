@@ -44,7 +44,7 @@ class Menu extends Model
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'group_menu')
-            ->withPivot('can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve', 'can_2fa')
+            ->withPivot('can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve', 'can_2fa', 'can_print', 'can_export', 'can_import', 'can_reverse', 'can_cancel')
             ->withTimestamps();
     }
 }

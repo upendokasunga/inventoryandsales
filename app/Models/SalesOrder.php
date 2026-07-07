@@ -2,16 +2,24 @@
 
 namespace App\Models;
 
+use App\Contracts\Approvable;
+use App\Services\CreditService;
 use App\Traits\AutoHasUuid;
+use App\Traits\HasApprovalWorkflow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SalesOrder extends Model
+class SalesOrder extends Model implements Approvable
 {
-    use HasFactory, AutoHasUuid, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes, HasApprovalWorkflow;
+
+    public function getApprovalConfigKey(): string
+    {
+        return 'sales_order';
+    }
 
     public const STATUSES = [
         'draft', 'pending_approval', 'approved', 'reserved',
@@ -93,5 +101,21 @@ class SalesOrder extends Model
     public function scopePendingApproval($query)
     {
         return $query->where('status', 'pending_approval');
+    }
+
+    public function onSubmitting(): void
+    {
+        if ($this->customer) {
+            $creditCheck = app(CreditService::class)->validateCredit(
+                $this->customer,
+                $this->total
+            );
+
+            if (!$creditCheck['approved']) {
+                throw new \InvalidArgumentException(
+                    'Credit check failed: ' . ($creditCheck['reason'] ?? 'Unknown reason')
+                );
+            }
+        }
     }
 }

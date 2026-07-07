@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Http\Requests\Expense;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateExpenseRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->hasMenuAccess('expenses.update', 'can_edit') ?? false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'expense_category_id' => 'nullable|exists:expense_categories,id',
+            'amount' => 'required|numeric|min:0',
+            'expense_date' => 'required|date',
+            'description' => 'nullable|string',
+            'payment_method' => 'nullable|string|max:50',
+            'paid_to' => 'nullable|exists:users,id',
+            'account_id' => 'nullable|exists:accounts,id',
+        ];
+    }
+}

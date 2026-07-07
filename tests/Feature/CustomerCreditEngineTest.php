@@ -101,10 +101,10 @@ class CustomerCreditEngineTest extends TestCase
         $response->assertSee('Test Customer');
     }
 
-    public function test_customer_dashboard_is_accessible(): void
+    public function test_customer_dashboard_redirects_to_main(): void
     {
         $response = $this->actingAs($this->admin)->get(route('customers.dashboard'));
-        $response->assertStatus(200);
+        $response->assertRedirect(route('dashboard'));
     }
 
     // --- Customer Code Generation ---

@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -37,5 +38,19 @@ class PaymentController extends Controller
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    public function show(\App\Models\Payment $payment): View
+    {
+        $payment->load(['invoice.customer', 'customer', 'receiver']);
+        return view('payments.show', compact('payment'));
+    }
+
+    public function print(\App\Models\Payment $payment): Response
+    {
+        $payment->load(['invoice', 'customer', 'receiver']);
+        $data = app(\App\Services\PrintDocumentService::class)->getLetterheadData();
+        $data['payment'] = $payment;
+        return app(\App\Services\PrintDocumentService::class)->streamPdf('print.payment-receipt', $data, "receipt-{$payment->uuid}.pdf");
     }
 }

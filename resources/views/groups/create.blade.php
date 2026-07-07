@@ -49,13 +49,18 @@
                                             <th class="px-3 py-2 text-center font-medium text-slate-500">Delete</th>
                                             <th class="px-3 py-2 text-center font-medium text-slate-500">Approve</th>
                                             <th class="px-3 py-2 text-center font-medium text-slate-500">2FA</th>
+                                            <th class="px-3 py-2 text-center font-medium text-slate-500">Print</th>
+                                            <th class="px-3 py-2 text-center font-medium text-slate-500">Export</th>
+                                            <th class="px-3 py-2 text-center font-medium text-slate-500">Import</th>
+                                            <th class="px-3 py-2 text-center font-medium text-slate-500">Reverse</th>
+                                            <th class="px-3 py-2 text-center font-medium text-slate-500">Cancel</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-50">
                                         @foreach ($moduleMenus as $menu)
                                             <tr>
                                                 <td class="px-3 py-2 text-slate-800">{{ $menu['name'] }}</td>
-                                                @foreach (['can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve', 'can_2fa'] as $perm)
+                                                        @foreach (['can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve', 'can_2fa', 'can_print', 'can_export', 'can_import', 'can_reverse', 'can_cancel'] as $perm)
                                                     <td class="px-3 py-2 text-center">
                                                         <input type="checkbox" name="permissions[{{ $menu['id'] }}][{{ $perm }}]" value="1"
                                                             class="erp-input">

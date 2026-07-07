@@ -138,7 +138,7 @@ class PriceListController extends Controller
             })->implode('; ');
             $validFrom = $list->valid_from ? $list->valid_from->format('Y-m-d') : '';
             $validUntil = $list->valid_until ? $list->valid_until->format('Y-m-d') : '';
-            $csv .= "\"{$list->name}\",\"{$group}\",{$list->currency},{$status},{$validFrom},{$validUntil},\"{$items}\"\n";
+            $csv .= "\"{$list->name}\",\"{$group}\",TZS,{$status},{$validFrom},{$validUntil},\"{$items}\"\n";
         }
 
         $filename = 'price-lists-' . now()->format('Y-m-d') . '.csv';

@@ -8,16 +8,18 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Services\FulfillmentService;
+use App\Services\PrintDocumentService;
 use App\Services\ReservationService;
-use App\Services\SalesOrderApprovalService;
+use App\Services\CentralApprovalService;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class SalesOrderController extends Controller
 {
     public function __construct(
         protected SalesOrderService $salesOrderService,
-        protected SalesOrderApprovalService $approvalService,
+        protected CentralApprovalService $centralApproval,
         protected ReservationService $reservationService,
         protected FulfillmentService $fulfillmentService,
     ) {}
@@ -58,6 +60,14 @@ class SalesOrderController extends Controller
         $fulfillmentStatus = $this->fulfillmentService->getFulfillmentStatus($salesOrder);
 
         return view('sales.orders.show', compact('salesOrder', 'fulfillmentStatus'));
+    }
+
+    public function print(SalesOrder $salesOrder): Response
+    {
+        $salesOrder->load(['items.product', 'customer', 'creator', 'approver']);
+        $data = app(PrintDocumentService::class)->getLetterheadData();
+        $data['salesOrder'] = $salesOrder;
+        return app(PrintDocumentService::class)->streamPdf('print.sales-order', $data, "so-{$salesOrder->so_number}.pdf");
     }
 
     public function edit(SalesOrder $salesOrder)
@@ -102,7 +112,7 @@ class SalesOrderController extends Controller
     public function submitForApproval(SalesOrder $salesOrder)
     {
         try {
-            $this->approvalService->submitForApproval($salesOrder);
+            $this->centralApproval->submit($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('success', 'Order submitted for approval.');
         } catch (\InvalidArgumentException $e) {
@@ -114,7 +124,7 @@ class SalesOrderController extends Controller
     public function approve(SalesOrder $salesOrder)
     {
         try {
-            $this->approvalService->approve($salesOrder);
+            $this->centralApproval->approve($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('success', 'Order approved.');
         } catch (\InvalidArgumentException $e) {
@@ -126,7 +136,7 @@ class SalesOrderController extends Controller
     public function reject(SalesOrder $salesOrder)
     {
         try {
-            $this->approvalService->reject($salesOrder);
+            $this->centralApproval->reject($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('success', 'Order returned to draft.');
         } catch (\InvalidArgumentException $e) {
@@ -196,7 +206,7 @@ class SalesOrderController extends Controller
     public function cancel(SalesOrder $salesOrder)
     {
         try {
-            $this->approvalService->cancel($salesOrder);
+            $this->centralApproval->cancel($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('success', 'Order cancelled.');
         } catch (\InvalidArgumentException $e) {

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Models\Invoice;
 use App\Services\BarcodeService;
+use App\Services\CentralApprovalService;
 use App\Services\InvoiceService;
+use App\Services\PrintDocumentService;
 use App\Services\ReceiptService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,14 +19,17 @@ class InvoiceController extends Controller
         protected InvoiceService $invoiceService,
         protected ReceiptService $receiptService,
         protected BarcodeService $barcodeService,
+        protected CentralApprovalService $centralApproval,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['status', 'payment_status', 'customer_id', 'date_from', 'date_to', 'search']);
+        $filters = $request->only(['tab', 'status', 'payment_status', 'customer_id', 'date_from', 'date_to', 'search']);
+        $tab = $request->get('tab', 'all');
         $invoices = $this->invoiceService->getAllPaginated(20, $filters);
         $stats = $this->invoiceService->getStats();
-        return view('invoices.index', compact('invoices', 'stats'));
+        $customers = \App\Models\Customer::orderBy('name')->pluck('name', 'id');
+        return view('invoices.index', compact('invoices', 'stats', 'tab', 'customers'));
     }
 
     public function create(): View
@@ -60,10 +65,39 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice updated successfully.');
     }
 
+    public function convertToProforma(Invoice $invoice): RedirectResponse
+    {
+        if ($invoice->status !== 'draft') {
+            return redirect()->route('invoices.show', $invoice)
+                ->with('error', 'Only draft invoices can be converted to proforma.');
+        }
+
+        $invoice->update(['status' => 'proforma']);
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Invoice converted to proforma successfully.');
+    }
+
+    public function revertProformaToDraft(Invoice $invoice): RedirectResponse
+    {
+        if ($invoice->status !== 'proforma') {
+            return redirect()->route('invoices.show', $invoice)
+                ->with('error', 'Only proforma invoices can be reverted to draft.');
+        }
+
+        $invoice->update(['status' => 'draft']);
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Proforma reverted to draft successfully.');
+    }
+
     public function approve(Invoice $invoice): RedirectResponse
     {
         try {
-            $this->invoiceService->approve($invoice);
+            if (in_array($invoice->status, ['draft', 'proforma'])) {
+                $this->centralApproval->submit($invoice);
+            }
+            $this->centralApproval->approve($invoice);
             return redirect()->route('invoices.show', $invoice)
                 ->with('success', 'Invoice approved successfully.');
         } catch (\InvalidArgumentException $e) {
@@ -77,6 +111,14 @@ class InvoiceController extends Controller
         $data = $this->receiptService->getInvoicePrintData($invoice);
         $data['barcodeSvg'] = $this->barcodeService->getBarcodeSvg($invoice->invoice_number);
         return view('invoices.print', $data);
+    }
+
+    public function pdf(Invoice $invoice): \Illuminate\Http\Response
+    {
+        $invoice->load(['customer', 'items.product', 'items.unit', 'payments', 'creator', 'approver']);
+        $data = app(PrintDocumentService::class)->getLetterheadData();
+        $data['invoice'] = $invoice;
+        return app(PrintDocumentService::class)->streamPdf('print.invoice', $data, "invoice-{$invoice->invoice_number}.pdf");
     }
 
     public function receipt(Invoice $invoice): View

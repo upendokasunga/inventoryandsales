@@ -101,12 +101,11 @@ class WholesalePosReturnsEngineTest extends TestCase
         $response->assertSee('Point of Sale');
     }
 
-    public function test_pos_dashboard_is_accessible(): void
+    public function test_pos_dashboard_redirects_to_main(): void
     {
         $response = $this->actingAs($this->admin)->get(route('pos.dashboard'));
 
-        $response->assertStatus(200);
-        $response->assertSee('POS Dashboard');
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_pos_barcode_lookup_finds_product(): void

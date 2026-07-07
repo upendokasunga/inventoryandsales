@@ -88,7 +88,7 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
-        $product->load('category', 'productUnits.unit', 'priceListItems.priceList', 'priceListItems.unit');
+        $product->load('category', 'productUnits.unit', 'priceListItems.priceList', 'priceListItems.unit', 'variants.productUnits.unit');
         return view('products.show', compact('product'));
     }
 

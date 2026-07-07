@@ -25,6 +25,17 @@ class StoreProductRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
             'weight' => 'nullable|numeric|min:0',
 
+            'parent_product_id' => 'nullable|exists:products,id',
+            'has_variants' => 'boolean',
+            'variant_attributes' => 'nullable|array',
+            'variants' => 'nullable|array',
+            'variants.*.name' => 'nullable|string|max:255',
+            'variants.*.sku' => 'nullable|string|max:100',
+            'variants.*.barcode' => 'nullable|string|max:100',
+            'variants.*.selling_price' => 'nullable|numeric|min:0',
+            'variants.*.purchase_price' => 'nullable|numeric|min:0',
+            'variants.*.is_active' => 'boolean',
+
             'units' => 'required|array|min:1',
             'units.*.unit_id' => 'required|exists:units,id',
             'units.*.conversion_factor' => 'required|numeric|min:0.001',

@@ -54,6 +54,11 @@ class PermissionService
                 'can_delete' => $perms['can_delete'] ?? false,
                 'can_approve' => $perms['can_approve'] ?? false,
                 'can_2fa' => $perms['can_2fa'] ?? false,
+                'can_print' => $perms['can_print'] ?? false,
+                'can_export' => $perms['can_export'] ?? false,
+                'can_import' => $perms['can_import'] ?? false,
+                'can_reverse' => $perms['can_reverse'] ?? false,
+                'can_cancel' => $perms['can_cancel'] ?? false,
             ];
         }
 

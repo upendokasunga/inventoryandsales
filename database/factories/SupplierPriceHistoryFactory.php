@@ -17,7 +17,7 @@ class SupplierPriceHistoryFactory extends Factory
             'supplier_id' => Supplier::factory(),
             'product_id' => Product::factory(),
             'unit_price' => fake()->randomFloat(2, 100, 10000),
-            'currency' => 'TZS',
+
             'effective_date' => fake()->date(),
             'notes' => fake()->optional()->sentence(),
         ];

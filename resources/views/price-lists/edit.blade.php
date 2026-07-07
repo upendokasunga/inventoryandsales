@@ -32,8 +32,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
-                        <input type="text" name="currency" value="{{ old('currency', $priceList->currency) }}" class="erp-input w-full" maxlength="3" required>
-                        @error('currency') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                        <input type="text" value="TZS" class="erp-input w-full bg-slate-50" disabled>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Valid From</label>

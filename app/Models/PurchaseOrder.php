@@ -2,16 +2,36 @@
 
 namespace App\Models;
 
+use App\Contracts\Approvable;
 use App\Traits\AutoHasUuid;
+use App\Traits\HasApprovalWorkflow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PurchaseOrder extends Model
+class PurchaseOrder extends Model implements Approvable
 {
-    use HasFactory, AutoHasUuid, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes, HasApprovalWorkflow;
+
+    public function getApprovalConfigKey(): string
+    {
+        return 'purchase_order';
+    }
+
+    public function getAllowedApprovalTransitions(): array
+    {
+        return [
+            'draft' => ['pending_approval', 'cancelled'],
+            'pending_approval' => ['approved', 'draft', 'cancelled'],
+            'approved' => ['cancelled', 'sent'],
+            'sent' => ['cancelled', 'partially_received'],
+            'partially_received' => ['completed'],
+            'completed' => [],
+            'cancelled' => [],
+        ];
+    }
 
     protected $fillable = [
         'po_number', 'supplier_id', 'order_date', 'expected_date',

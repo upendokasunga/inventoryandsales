@@ -25,7 +25,8 @@ class InventoryReportService
                 $query->where('product_id', $filters['product_id']);
             }
             if (!empty($filters['warehouse_id'])) {
-                $query->where('warehouse_id', $filters['warehouse_id']);
+                // no-op: inventory_balances has no warehouse_id column
+                unset($filters['warehouse_id']);
             }
             if (!empty($filters['category_id'])) {
                 $query->whereHas('product', fn($q) => $q->where('category_id', $filters['category_id']));

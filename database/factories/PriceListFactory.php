@@ -15,7 +15,7 @@ class PriceListFactory extends Factory
             "name" => fake()->unique()->words(3, true),
             "description" => fake()->sentence(),
             "customer_group_id" => null,
-            "currency" => "TZS",
+
             "is_active" => true,
             "valid_from" => null,
             "valid_until" => null,

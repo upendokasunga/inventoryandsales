@@ -34,7 +34,7 @@
                         <div class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                             <div>
                                 <a href="{{ route('price-lists.show', $list) }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">{{ $list->name }}</a>
-                                <p class="text-xs text-slate-500">{{ $list->currency }} &middot; Items: {{ $list->items_count ?? $list->items->count() }}</p>
+                                <p class="text-xs text-slate-500">TZS &middot; Items: {{ $list->items_count ?? $list->items->count() }}</p>
                             </div>
                             <div class="text-right">
                                 @if ($list->isExpired())

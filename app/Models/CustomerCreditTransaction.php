@@ -13,7 +13,7 @@ class CustomerCreditTransaction extends Model
 
     protected $fillable = [
         'customer_id', 'user_id', 'type', 'amount',
-        'balance_before', 'balance_after', 'currency',
+        'balance_before', 'balance_after',
         'description', 'reference_type', 'reference_id', 'metadata',
     ];
 

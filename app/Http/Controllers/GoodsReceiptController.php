@@ -8,6 +8,7 @@ use App\Models\PurchaseOrder;
 use App\Services\GoodsReceiptService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class GoodsReceiptController extends Controller
@@ -18,11 +19,17 @@ class GoodsReceiptController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['status', 'purchase_order_id']);
+        $tab = $request->get('tab', 'all');
+        $filters = $request->only(['purchase_order_id']);
+
+        if ($tab !== 'all') {
+            $filters['status'] = $tab;
+        }
+
         $receipts = $this->receiptService->getAllPaginated(20, $filters);
         $stats = $this->receiptService->getStats();
 
-        return view('purchasing.receipts.index', compact('receipts', 'stats'));
+        return view('purchasing.receipts.index', compact('receipts', 'stats', 'tab'));
     }
 
     public function create(Request $request): View
@@ -57,6 +64,14 @@ class GoodsReceiptController extends Controller
     {
         $goodsReceipt->load(['purchaseOrder.supplier', 'items.product', 'creator']);
         return view('purchasing.receipts.show', compact('goodsReceipt'));
+    }
+
+    public function print(GoodsReceipt $goodsReceipt): Response
+    {
+        $goodsReceipt->load(['purchaseOrder.supplier', 'items.product', 'creator']);
+        $data = app(\App\Services\PrintDocumentService::class)->getLetterheadData();
+        $data['goodsReceipt'] = $goodsReceipt;
+        return app(\App\Services\PrintDocumentService::class)->streamPdf('print.goods-receipt', $data, "grn-{$goodsReceipt->receipt_number}.pdf");
     }
 
     public function complete(GoodsReceipt $goodsReceipt): RedirectResponse

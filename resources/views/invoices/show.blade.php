@@ -17,7 +17,9 @@
                     <div class="text-right">
                         <span class="px-3 py-1 text-sm rounded-full font-medium
                             @if($invoice->status === 'draft') bg-slate-100 text-slate-600
+                            @elseif($invoice->status === 'proforma') bg-purple-100 text-purple-700
                             @elseif($invoice->status === 'approved') bg-blue-100 text-blue-700
+                            @elseif($invoice->status === 'posted') bg-teal-100 text-teal-700
                             @elseif($invoice->status === 'completed') bg-green-100 text-green-700
                             @else bg-red-100 text-red-700 @endif">
                             {{ ucfirst($invoice->status) }}
@@ -118,9 +120,24 @@
                 <h3 class="text-sm font-semibold text-slate-700">Actions</h3>
 
                 @if($invoice->status === 'draft')
+                    <form action="{{ route('invoices.proforma', $invoice) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full px-3 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition">Convert to Proforma</button>
+                    </form>
                     <form action="{{ route('invoices.approve', $invoice) }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Approve Invoice</button>
+                    </form>
+                @endif
+
+                @if($invoice->status === 'proforma')
+                    <form action="{{ route('invoices.approve', $invoice) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Submit for Approval</button>
+                    </form>
+                    <form action="{{ route('invoices.revert-draft', $invoice) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full px-3 py-2 bg-slate-500 text-white text-sm rounded-lg hover:bg-slate-600 transition">Revert to Draft</button>
                     </form>
                 @endif
 
@@ -129,6 +146,7 @@
                 @endif
 
                 <a href="{{ route('invoices.print', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print Invoice</a>
+                <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print PDF</a>
                 <a href="{{ route('invoices.receipt', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print Receipt</a>
 
                 @can('edit')

@@ -3,25 +3,19 @@
 namespace App\Observers;
 
 use App\Models\CreditNote;
-use App\Models\CreditNoteNumberSequence;
+use App\Services\DocumentNumberingService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class CreditNoteObserver
 {
+    public function __construct(
+        protected DocumentNumberingService $numberingService
+    ) {}
+
     public function creating(CreditNote $creditNote): void
     {
         if (empty($creditNote->credit_note_number)) {
-            DB::transaction(function () use ($creditNote) {
-                $year = now()->year;
-                $sequence = CreditNoteNumberSequence::firstOrCreate(
-                    ['year' => $year],
-                    ['last_number' => 0]
-                );
-                $sequence->lockForUpdate();
-                $sequence->increment('last_number');
-                $creditNote->credit_note_number = 'CN-' . $year . '-' . str_pad($sequence->fresh()->last_number, 6, '0', STR_PAD_LEFT);
-            });
+            $creditNote->credit_note_number = $this->numberingService->generateNumber('credit_note');
         }
     }
 

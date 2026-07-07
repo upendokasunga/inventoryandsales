@@ -2,20 +2,42 @@
 
 namespace App\Models;
 
+use App\Contracts\Approvable;
 use App\Traits\AutoHasUuid;
+use App\Traits\HasApprovalWorkflow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Invoice extends Model
+class Invoice extends Model implements Approvable
 {
-    use HasFactory, AutoHasUuid, SoftDeletes;
+    use HasFactory, AutoHasUuid, SoftDeletes, HasApprovalWorkflow;
+
+    public function getApprovalConfigKey(): string
+    {
+        return 'invoice';
+    }
+
+    public function getAllowedApprovalTransitions(): array
+    {
+        return [
+            'draft' => ['proforma', 'pending_approval', 'cancelled'],
+            'proforma' => ['pending_approval', 'draft', 'cancelled'],
+            'pending_approval' => ['approved', 'draft', 'cancelled'],
+            'approved' => ['posted', 'cancelled'],
+            'posted' => ['cancelled', 'reversed'],
+            'completed' => ['reversed'],
+            'cancelled' => [],
+            'reversed' => [],
+        ];
+    }
 
     protected $table = 'sales_invoices';
 
-    public const STATUSES = ['draft', 'pending_approval', 'approved', 'completed', 'cancelled'];
+    public const STATUSES = ['draft', 'proforma', 'pending_approval', 'approved', 'posted', 'completed', 'cancelled', 'reversed'];
 
     public const PAYMENT_STATUSES = ['pending', 'partial', 'paid', 'overdue', 'cancelled'];
 
@@ -75,6 +97,11 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'invoice_id');
+    }
+
+    public function advanceApplications(): HasMany
+    {
+        return $this->hasMany(\App\Models\AdvanceApplication::class, 'invoice_id');
     }
 
     public function creator(): BelongsTo

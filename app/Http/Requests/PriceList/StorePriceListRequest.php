@@ -17,7 +17,7 @@ class StorePriceListRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'customer_group_id' => 'nullable|exists:customer_groups,id',
-            'currency' => 'required|string|size:3',
+
             'is_active' => 'boolean',
             'valid_from' => 'nullable|date',
             'valid_until' => 'nullable|date|after_or_equal:valid_from',

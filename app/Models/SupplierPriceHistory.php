@@ -16,7 +16,7 @@ class SupplierPriceHistory extends Model
 
     protected $fillable = [
         'supplier_id', 'product_id', 'product_unit_id', 'unit_price',
-        'previous_price', 'price_change', 'currency', 'effective_date', 'notes',
+        'previous_price', 'price_change', 'effective_date', 'notes',
     ];
 
     protected function casts(): array

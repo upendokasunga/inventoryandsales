@@ -69,11 +69,16 @@ class GroupController extends Controller
                     'can_delete' => $menu->pivot->can_delete,
                     'can_approve' => $menu->pivot->can_approve,
                     'can_2fa' => $menu->pivot->can_2fa,
+                    'can_print' => $menu->pivot->can_print,
+                    'can_export' => $menu->pivot->can_export,
+                    'can_import' => $menu->pivot->can_import,
+                    'can_reverse' => $menu->pivot->can_reverse,
+                    'can_cancel' => $menu->pivot->can_cancel,
                 ];
             });
 
         $groupUsers = $group->users()->orderBy('name')->get();
-        $availableUsers = User::whereDoesntHave('groups', fn($q) => $q->where('id', $group->id))
+        $availableUsers = User::whereDoesntHave('groups', fn($q) => $q->where('groups.id', $group->id))
             ->orderBy('name')
             ->get();
 

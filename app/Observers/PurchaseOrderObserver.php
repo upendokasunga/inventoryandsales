@@ -2,17 +2,20 @@
 
 namespace App\Observers;
 
-use App\Models\PoNumberSequence;
 use App\Models\PurchaseOrder;
+use App\Services\DocumentNumberingService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderObserver
 {
+    public function __construct(
+        protected DocumentNumberingService $numberingService
+    ) {}
+
     public function creating(PurchaseOrder $purchaseOrder): void
     {
         if (empty($purchaseOrder->po_number)) {
-            $purchaseOrder->po_number = $this->generatePoNumber();
+            $purchaseOrder->po_number = $this->numberingService->generateNumber('purchase_order');
         }
     }
 
@@ -27,21 +30,5 @@ class PurchaseOrderObserver
     {
         Cache::forget('purchasing.order.stats');
         Cache::forget('purchasing.analytics.dashboard');
-    }
-
-    protected function generatePoNumber(): string
-    {
-        $year = now()->year;
-
-        return DB::transaction(function () use ($year) {
-            $sequence = PoNumberSequence::lockForUpdate()->firstOrCreate(
-                ['year' => $year],
-                ['last_number' => 0]
-            );
-
-            $sequence->increment('last_number');
-
-            return 'PO-' . $year . '-' . str_pad($sequence->last_number, 6, '0', STR_PAD_LEFT);
-        });
     }
 }

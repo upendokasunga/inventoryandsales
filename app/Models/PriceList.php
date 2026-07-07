@@ -14,7 +14,7 @@ class PriceList extends Model
     use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'customer_group_id', 'currency',
+        'name', 'description', 'customer_group_id',
         'is_active', 'valid_from', 'valid_until',
     ];
 

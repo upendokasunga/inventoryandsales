@@ -26,7 +26,6 @@ use App\Services\InventoryAnalyticsService;
 use App\Services\InventoryService;
 use App\Services\InventoryValuationService;
 use App\Services\ReservationService;
-use App\Services\SalesOrderApprovalService;
 use App\Services\SalesOrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -571,12 +570,11 @@ class InventoryAndSalesEngineTest extends TestCase
     //  SALES DASHBOARD
     // ================================================================
 
-    public function test_sales_dashboard_is_accessible(): void
+    public function test_sales_dashboard_redirects_to_main(): void
     {
         $response = $this->actingAs($this->admin)->get(route('sales.dashboard'));
 
-        $response->assertStatus(200);
-        $response->assertSee('Sales');
+        $response->assertRedirect(route('dashboard'));
     }
 
     // ================================================================

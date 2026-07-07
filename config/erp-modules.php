@@ -2,26 +2,6 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | ERP Module Navigation Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Centralized configuration for all ERP modules, sidebar items,
-    | and their submenu items. This is the single source of truth
-    | for the application's navigation structure.
-    |
-    | Each module has:
-    |   - name: Display name
-    |   - icon: Icon identifier (maps to nav-icons.blade.php)
-    |   - route: Route name for modules that navigate directly (like Dashboard)
-    |   - children: Submenu items (shown in horizontal submenu bar)
-    |       - name: Display name
-    |       - route: Route name
-    |       - section: Optional section grouping
-    |
-    */
-
     'modules' => [
 
         [
@@ -32,20 +12,18 @@ return [
         ],
 
         [
-            'name' => 'Master Data',
+            'name' => 'Stakeholders',
             'icon' => 'folder-tree',
             'route' => null,
             'children' => [
                 ['name' => 'Products',            'route' => 'products.index',              'section' => 'Products'],
                 ['name' => 'Categories',          'route' => 'categories.index',            'section' => 'Products'],
-                ['name' => 'Category Tree',       'route' => 'categories.tree',             'section' => 'Products'],
                 ['name' => 'Brands',              'route' => null,                          'section' => 'Products'],
                 ['name' => 'Units',               'route' => 'units.index',                 'section' => 'Products'],
-                ['name' => 'Customers',           'route' => 'customers.index',             'section' => 'Customers'],
-                ['name' => 'Customer Dashboard',  'route' => 'customers.dashboard',         'section' => 'Customers'],
-                ['name' => 'Customer Groups',     'route' => 'customer-groups.index',       'section' => 'Customers'],
-                ['name' => 'Suppliers',           'route' => 'suppliers.index',             'section' => 'Suppliers'],
-                ['name' => 'Pricing Dashboard',   'route' => 'price-lists.dashboard',       'section' => 'Pricing'],
+                ['name' => 'Warehouses',          'route' => 'warehouses.index',            'section' => 'Inventory'],
+                ['name' => 'Customers',           'route' => 'customers.index',             'section' => 'Relations'],
+                ['name' => 'Customer Groups',     'route' => 'customer-groups.index',       'section' => 'Relations'],
+                ['name' => 'Suppliers',           'route' => 'suppliers.index',             'section' => 'Relations'],
                 ['name' => 'Price Lists',         'route' => 'price-lists.index',           'section' => 'Pricing'],
                 ['name' => 'Pricing Simulator',   'route' => 'price-lists.simulator',       'section' => 'Pricing'],
             ],
@@ -56,13 +34,12 @@ return [
             'icon' => 'truck',
             'route' => null,
             'children' => [
-                ['name' => 'Dashboard',             'route' => 'purchasing.analytics',             'section' => null],
-                ['name' => 'Purchase Requisition',  'route' => 'purchasing.suggestions.index',    'section' => 'Purchasing'],
-                ['name' => 'Local Purchase Orders', 'route' => 'purchasing.orders.index',         'section' => 'Purchasing'],
-                ['name' => 'Goods Receiving',       'route' => 'purchasing.receipts.index',       'section' => 'Purchasing'],
-                ['name' => 'Purchase Returns',      'route' => 'purchase-returns.index',          'section' => 'Purchasing'],
-                ['name' => 'Supplier Analytics',    'route' => 'purchasing.analytics',            'section' => 'Analytics'],
-                ['name' => 'Reports',               'route' => 'reports.procurement',             'section' => 'Analytics'],
+                ['name' => 'Purchase Suggestions',  'route' => 'purchasing.suggestions.index', 'section' => 'Orders'],
+                ['name' => 'Purchase Orders',        'route' => 'purchasing.orders.index',      'section' => 'Orders'],
+                ['name' => 'Goods Receiving',        'route' => 'purchasing.receipts.index',    'section' => 'Orders'],
+                ['name' => 'Purchase Returns',       'route' => 'purchase-returns.index',       'section' => 'Returns'],
+                ['name' => 'Supplier Performance',   'route' => 'purchasing.analytics',         'section' => 'Analytics'],
+                ['name' => 'Reports',                'route' => 'reports.procurement',          'section' => 'Analytics'],
             ],
         ],
 
@@ -71,14 +48,12 @@ return [
             'icon' => 'archive',
             'route' => null,
             'children' => [
-                ['name' => 'Dashboard',            'route' => 'inventory.index',             'section' => null],
-                ['name' => 'Stock Adjustments',    'route' => 'stock-adjustments.index',     'section' => 'Stock Operations'],
-                ['name' => 'Stock Transfers',      'route' => null,                          'section' => 'Stock Operations'],
-                ['name' => 'Reservations',         'route' => 'sales.reservations.index',    'section' => 'Stock Operations'],
-                ['name' => 'Batch Tracking',       'route' => 'inventory.batches',           'section' => 'Batch Management'],
-                ['name' => 'Inventory Valuation',  'route' => 'inventory.valuation',         'section' => 'Batch Management'],
-                ['name' => 'Cycle Counts',         'route' => null,                          'section' => 'Stock Operations'],
-                ['name' => 'Low Stock',            'route' => 'inventory.index',             'section' => 'Stock Operations'],
+                ['name' => 'Stock Adjustments',    'route' => 'stock-adjustments.index',     'section' => 'Operations'],
+                ['name' => 'Store Requests',       'route' => 'store-requests.index',        'section' => 'Operations'],
+                ['name' => 'Stock Transfers',      'route' => 'stock-transfers.index',       'section' => 'Operations'],
+                ['name' => 'Batch Tracking',       'route' => 'inventory.batches',           'section' => 'Tracking'],
+                ['name' => 'Inventory Valuation',  'route' => 'inventory.valuation',         'section' => 'Tracking'],
+                ['name' => 'Low Stock',            'route' => 'inventory.index',             'section' => 'Tracking'],
             ],
         ],
 
@@ -87,16 +62,15 @@ return [
             'icon' => 'shopping-cart',
             'route' => null,
             'children' => [
-                ['name' => 'Dashboard',      'route' => 'sales.dashboard',       'section' => null],
-                ['name' => 'Quotations',     'route' => null,                    'section' => 'Orders'],
-                ['name' => 'Sales Orders',   'route' => 'sales.orders.index',    'section' => 'Orders'],
-                ['name' => 'POS',            'route' => 'pos.index',             'section' => 'POS'],
-                ['name' => 'POS Dashboard',  'route' => 'pos.dashboard',         'section' => 'POS'],
-                ['name' => 'Invoices',       'route' => 'invoices.index',        'section' => 'POS'],
-                ['name' => 'Payments',       'route' => 'payments.index',        'section' => 'POS'],
-                ['name' => 'Sales Returns',  'route' => 'sales-returns.index',   'section' => 'Returns'],
-                ['name' => 'Credit Notes',   'route' => 'credit-notes.index',    'section' => 'Returns'],
-                ['name' => 'Refunds',        'route' => 'refunds.index',         'section' => 'Returns'],
+                ['name' => 'Proforma',         'route' => null,                    'section' => 'Orders'],
+                ['name' => 'Sales Orders',     'route' => 'sales.orders.index',    'section' => 'Orders'],
+                ['name' => 'Invoices',         'route' => 'invoices.index',        'section' => 'Orders'],
+                ['name' => 'POS',              'route' => 'pos.index',             'section' => 'POS'],
+                ['name' => 'Payments',         'route' => 'payments.index',        'section' => 'Payments'],
+                ['name' => 'Customer Advances','route' => 'customer-advances.index','section' => 'Payments'],
+                ['name' => 'Sales Returns',    'route' => 'sales-returns.index',   'section' => 'Returns'],
+                ['name' => 'Credit Notes',     'route' => 'credit-notes.index',    'section' => 'Returns'],
+                ['name' => 'Refunds',          'route' => 'refunds.index',         'section' => 'Returns'],
             ],
         ],
 
@@ -105,13 +79,16 @@ return [
             'icon' => 'currency-dollar',
             'route' => null,
             'children' => [
-                ['name' => 'Dashboard',              'route' => 'reports.profit',          'section' => null],
-                ['name' => 'Accounts Receivable',    'route' => 'customers.statement',     'section' => 'Receivables'],
-                ['name' => 'Accounts Payable',       'route' => null,                      'section' => 'Payables'],
-                ['name' => 'Banking',                'route' => null,                      'section' => 'Banking'],
-                ['name' => 'Tax',                    'route' => 'reports.tax',             'section' => 'Taxation'],
-                ['name' => 'Profit Analysis',        'route' => 'reports.profit',          'section' => 'Profitability'],
-                ['name' => 'Financial Reports',      'route' => null,                      'section' => 'Reporting'],
+                ['name' => 'Chart of Accounts',   'route' => 'accounts.index',            'section' => 'Accounting'],
+                ['name' => 'Journal Entries',     'route' => 'journal-entries.index',      'section' => 'Accounting'],
+                ['name' => 'Expenses',            'route' => 'expenses.index',             'section' => 'Accounting'],
+                ['name' => 'Accounts Receivable', 'route' => 'customers.statement',        'section' => 'Receivables'],
+                ['name' => 'Accounts Payable',    'route' => null,                         'section' => 'Payables'],
+                ['name' => 'Bank Accounts',      'route' => 'bank-accounts.index',        'section' => 'Banking'],
+                ['name' => 'Reconciliations',    'route' => 'bank-reconciliations.index',  'section' => 'Banking'],
+                ['name' => 'Tax',                 'route' => 'reports.tax',                'section' => 'Taxation'],
+                ['name' => 'Profit Analysis',     'route' => 'reports.profit',             'section' => 'Profitability'],
+                ['name' => 'Financial Statements','route' => null,                         'section' => 'Reporting'],
             ],
         ],
 
@@ -135,13 +112,16 @@ return [
             'icon' => 'cog',
             'route' => null,
             'children' => [
-                ['name' => 'Users',             'route' => 'users.index',              'section' => 'Users & Security'],
-                ['name' => 'Roles & Permissions', 'route' => 'groups.index',           'section' => 'Users & Security'],
-                ['name' => 'Organization',       'route' => null,                      'section' => 'Organization'],
-                ['name' => 'Menu Management',    'route' => 'menus.index',             'section' => 'Users & Security'],
-                ['name' => 'System Settings',    'route' => 'settings.index',          'section' => 'System'],
-                ['name' => 'Audit Logs',         'route' => 'audit-logs.index',        'section' => 'System'],
-                ['name' => 'Scheduled Jobs',     'route' => 'reports.scheduled.index', 'section' => 'System'],
+                ['name' => 'Users',                'route' => 'users.index',              'section' => 'Access'],
+                ['name' => 'Roles & Permissions',  'route' => 'groups.index',             'section' => 'Access'],
+                ['name' => 'Menu Management',      'route' => 'menus.index',              'section' => 'Access'],
+                ['name' => 'Approval Levels',      'route' => 'approval-configurations.index', 'section' => 'Access'],
+                ['name' => 'Branches',             'route' => 'branches.index',           'section' => 'Organization'],
+                ['name' => 'System Settings',      'route' => 'settings.index',           'section' => 'System'],
+                ['name' => 'Dashboard Cards',      'route' => 'settings.dashboard-cards.index', 'section' => 'System'],
+                ['name' => 'Document Numbering',  'route' => 'settings.document-numbering.index', 'section' => 'System'],
+                ['name' => 'Audit Logs',           'route' => 'audit-logs.index',         'section' => 'System'],
+                ['name' => 'Scheduled Jobs',       'route' => 'reports.scheduled.index',  'section' => 'System'],
             ],
         ],
 

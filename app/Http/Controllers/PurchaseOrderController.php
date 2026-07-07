@@ -7,27 +7,34 @@ use App\Http\Requests\PurchaseOrder\UpdatePurchaseOrderRequest;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Services\PurchaseApprovalService;
+use App\Services\CentralApprovalService;
 use App\Services\PurchaseOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class PurchaseOrderController extends Controller
 {
     public function __construct(
         protected PurchaseOrderService $orderService,
-        protected PurchaseApprovalService $approvalService,
+        protected CentralApprovalService $centralApproval,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['status', 'supplier_id', 'date_from', 'date_to', 'search']);
+        $tab = $request->get('tab', 'all');
+        $filters = $request->only(['supplier_id', 'date_from', 'date_to', 'search']);
+
+        if ($tab !== 'all') {
+            $filters['status'] = $tab;
+        }
+
         $orders = $this->orderService->getAllPaginated(20, $filters);
         $stats = $this->orderService->getStats();
         $suppliers = Supplier::where('is_active', true)->pluck('name', 'id');
 
-        return view('purchasing.orders.index', compact('orders', 'stats', 'suppliers'));
+        return view('purchasing.orders.index', compact('orders', 'stats', 'suppliers', 'tab'));
     }
 
     public function create(): View
@@ -50,8 +57,16 @@ class PurchaseOrderController extends Controller
 
     public function show(PurchaseOrder $purchaseOrder): View
     {
-        $purchaseOrder->load(['supplier', 'items.product', 'creator', 'approver']);
+        $purchaseOrder->load(['supplier', 'items.product', 'creator', 'approver', 'receipts']);
         return view('purchasing.orders.show', compact('purchaseOrder'));
+    }
+
+    public function print(PurchaseOrder $purchaseOrder): Response
+    {
+        $purchaseOrder->load(['supplier', 'items.product', 'creator', 'approver']);
+        $data = app(\App\Services\PrintDocumentService::class)->getLetterheadData();
+        $data['purchaseOrder'] = $purchaseOrder;
+        return app(\App\Services\PrintDocumentService::class)->streamPdf('print.purchase-order', $data, "po-{$purchaseOrder->po_number}.pdf");
     }
 
     public function edit(PurchaseOrder $purchaseOrder): View
@@ -84,7 +99,7 @@ class PurchaseOrderController extends Controller
     public function submitForApproval(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         try {
-            $this->approvalService->submitForApproval($purchaseOrder);
+            $this->centralApproval->submit($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('success', 'Order submitted for approval.');
         } catch (\InvalidArgumentException $e) {
@@ -95,7 +110,7 @@ class PurchaseOrderController extends Controller
     public function approve(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         try {
-            $this->approvalService->approve($purchaseOrder);
+            $this->centralApproval->approve($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('success', 'Order approved.');
         } catch (\InvalidArgumentException $e) {
@@ -106,29 +121,30 @@ class PurchaseOrderController extends Controller
     public function reject(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         try {
-            $this->approvalService->reject($purchaseOrder);
+            $this->centralApproval->reject($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('success', 'Order returned to draft.');
         } catch (\InvalidArgumentException $e) {
-            return back()->with('error', $e->getMessage());
+            return redirect()->route('purchasing.orders.show', $purchaseOrder)
+                ->with('error', $e->getMessage());
         }
     }
 
     public function send(PurchaseOrder $purchaseOrder): RedirectResponse
     {
-        try {
-            $this->approvalService->send($purchaseOrder);
+        if ($purchaseOrder->status !== 'approved') {
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
-                ->with('success', 'Order sent to supplier.');
-        } catch (\InvalidArgumentException $e) {
-            return back()->with('error', $e->getMessage());
+                ->with('error', 'Only approved orders can be sent.');
         }
+        $purchaseOrder->update(['status' => 'sent']);
+        return redirect()->route('purchasing.orders.show', $purchaseOrder)
+            ->with('success', 'Order sent to supplier.');
     }
 
     public function cancel(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         try {
-            $this->approvalService->cancel($purchaseOrder);
+            $this->centralApproval->cancel($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('success', 'Order cancelled.');
         } catch (\InvalidArgumentException $e) {

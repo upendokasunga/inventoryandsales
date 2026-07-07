@@ -9,14 +9,22 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
+        <div class="mb-6 border-b border-slate-200/60">
+            <nav class="flex gap-6 -mb-px overflow-x-auto">
+                @foreach (['all' => 'All', 'draft' => 'Draft', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $key => $label)
+                    <a href="{{ route('stock-adjustments.index', ['tab' => $key, 'type' => request('type')]) }}"
+                       class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
+                       {{ $tab === $key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
+                        {{ $label }}
+                        <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{{ $counts[$key] }}</span>
+                    </a>
+                @endforeach
+            </nav>
+        </div>
+
         <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
             <form method="GET" class="flex gap-2">
-                <select name="status" class="erp-input" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                </select>
+                <input type="hidden" name="tab" value="{{ $tab }}">
                 <select name="type" class="erp-input" onchange="this.form.submit()">
                     <option value="">All Types</option>
                     <option value="positive" {{ request('type') == 'positive' ? 'selected' : '' }}>Positive</option>
@@ -26,7 +34,7 @@
             </form>
         </div>
 
-        <x-table-card :empty="count($adjustments) === 0" emptyMessage="No adjustments found. Create one to get started." colspan="7">
+        <x-table-card :empty="count($adjustments) === 0" emptyMessage="No adjustments found." colspan="7">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">#</th>
@@ -53,9 +61,9 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{{ $adj->items->count() }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                                $c = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$adj->status] ?? 'erp-badge-draft' }}">{{ ucfirst($adj->status) }}</span>
+                            <span class="{{ $c[$adj->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $adj->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $adj->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
