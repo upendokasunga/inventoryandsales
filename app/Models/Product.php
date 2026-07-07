@@ -20,7 +20,10 @@ class Product extends Model
         'category_id', 'name', 'slug', 'sku', 'barcode', 'barcode_image',
         'description', 'tax_rate', 'tax_inclusive', 'is_active',
         'track_stock', 'reorder_level', 'current_stock', 'safety_stock', 'image', 'weight',
-        'parent_product_id', 'has_variants', 'variant_attributes',
+        'product_code', 'product_id', 'product_type',
+        'price', 'retail_price', 'standard_cost', 'costing_method',
+        'income_account_id', 'cost_center', 'brand_code',
+        'expiry_date', 'unit', 'category',
     ];
 
     protected function casts(): array
@@ -30,12 +33,14 @@ class Product extends Model
             'tax_inclusive' => 'boolean',
             'is_active' => 'boolean',
             'track_stock' => 'boolean',
-            'has_variants' => 'boolean',
             'reorder_level' => 'decimal:3',
             'current_stock' => 'decimal:3',
             'safety_stock' => 'decimal:3',
             'weight' => 'decimal:3',
-            'variant_attributes' => 'array',
+            'price' => 'decimal:2',
+            'retail_price' => 'decimal:2',
+            'standard_cost' => 'decimal:2',
+            'expiry_date' => 'date',
         ];
     }
 
@@ -46,6 +51,22 @@ class Product extends Model
             if (empty($product->slug)) {
                 $product->slug = Str::slug($product->name);
             }
+
+            if (empty($product->product_code)) {
+                $maxCode = static::whereNotNull('product_code')
+                    ->where('product_code', 'like', 'PRD-%')
+                    ->max('product_code');
+                $nextNum = $maxCode ? (int) str_replace('PRD-', '', $maxCode) + 1 : 1;
+                $product->product_code = 'PRD-' . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
+            }
+
+            if (empty($product->product_id)) {
+                $maxId = static::whereNotNull('product_id')
+                    ->where('product_id', 'like', 'PID-%')
+                    ->max('product_id');
+                $nextNum = $maxId ? (int) str_replace('PID-', '', $maxId) + 1 : 1;
+                $product->product_id = 'PID-' . str_pad($nextNum, 2, '0', STR_PAD_LEFT);
+            }
         });
     }
 
@@ -54,24 +75,29 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function parentProduct(): BelongsTo
+    public function incomeAccount(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_product_id');
+        return $this->belongsTo(Account::class, 'income_account_id');
     }
 
-    public function variants(): HasMany
+    public function scopeOfType($query, string $type)
     {
-        return $this->hasMany(self::class, 'parent_product_id');
+        return $query->where('product_type', $type);
     }
 
-    public function scopeParents($query)
+    public function scopeGoods($query)
     {
-        return $query->whereNull('parent_product_id');
+        return $query->where('product_type', 'goods');
     }
 
-    public function scopeVariants($query)
+    public function scopeServices($query)
     {
-        return $query->whereNotNull('parent_product_id');
+        return $query->where('product_type', 'service');
+    }
+
+    public function scopeFixedAssets($query)
+    {
+        return $query->where('product_type', 'fixed_asset');
     }
 
     public function supplier(): BelongsTo

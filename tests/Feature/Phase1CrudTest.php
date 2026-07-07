@@ -567,28 +567,6 @@ class Phase1CrudTest extends TestCase
         $response->assertDontSee('GR-DRAFT');
     }
 
-    // ─── Product Variants ──────────────────────────
-
-    public function test_product_variant_columns_work(): void
-    {
-        $parent = Product::factory()->create(['has_variants' => true, 'variant_attributes' => ['size' => 'L', 'color' => 'Red']]);
-
-        $this->assertTrue($parent->has_variants);
-        $this->assertEquals(['size' => 'L', 'color' => 'Red'], $parent->variant_attributes);
-    }
-
-    public function test_product_variant_scope_filters_parents(): void
-    {
-        Product::factory()->create(['name' => 'Parent Product', 'parent_product_id' => null]);
-        $child = Product::factory()->create(['name' => 'Child Variant']);
-        $child->parent_product_id = Product::first()->id;
-        $child->save();
-
-        $parents = Product::whereNull('parent_product_id')->get();
-
-        $this->assertCount(1, $parents);
-    }
-
     // ─── Invoice Status Tabs ───────────────────────
 
     public function test_invoice_tabs_filter_correctly(): void

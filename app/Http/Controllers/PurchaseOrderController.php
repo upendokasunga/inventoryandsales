@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\UpdatePurchaseOrderRequest;
+use App\Models\GoodsReceipt;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
@@ -12,6 +13,7 @@ use App\Services\PurchaseOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PurchaseOrderController extends Controller
@@ -147,6 +149,32 @@ class PurchaseOrderController extends Controller
             $this->centralApproval->cancel($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('success', 'Order cancelled.');
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function reverse(PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        try {
+            DB::transaction(function () use ($purchaseOrder) {
+                if (!in_array($purchaseOrder->status, ['completed', 'approved'])) {
+                    throw new \InvalidArgumentException('Only completed or approved orders can be reversed.');
+                }
+
+                $hasReceipts = GoodsReceipt::where('purchase_order_id', $purchaseOrder->id)
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if ($hasReceipts) {
+                    throw new \InvalidArgumentException('Cannot reverse order. Goods have already been received. Reverse the goods receipt first.');
+                }
+
+                $purchaseOrder->update(['status' => 'reversed']);
+            });
+
+            return redirect()->route('purchasing.orders.show', $purchaseOrder)
+                ->with('success', 'Order reversed successfully.');
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }

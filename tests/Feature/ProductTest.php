@@ -260,7 +260,7 @@ class ProductTest extends TestCase
             'sku' => 'EXP-000001',
         ]);
 
-        $response = $this->actingAs($this->admin)->get(route('products.export-csv'));
+        $response = $this->actingAs($this->admin)->get(route('products.export'));
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/csv; charset=utf-8');

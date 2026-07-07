@@ -6,22 +6,23 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Create Product
         </a>
-        <a href="{{ route('products.export-csv') }}" class="erp-btn-secondary">Export CSV</a>
+        <a href="{{ route('products.export') }}" class="erp-btn-secondary">Export CSV</a>
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
-            <form action="{{ route('products.index') }}" method="GET" class="flex gap-2 flex-wrap">
+            <form action="{{ route('products.index') }}" method="GET" class="flex gap-2 flex-nowrap items-center">
                 <select name="category_id" class="erp-input">
                     <option value="">All Categories</option>
                     @foreach ($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                     @endforeach
                 </select>
-                <select name="type" class="erp-input">
-                    <option value="">All Products</option>
-                    <option value="parent" {{ request('type', 'parent') == 'parent' ? 'selected' : '' }}>Parent Products</option>
-                    <option value="variant" {{ request('type') == 'variant' ? 'selected' : '' }}>Variants Only</option>
+                <select name="product_type" class="erp-input">
+                    <option value="">All Types</option>
+                    <option value="goods" {{ request('product_type') == 'goods' ? 'selected' : '' }}>Goods</option>
+                    <option value="service" {{ request('product_type') == 'service' ? 'selected' : '' }}>Service</option>
+                    <option value="fixed_asset" {{ request('product_type') == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                 </select>
                 <select name="status" class="erp-input">
                     <option value="">All Status</option>
@@ -30,20 +31,21 @@
                 </select>
                 <div class="relative">
                     <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search name, SKU, barcode..." class="erp-input pl-10 w-64">
+                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search name, SKU, barcode..." class="erp-input pl-10 w-48">
                 </div>
                 <button type="submit" class="erp-btn-primary">Search</button>
             </form>
         </div>
 
-        <x-table-card :empty="count($products) === 0" emptyMessage="No products found. Create your first product to get started." colspan="9">
+        <x-table-card :empty="count($products) === 0" emptyMessage="No products found. Create your first product to get started." colspan="10">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Image</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SKU</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Barcode</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Product ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Code</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Income Account</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Units</th>
@@ -62,25 +64,24 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">{{ $product->sku }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">
-                            @if ($product->barcode_image)
-                                <img src="{{ Storage::url($product->barcode_image) }}" alt="{{ $product->barcode }}" class="h-8">
-                            @else
-                                {{ $product->barcode ?? '-' }}
-                            @endif
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">{{ $product->product_id ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">{{ $product->product_code ?? $product->sku }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
                             <a href="{{ route('products.show', $product) }}" class="text-primary hover:text-primary/80 transition">{{ $product->name }}</a>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $typeBadge = match($product->product_type) {
+                                    'goods' => 'erp-badge-success',
+                                    'service' => 'erp-badge-info',
+                                    'fixed_asset' => 'erp-badge-warning',
+                                    default => 'erp-badge-draft',
+                                };
+                            @endphp
+                            <span class="{{ $typeBadge }}">{{ $product->product_type ? ucfirst(str_replace('_', ' ', $product->product_type)) : 'N/A' }}</span>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                            @if ($product->parent_product_id)
-                                <span class="erp-badge-warning">Variant</span>
-                            @elseif ($product->has_variants)
-                                <span class="erp-badge-info">Parent</span>
-                            @else
-                                <span class="erp-badge-draft">Simple</span>
-                            @endif
+                            {{ $product->incomeAccount?->code ? $product->incomeAccount->code . ' - ' . $product->incomeAccount->name : '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $product->category?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -92,9 +93,6 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                             {{ $product->productUnits->count() }}
-                            @if($product->has_variants && $product->variants->isNotEmpty())
-                                <span class="ml-1 text-xs text-primary">({{ $product->variants->count() }} variants)</span>
-                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <x-action-links
@@ -105,48 +103,10 @@
                             />
                         </td>
                     </tr>
-                    @if($product->has_variants && $product->variants->isNotEmpty())
-                        @foreach($product->variants as $variant)
-                        <tr class="bg-slate-50/30 hover:bg-slate-50 transition">
-                            <td class="px-6 py-2 whitespace-nowrap pl-12">
-                                @if ($variant->image)
-                                    <img src="{{ Storage::url($variant->image) }}" alt="{{ $variant->name }}" class="h-8 w-8 rounded object-cover ring-1 ring-slate-200">
-                                @else
-                                    <div class="h-8 w-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 ring-1 ring-slate-200">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                                    </div>
-                                @endif
-                            </td>
-                            <td class="px-6 py-2 whitespace-nowrap text-sm font-mono text-slate-600">{{ $variant->sku }}</td>
-                            <td class="px-6 py-2 whitespace-nowrap text-sm font-mono text-slate-400">{{ $variant->barcode ?? '-' }}</td>
-                            <td class="px-6 py-2 whitespace-nowrap text-sm text-slate-600">
-                                <a href="{{ route('products.show', $variant) }}" class="text-primary hover:text-primary/80 transition">↳ {{ $variant->name }}</a>
-                            </td>
-                            <td class="px-6 py-2 whitespace-nowrap text-xs text-slate-400">
-                                @if($variant->variant_attributes)
-                                    @foreach($variant->variant_attributes as $k => $v)
-                                        <span class="inline-block bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded text-[10px] mr-1">{{ $k }}: {{ $v }}</span>
-                                    @endforeach
-                                @endif
-                            </td>
-                            <td class="px-6 py-2 whitespace-nowrap text-xs text-slate-400">{{ $variant->category?->name ?? '-' }}</td>
-                            <td class="px-6 py-2 whitespace-nowrap">
-                                @if ($variant->is_active)
-                                    <span class="erp-badge-active text-[10px]">Active</span>
-                                @else
-                                    <span class="erp-badge-inactive text-[10px]">Inactive</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-2 whitespace-nowrap text-xs text-slate-400">{{ $variant->productUnits->count() }}</td>
-                            <td class="px-6 py-2 whitespace-nowrap">
-                                <a href="{{ route('products.show', $variant) }}" class="text-xs text-primary hover:text-primary/80 transition">View</a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    @endif
                 @endforeach
             </tbody>
         </x-table-card>
+
         <div class="mt-4">{{ $products->links() }}</div>
     </div>
 </x-app-layout>

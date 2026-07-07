@@ -28,7 +28,8 @@ class PurchaseOrder extends Model implements Approvable
             'approved' => ['cancelled', 'sent'],
             'sent' => ['cancelled', 'partially_received'],
             'partially_received' => ['completed'],
-            'completed' => [],
+            'completed' => ['reversed'],
+            'reversed' => [],
             'cancelled' => [],
         ];
     }
@@ -52,7 +53,7 @@ class PurchaseOrder extends Model implements Approvable
         ];
     }
 
-    public const STATUSES = ['draft', 'pending_approval', 'approved', 'sent', 'partially_received', 'completed', 'cancelled'];
+    public const STATUSES = ['draft', 'pending_approval', 'approved', 'sent', 'partially_received', 'completed', 'reversed', 'cancelled'];
 
     public function supplier(): BelongsTo
     {

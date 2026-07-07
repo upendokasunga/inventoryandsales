@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\InventoryBalance;
+use App\Models\InventoryTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Product;
+use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -87,30 +91,7 @@ class InvoiceService
             $soItems = [];
             foreach ($items as $item) {
                 $productId = $item['product_id'];
-                $subProductId = null;
                 $storeId = $item['store_id'] ?? $data['store_id'] ?? null;
-
-                if (!empty($item['sub_product_id'])) {
-                    if (str_contains((string) $item['sub_product_id'], '|')) {
-                        $parts = explode('|', (string) $item['sub_product_id']);
-                        $subProductId = $parts[0];
-                        if (!empty($parts[1])) {
-                            $storeId = $parts[1];
-                        }
-                    } else {
-                        $subProductId = $item['sub_product_id'];
-                    }
-                }
-
-                $product = \App\Models\Product::find($productId);
-                if ($product && $product->parent_product_id) {
-                    $subProductId = $productId;
-                    $productId = $product->parent_product_id;
-                }
-
-                if ($product && $product->has_variants && $product->variants()->exists() && !$subProductId) {
-                    throw new \InvalidArgumentException("Product {$product->name} requires a variant selection.");
-                }
 
                 $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                 $subtotal += $item['unit_price'] * $item['quantity'];
@@ -119,7 +100,6 @@ class InvoiceService
 
                 $invoiceItems[] = new InvoiceItem([
                     'product_id' => $productId,
-                    'sub_product_id' => $subProductId,
                     'store_id' => $storeId,
                     'product_unit_id' => $item['product_unit_id'] ?? null,
                     'quantity' => $item['quantity'],
@@ -193,26 +173,7 @@ class InvoiceService
 
                 foreach ($items as $item) {
                     $productId = $item['product_id'];
-                    $subProductId = null;
                     $storeId = $item['store_id'] ?? null;
-
-                    if (!empty($item['sub_product_id'])) {
-                        if (str_contains((string) $item['sub_product_id'], '|')) {
-                            $parts = explode('|', (string) $item['sub_product_id']);
-                            $subProductId = $parts[0];
-                            if (!empty($parts[1])) {
-                                $storeId = $parts[1];
-                            }
-                        } else {
-                            $subProductId = $item['sub_product_id'];
-                        }
-                    }
-
-                    $product = \App\Models\Product::find($productId);
-                    if ($product && $product->parent_product_id) {
-                        $subProductId = $productId;
-                        $productId = $product->parent_product_id;
-                    }
 
                     $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                     $subtotal += $item['unit_price'] * $item['quantity'];
@@ -221,7 +182,6 @@ class InvoiceService
 
                     $invoice->items()->create([
                         'product_id' => $productId,
-                        'sub_product_id' => $subProductId,
                         'store_id' => $storeId,
                         'product_unit_id' => $item['product_unit_id'] ?? null,
                         'quantity' => $item['quantity'],
@@ -261,6 +221,68 @@ class InvoiceService
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+    }
+
+    public function computeIssueCost(Product $product, float $quantity, string $method = 'fifo'): float
+    {
+        if ($quantity <= 0) {
+            return 0;
+        }
+
+        return match ($method) {
+            'fifo' => $this->computeFifoCost($product->id, $quantity),
+            'average' => $this->computeAverageCost($product->id, $quantity),
+            'standard' => $this->computeStandardCost($product->id, $quantity),
+            default => throw new \InvalidArgumentException("Unknown costing method: {$method}"),
+        };
+    }
+
+    protected function computeFifoCost(int $productId, float $quantity): float
+    {
+        $receipts = InventoryTransaction::where('product_id', $productId)
+            ->where('type', 'purchase_receipt')
+            ->where('quantity', '>', 0)
+            ->whereNull('deleted_at')
+            ->orderBy('created_at')
+            ->get();
+
+        $totalCost = 0;
+        $remaining = $quantity;
+
+        foreach ($receipts as $receipt) {
+            if ($remaining <= 0) {
+                break;
+            }
+            $available = (float) $receipt->quantity;
+            $used = min($available, $remaining);
+            $totalCost += $used * (float) ($receipt->unit_cost ?: 0);
+            $remaining -= $used;
+        }
+
+        return $totalCost;
+    }
+
+    protected function computeAverageCost(int $productId, float $quantity): float
+    {
+        $balance = InventoryBalance::where('product_id', $productId)->first();
+        if (!$balance || $balance->quantity_on_hand <= 0) {
+            return 0;
+        }
+        return $quantity * (float) $balance->average_cost;
+    }
+
+    protected function computeStandardCost(int $productId, float $quantity): float
+    {
+        $pu = ProductUnit::where('product_id', $productId)
+            ->where('is_default_purchase', true)
+            ->first();
+
+        if (!$pu || !$pu->purchase_price) {
+            $pu = ProductUnit::where('product_id', $productId)->first();
+        }
+
+        $unitCost = (float) ($pu->purchase_price ?? 0);
+        return $quantity * $unitCost;
     }
 
     public function getStats(): array

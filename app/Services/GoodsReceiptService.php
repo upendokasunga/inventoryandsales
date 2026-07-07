@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\SupplierPayment;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +66,7 @@ class GoodsReceiptService
     {
         return DB::transaction(function () use ($receipt) {
             $receipt->update(['status' => 'completed']);
+            $totalReceivedValue = 0;
 
             foreach ($receipt->items as $item) {
                 if ($item->purchase_order_item_id) {
@@ -74,10 +78,13 @@ class GoodsReceiptService
                 }
 
                 $product = Product::findOrFail($item->product_id);
+                $unitPrice = $poItem?->unit_price ?? 0;
+                $totalReceivedValue += $item->received_quantity * $unitPrice;
+
                 $this->inventoryService->receiveStock(
                     $product,
                     $item->received_quantity,
-                    ($poItem?->unit_price ?? 0),
+                    $unitPrice,
                     null,
                     null,
                     $receipt,
@@ -94,6 +101,54 @@ class GoodsReceiptService
                 $po->update(['status' => 'completed']);
             } elseif ($totalReceived > 0) {
                 $po->update(['status' => 'partially_received']);
+            }
+
+            $inventoryAccount = \App\Models\Account::where('code', '1300')->first();
+            $apAccount = \App\Models\Account::where('code', '2100')
+                ->orWhere('name', 'like', '%Accounts Payable%')
+                ->first();
+
+            if ($inventoryAccount && $apAccount && $totalReceivedValue > 0) {
+                $je = JournalEntry::create([
+                    'entry_date' => $receipt->receipt_date ?? now(),
+                    'type' => 'purchase',
+                    'status' => 'posted',
+                    'description' => "Goods receipt #{$receipt->id} for PO #{$po->po_number}",
+                    'total_debit' => $totalReceivedValue,
+                    'total_credit' => $totalReceivedValue,
+                    'reference_type' => GoodsReceipt::class,
+                    'reference_id' => $receipt->id,
+                    'created_by' => auth()->id(),
+                ]);
+
+                JournalEntryLine::create([
+                    'journal_entry_id' => $je->id,
+                    'account_id' => $inventoryAccount->id,
+                    'description' => 'Inventory received',
+                    'debit' => $totalReceivedValue,
+                    'credit' => 0,
+                ]);
+
+                JournalEntryLine::create([
+                    'journal_entry_id' => $je->id,
+                    'account_id' => $apAccount->id,
+                    'description' => 'Accounts Payable - Goods receipt',
+                    'debit' => 0,
+                    'credit' => $totalReceivedValue,
+                ]);
+            }
+
+            if ($po->supplier_id && $totalReceivedValue > 0) {
+                SupplierPayment::create([
+                    'purchase_order_id' => $po->id,
+                    'goods_receipt_id' => $receipt->id,
+                    'supplier_id' => $po->supplier_id,
+                    'amount' => $totalReceivedValue,
+                    'status' => 'pending',
+                    'payment_date' => $receipt->receipt_date ?? now(),
+                    'notes' => "Auto-generated from goods receipt #{$receipt->id}",
+                    'created_by' => auth()->id(),
+                ]);
             }
 
             Cache::forget('purchasing.order.stats');

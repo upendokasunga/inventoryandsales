@@ -13,10 +13,12 @@ use App\Services\BarcodeLabelService;
 use App\Services\CategoryService;
 use App\Services\ProductService;
 use App\Services\ProductUnitService;
+use App\Services\SettingsService;
 use App\Services\UnitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 
@@ -33,7 +35,8 @@ class ProductController extends Controller
         ProductUnitService $productUnitService,
         CategoryService $categoryService,
         UnitService $unitService,
-        BarcodeLabelService $barcodeLabelService
+        BarcodeLabelService $barcodeLabelService,
+        protected SettingsService $settingsService,
     ) {
         $this->productService = $productService;
         $this->productUnitService = $productUnitService;
@@ -52,6 +55,9 @@ class ProductController extends Controller
         if ($request->get('category_id')) {
             $filters['category_id'] = $request->get('category_id');
         }
+        if ($request->get('product_type')) {
+            $filters['product_type'] = $request->get('product_type');
+        }
 
         $products = $search
             ? $this->productService->search($search)
@@ -62,25 +68,6 @@ class ProductController extends Controller
         return view('products.index', compact('products', 'search', 'categories'));
     }
 
-    public function subIndex(Request $request): View
-    {
-        $search = $request->get('search');
-        $query = Product::with('category', 'parentProduct')
-            ->whereNotNull('parent_product_id');
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%");
-            });
-        }
-
-        $products = $query->latest()->paginate(20);
-
-        return view('products.sub-index', compact('products', 'search'));
-    }
-
     public function create(): View
     {
         $categories = Category::whereNull('parent_id')
@@ -88,10 +75,8 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get();
         $units = $this->unitService->getAllPaginated(100);
-        $parentProducts = Product::whereNull('parent_product_id')->where('is_active', true)->orderBy('name')->pluck('name', 'id');
-        $selectedParent = request('parent_id');
 
-        return view('products.create', compact('categories', 'units', 'parentProducts', 'selectedParent'));
+        return view('products.create', compact('categories', 'units'));
     }
 
     public function store(StoreProductRequest $request): RedirectResponse
@@ -130,29 +115,6 @@ class ProductController extends Controller
             }
         }
 
-        if ($sellingPrice === null && $product->parent_product_id) {
-            $parentPoItem = PurchaseOrderItem::where('product_id', $product->parent_product_id)
-                ->where('product_make', $product->name)
-                ->whereHas('purchaseOrder', fn($q) => $q->whereIn('status', ['approved', 'completed']))
-                ->latest()
-                ->first();
-
-            if ($parentPoItem) {
-                $sellingPrice = $parentPoItem->selling_price ?? $parentPoItem->unit_price;
-            }
-        }
-
-        if ($sellingPrice === null && $product->parent_product_id) {
-            $parentPoItem = PurchaseOrderItem::where('product_id', $product->parent_product_id)
-                ->whereHas('purchaseOrder', fn($q) => $q->whereIn('status', ['approved', 'completed']))
-                ->latest()
-                ->first();
-
-            if ($parentPoItem) {
-                $sellingPrice = $parentPoItem->selling_price ?? $parentPoItem->unit_price;
-            }
-        }
-
         if ($sellingPrice === null && $pu) {
             $sellingPrice = $pu->selling_price;
         }
@@ -169,17 +131,22 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
-        $product->load('category', 'productUnits.unit', 'priceListItems.priceList', 'priceListItems.unit', 'variants.productUnits.unit');
+        $product->load('category', 'productUnits.unit', 'priceListItems.priceList', 'priceListItems.unit', 'incomeAccount');
         return view('products.show', compact('product'));
     }
 
-    public function edit(Product $product): View
+    public function edit(Request $request, Product $product): View
     {
-        $product->load('productUnits.unit');
+        $product->load('productUnits.unit', 'incomeAccount');
         $categories = Category::orderBy('name')->get();
         $allUnits = $this->unitService->getAllPaginated(100);
+        $canEditName = $request->user()?->hasMenuAccess('products.edit-name', 'can_edit') ?? false;
+        $brandCodeField = Schema::hasColumn('products', 'brand_code') ? 'brand_code' : (Schema::hasColumn('products', 'brandcode') ? 'brandcode' : null);
 
-        return view('products.edit', compact('product', 'categories', 'allUnits'));
+        return view('products.edit', compact(
+            'product', 'categories', 'allUnits',
+            'canEditName', 'brandCodeField'
+        ));
     }
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
@@ -211,16 +178,51 @@ class ProductController extends Controller
             ->with('success', 'Product deleted successfully.');
     }
 
-    public function exportCsv()
+    public function updatePrice(Request $request, Product $product): RedirectResponse
     {
-        $content = $this->productService->exportCsv();
-        $filename = 'products-' . now()->format('Y-m-d') . '.csv';
+        $validated = $request->validate(['price' => 'required|numeric|min:0']);
+        $product->update(['price' => $validated['price']]);
+        return back()->with('success', 'Price updated successfully.');
+    }
 
-        return Response::stream(function () use ($content) {
-            echo $content;
+    public function updatePricesBatch(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'prices' => 'required|array',
+            'prices.*.id' => 'required|exists:products,id',
+            'prices.*.price' => 'required|numeric|min:0',
+        ]);
+
+        foreach ($validated['prices'] as $item) {
+            Product::where('id', $item['id'])->update(['price' => $item['price']]);
+        }
+
+        return back()->with('success', 'Prices updated successfully.');
+    }
+
+    public function export(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        return Response::stream(function () {
+            $products = Product::with('category', 'productUnits.unit', 'incomeAccount')->get();
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['Product Code', 'Product ID', 'Name', 'Type', 'Category', 'Price', 'Income Account', 'Status']);
+
+            foreach ($products as $product) {
+                fputcsv($output, [
+                    $product->product_code,
+                    $product->product_id,
+                    $product->name,
+                    $product->product_type,
+                    $product->category?->name ?? $product->category,
+                    $product->price,
+                    $product->incomeAccount?->code . ' - ' . $product->incomeAccount?->name,
+                    $product->is_active ? 'Active' : 'Inactive',
+                ]);
+            }
+            fclose($output);
         }, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="products-' . now()->format('Y-m-d') . '.csv"',
         ]);
     }
 

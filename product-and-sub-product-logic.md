@@ -392,7 +392,254 @@ Reference types: `invoice`, `goods_receipt`, `store_request`, `adjustment`, `tra
 | `app/Support/DocumentPrefixes.php` | Document numbering configuration |
 | `app/Support/Approvals.php` | Multi-level approval configuration |
 
-## 10. Design Decisions
+## 10. Product & Sub-Product Views (UI)
+
+### 10.1 Product Index View (`products.index`)
+
+| Route | Method | View File |
+|---|---|---|
+| `GET /products` | `ProductController@index` | `resources/views/products/index.blade.php` |
+
+**Controller logic** (`ProductController@index`):
+- Queries top-level products only (`WHERE parent_id IS NULL`) with eager-loaded `parent` and `incomeAccount` relationships.
+- Supports search by name (`?q=...`) and pagination (`?per_page=10|20|50|100`).
+- Passes `$topProducts`, `$q`, `$perPage` to the view.
+
+**View layout:**
+- **Header section**: Gradient header from emerald to cyan with an icon and title "Product Management".
+- **Success flash**: Green alert box for success messages.
+- **Header actions bar**:
+  - **Cost Centers** link (routes to `cost-centers.index`).
+  - **New Product** button (gradient indigo→purple, links to `products.create`).
+  - **Export CSV** button (gradient emerald→teal, links to `products.export` with search query preserved).
+- **Search section**: Text input with search icon, per-page dropdown (auto-submits on change), Search button, Reset button (shown only when `$q` is non-empty).
+- **Top-level Products table** (gradient emerald→teal header badge):
+
+| Column | Display |
+|---|---|
+| **Product ID** | Rendered as a slate badge (`$p->product_id`, e.g. `PID-01`) |
+| **Product Code** | Rendered as an emerald badge (`$p->product_code`, e.g. `PRD-000001`) |
+| **Product Name** | Icon-prefixed in bold |
+| **Type** | Blue badge showing `product_type` (goods/service/fixed_asset) |
+| **Category Type** | Amber badge or `—` if empty |
+| **Income Account** | Code + name or `—` if none. Shows both `$p->incomeAccount->code` and `->name` |
+| **Actions** | 3 buttons: **Add Sub** (green, links to `products.create?parent_id=$id`), **Edit** (blue, links to `products.edit`), **Delete** (red, submits DELETE to `products.destroy` with JS confirm) |
+
+- **Empty state**: Centered icon + text "No top-level products found" with hint.
+- **Pagination footer**: Showing range ("Showing X to Y of Z") with Laravel pagination links.
+- **Sub Products section at bottom**: Info card with "Sub products (variants) are shown on the dedicated Sub Products page" and a **View Sub Products** button linking to `products.sub-index`.
+
+---
+
+### 10.2 Sub-Product Index View (`products.sub-index`)
+
+| Route | Method | View File |
+|---|---|---|
+| `GET /products/sub-products` (defined in `routes/auth.php`) | `ProductController@subIndex` | `resources/views/products/sub-index.blade.php` |
+
+**Controller logic** (`ProductController@subIndex`):
+- Queries sub-products only (`WHERE parent_id IS NOT NULL`) with eager-loaded `parent` and `incomeAccount`.
+- Same search/pagination as the parent index.
+- Passes `$subProducts`, `$q`, `$perPage` to the view.
+
+**View layout:**
+- **Header section**: Similar gradient header, title "Sub Products", subtitle "Manage your sub-products (variants) and pricing".
+- **Header actions**: **Back to Products** button (links to `products.index`), **New Product** button (links to `products.create`).
+- **Search section**: Same pattern as index — search input, per-page dropdown, Search/Reset buttons.
+- **Sub Products table** (gradient blue→indigo header badge):
+
+| Column | Display |
+|---|---|
+| **Product ID** | Slate badge (`$p->product_id`) |
+| **Sub Code** | Blue badge (`$p->sub_product_code`, e.g. `PRD-000001-001`) |
+| **Sub Product** | Icon-prefixed (blue variant icon) + bold name |
+| **Parent Product** | Parent icon + parent name (`$p->parent->name`) or `—` |
+| **Parent Code** | Emerald badge showing parent's `product_code` |
+| **Type** | Purple badge showing `product_type` |
+| **Price** | Right-aligned, bold, formatted with `number_format($p->price, 2)` or `—` |
+| **Income Account** | Code + name or `—` |
+| **Actions** | **Add Sibling** (green, links to `products.create?parent_id=$p->parent_id`), **Edit** (blue), **Delete** (red with confirm) |
+
+- **Empty state**: Centered icon + "No sub products found" with hint.
+- **Pagination footer**: Same pattern as index.
+
+---
+
+### 10.3 Product Create View (`products.create`)
+
+| Route | Method | View File |
+|---|---|---|
+| `GET /products/create` | `ProductController@create` | `resources/views/products/create.blade.php` |
+
+**Controller logic** (`ProductController@create`):
+- Loads `incomeAccounts`: All accounts of `type = 'income'`, filtered by `branch_id` (session `branch_id` vs null/branch_id match).
+- Loads `costCenters`: All cost center names as a flat list.
+- Loads `parentOptions`: All products ordered by name (id, name, product_code) for the Parent selector.
+- Reads `parentId` from optional `?parent_id=N` query param (used when "register as sub-product" is suggested by duplicate detection).
+- Reads `defaultCostMethod` from `AppSetting::get('inventory_costing_method', 'moving_average')`.
+
+**View layout** — single-column form, 5 card sections:
+
+**Section 1 — Basic Information** (green header):
+| Field | Type | Details |
+|---|---|---|
+| **Name** | Text input, required | `name`, `old('name')` |
+| **Unit** | Text input | `unit`, defaults to `pc`, helper text "Defaults to pc if left blank." |
+| **Costing Method** | Select (Goods only) | `costing_method`: moving_average, fifo, standard. Disabled when product_type != goods. Helper: "Required for Goods. Select how COGS will be calculated." |
+| **Standard Cost** | Number input | `standard_cost`, step 0.0001. Hidden by default, shown only when `costing_method === 'standard'` AND `product_type === 'goods'`. |
+
+**Section 2 — Product Classification** (purple header):
+| Field | Type | Details |
+|---|---|---|
+| **Product Type** | Select, required | `product_type`: goods (default), service, fixed_asset |
+| **Material Type** | Select | `material_type`: Product for Sale (default), Material for Production, Kitchen Materials, Both |
+| **Parent Product** | Select | `parent_id`: optional, lists all products as options with format `{code} — {name}`. Pre-selected if `?parent_id=N` is passed. |
+
+**Section 3 — Additional Details** (amber header):
+| Field | Type | Details |
+|---|---|---|
+| **Category** | Text | `category`, placeholder "e.g. Services, Hardware, Subscriptions". Used for revenue/COGS grouping. |
+| **Barcode** | Text | `barcode`, optional, must be unique |
+
+**Section 4 — Accounting & Settings** (blue header):
+| Field | Type | Details |
+|---|---|---|
+| **Income Account** | Select, required | Filters only `income`-type accounts. Uses `$acc->display_label`. |
+| **Cost Center** | Select | Optional, lists all cost centers from DB |
+| **Printing Process** | Radio (Yes/No) | `is_printing_process`, defaults to No |
+| **Active Product** | Checkbox | `is_active`, defaults to checked |
+
+**Section 5 — Actions**:
+- **Cancel** button (gray, links to `products.index`)
+- **Create Product** button (green gradient, submits form)
+- Helper text: "Review all details before saving"
+
+**Inline JavaScript** (lines 277–293):
+- Listens to `product_type` and `costing_method` changes.
+- Disables `costing_method` when product_type != `goods` and clears its value.
+- Toggles visibility of `#standard_cost_wrap`: visible only when `product_type === 'goods'` AND `costing_method === 'standard'`.
+- Runs `sync()` immediately on page load.
+
+---
+
+### 10.4 Product Edit View (`products.edit`)
+
+| Route | Method | View File |
+|---|---|---|
+| `GET /products/{product}/edit` | `ProductController@edit` | `resources/views/products/edit.blade.php` |
+
+**Controller logic** (`ProductController@edit`):
+- Determines `$canEditName`: User must have permission `products.edit-name`. If false, the name field is rendered read-only.
+- Detects `$brandCodeField`: Checks for `brand_code` or `brandcode` column in DB schema.
+- Loads `incomeAccounts`: Same logic as create (income type, branch-scoped).
+- Loads `costCenters`: All cost center names.
+- Loads `parentOptions`: All products **except the current one** (`id != $product->id`).
+- Passes `$product`, `$canEditName`, `$brandCodeField`, `$incomeAccounts`, `$costCenters`, `$parentOptions`.
+
+**View layout** — single narrow form (max-w-3xl) with 5 card sections, using `@method('PUT')`:
+
+**Section 1 — Identification** (read-only):
+| Field | Display |
+|---|---|
+| **Product ID** | Read-only gray input showing `$product->product_id` |
+| **Code** | Read-only gray input showing `sub_product_code` if child, else `product_code` |
+
+**Section 2 — Basic Info**:
+| Field | Type | Details |
+|---|---|---|
+| **Name** | Text, conditionally read-only | When `$canEditName` is false: gray background, `readonly`, blue "read-only" badge, tooltip "Ask your administrator to enable: products.edit-name". When true: editable, helper "Product ID will remain unchanged." |
+| **Unit** | Text | Editable, defaults to `pc` |
+| **Brand Code** | Text (conditional) | Only shown if `$brandCodeField` is set (column `brand_code` or `brandcode` exists). Numeric input mode, Enter key prevented via JS. |
+
+**Section 3 — Classification**:
+| Field | Type | Details |
+|---|---|---|
+| **Product Type** | Select | goods (default), service, fixed_asset |
+| **Material Type** | Select | Product for sale, Material for production, Kitchen Materials, Both |
+| **Parent Product** | Select | Lists all products except self. Format `{id} · {name}`. |
+| **Category** | Text | Editable, helper "Used for revenue / COGS grouping." |
+| **Printing Process** | Radio (Yes/No) | Defaults to No |
+
+**Section 4 — Accounting**:
+| Field | Type | Details |
+|---|---|---|
+| **Income Account** | Select, required | Income-type accounts with `display_label` |
+| **Active Product** | Toggle switch | Pill-style toggle (Tailwind peer checkbox) |
+
+**Section 5 — Actions**:
+- **Update product** button (`<x-success-button>`)
+- **Cancel** link (`<x-cancel-link>` linking to `products.index`)
+
+**Inline JavaScript** (lines 170–179): Only included if `$brandCodeField` is set. Prevents Enter key on the brand code input.
+
+---
+
+### 10.5 Price Management (inline editing)
+
+| Route | Method | Purpose |
+|---|---|---|
+| `POST /products/{product}/price` | `ProductController@updatePrice` | Update single product price |
+| `POST /products/prices-batch` | `ProductController@updatePricesBatch` | Batch price update |
+
+These are separate endpoints for inline/quick price adjustments (not part of the main create/edit forms).
+
+---
+
+### 10.6 View-to-Controller Data Flow Summary
+
+```
+products.index
+  └─ ProductController@index
+       ├─ $topProducts  ← Product::whereNull('parent_id')->with('parent','incomeAccount')->paginate()
+       ├─ $q            ← request('q')
+       └─ $perPage      ← request('per_page', 10)
+
+products.sub-index
+  └─ ProductController@subIndex
+       ├─ $subProducts  ← Product::whereNotNull('parent_id')->with('parent','incomeAccount')->paginate()
+       ├─ $q            ← request('q')
+       └─ $perPage      ← request('per_page', 10)
+
+products.create
+  └─ ProductController@create
+       ├─ $incomeAccounts   ← Account::where('type','income')->branchScoped()->get()
+       ├─ $costCenters      ← CostCenter::pluck('name')
+       ├─ $parentOptions    ← Product::all(['id','name','product_code'])
+       ├─ $parentId         ← request('parent_id')   // pre-selected parent
+       └─ $defaultCostMethod ← AppSetting('inventory_costing_method', 'moving_average')
+
+products.edit
+  └─ ProductController@edit
+       ├─ $product          ← Route model binding
+       ├─ $canEditName      ← Gate::check('products.edit-name')
+       ├─ $brandCodeField   ← Schema::hasColumn('brand_code') ?? 'brandcode'
+       ├─ $incomeAccounts   ← (same as create)
+       ├─ $costCenters      ← (same as create)
+       └─ $parentOptions    ← Product::where('id','!=',$product->id)->get()
+```
+
+---
+
+### 10.7 Visual Design System
+
+All product views follow a consistent design language built with Tailwind CSS:
+
+| Element | Style |
+|---|---|
+| **Page background** | `bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/40` |
+| **Cards** | `bg-white rounded-2xl shadow-xl border border-gray-100` |
+| **Primary buttons** | `bg-gradient-to-r from-indigo-600 to-purple-600 text-white` |
+| **Success buttons** | `bg-gradient-to-r from-emerald-600 to-teal-600 text-white` |
+| **Danger buttons** | `bg-red-100 text-red-700` |
+| **Table headers** | `bg-gradient-to-r from-gray-50 to-gray-100` |
+| **Badges** | Rounded-full, small font, colored backgrounds per semantic type |
+| **Empty states** | Centered layout with large gray SVG icon + text |
+
+The create form (`products.create`) uses a distinct design — wider layout (max-w-4xl), `bg-gradient-to-br from-blue-50 to-indigo-100` page background, and section-specific accent colors for each card header icon (green→classification, purple→classification, amber→details, blue→accounting).
+
+
+
+## 11. Design Decisions
 
 1. **No separate SalesOrder model** — sales flow directly through Invoices with draft → posted status.
 2. **No separate SubProduct model** — sub-products are Products with `parent_id` set. This simplifies queries but requires careful enforcement of variant selection.

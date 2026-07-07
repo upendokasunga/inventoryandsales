@@ -60,9 +60,6 @@
                             <tr>
                                 <td class="px-3 py-2.5">
                                     {{ $item->product->name ?? 'N/A' }}
-                                    @if($item->subProduct)
-                                        <br><span class="text-xs text-slate-400">Variant: {{ $item->subProduct->name }}</span>
-                                    @endif
                                     @if($item->store)
                                         <br><span class="text-xs text-slate-400">Store: {{ $item->store->name }}</span>
                                     @endif
@@ -152,6 +149,13 @@
                 @if(in_array($invoice->payment_status, ['pending', 'partial']))
                     <a href="{{ route('payments.create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-success text-white text-sm rounded-lg hover:bg-success-600 transition">Record Payment</a>
                 @endif
+
+                @if(in_array($invoice->status, ['approved', 'posted']))
+                    <a href="{{ route('invoices.return-create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-warning text-white text-sm rounded-lg hover:bg-warning-600 transition">Create Return</a>
+                    <a href="{{ route('invoices.discount-create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-info text-white text-sm rounded-lg hover:bg-info-600 transition">Apply Discount</a>
+                @endif
+
+                <a href="{{ route('invoices.credit-notes', $invoice) }}" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Credit Notes</a>
 
                 <a href="{{ route('invoices.print', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print Invoice</a>
                 <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print PDF</a>

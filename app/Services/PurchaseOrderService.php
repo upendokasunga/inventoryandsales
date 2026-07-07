@@ -68,8 +68,10 @@ class PurchaseOrderService
                 $subtotal += $lineSubtotal;
                 $poItems[] = new PurchaseOrderItem([
                     'product_id' => $item['product_id'],
+                    'product_make' => $item['product_make'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
+                    'selling_price' => $item['selling_price'] ?? null,
                     'subtotal' => $lineSubtotal,
                 ]);
             }
@@ -105,8 +107,10 @@ class PurchaseOrderService
                 $subtotal += $lineSubtotal;
                 $poItems[] = new PurchaseOrderItem([
                     'product_id' => $item['product_id'],
+                    'product_make' => $item['product_make'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
+                    'selling_price' => $item['selling_price'] ?? null,
                     'subtotal' => $lineSubtotal,
                 ]);
             }

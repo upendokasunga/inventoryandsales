@@ -171,8 +171,11 @@ Route::middleware(["auth", "verified"])->group(function () {
     // --- Products (fixed paths BEFORE wildcard {product}) ---
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("products", [ProductController::class, "index"])->name("products.index");
-        Route::get("products-export", [ProductController::class, "exportCsv"])->name("products.export-csv");
         Route::post("products/barcodes", [ProductController::class, "barcodes"])->name("products.barcodes");
+        Route::get("products/price-json/{product}", [ProductController::class, "priceJson"])->name("products.price-json");
+        Route::post("products/{product}/price", [ProductController::class, "updatePrice"])->name("products.price");
+        Route::post("products/prices-batch", [ProductController::class, "updatePricesBatch"])->name("products.prices-batch");
+        Route::get("products-export", [ProductController::class, "export"])->name("products.export");
     });
     Route::middleware("menu.access:can_create")->group(function () {
         Route::get("products/create", [ProductController::class, "create"])->name("products.create");
@@ -274,6 +277,9 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::middleware("menu.access:can_delete")->group(function () {
         Route::post("purchasing/orders/{purchaseOrder}/cancel", [PurchaseOrderController::class, "cancel"])->name("purchasing.orders.cancel");
         Route::delete("purchasing/orders/{purchaseOrder}", [PurchaseOrderController::class, "destroy"])->name("purchasing.orders.destroy");
+    });
+    Route::middleware("menu.access:can_reverse")->group(function () {
+        Route::post("purchasing/orders/{purchaseOrder}/reverse", [PurchaseOrderController::class, "reverse"])->name("purchasing.orders.reverse");
     });
 
     // --- Customers (fixed paths BEFORE wildcard {customer}) ---
@@ -441,6 +447,15 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_delete")->group(function () {
         Route::delete("invoices/{invoice}", [InvoiceController::class, "destroy"])->name("invoices.destroy");
+    });
+    Route::middleware("menu.access:can_reverse")->group(function () {
+        Route::get("invoices/{invoice}/return", [InvoiceController::class, "returnCreate"])->name("invoices.return-create");
+        Route::post("invoices/{invoice}/return", [InvoiceController::class, "returnStore"])->name("invoices.return-store");
+        Route::get("invoices/{invoice}/discount", [InvoiceController::class, "discountCreate"])->name("invoices.discount-create");
+        Route::post("invoices/{invoice}/discount", [InvoiceController::class, "discountStore"])->name("invoices.discount-store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("invoices/{invoice}/credit-notes", [InvoiceController::class, "creditNotes"])->name("invoices.credit-notes");
     });
 
     // --- Customer Advances (Phase 4.3) ---

@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
+use App\Models\CreditNote;
 use App\Models\Invoice;
+use App\Models\SalesReturn;
 use App\Services\BarcodeService;
 use App\Services\CentralApprovalService;
 use App\Services\InvoiceService;
 use App\Services\PrintDocumentService;
 use App\Services\ReceiptService;
+use App\Services\SalesReturnService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class InvoiceController extends Controller
@@ -20,6 +24,7 @@ class InvoiceController extends Controller
         protected ReceiptService $receiptService,
         protected BarcodeService $barcodeService,
         protected CentralApprovalService $centralApproval,
+        protected SalesReturnService $salesReturnService,
     ) {}
 
     public function index(Request $request): View
@@ -126,6 +131,90 @@ class InvoiceController extends Controller
         $data = $this->receiptService->getReceiptData($invoice);
         $data['barcodeSvg'] = $this->barcodeService->getBarcodeSvg($invoice->invoice_number);
         return view('invoices.receipt', $data);
+    }
+
+    public function returnCreate(Invoice $invoice): View
+    {
+        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
+        return view('invoices.return-create', compact('invoice'));
+    }
+
+    public function returnStore(Request $request, Invoice $invoice): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_unit_id' => 'nullable|exists:product_units,id',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.reason' => 'required|string|in:damaged,wrong_item,expired,customer_dissatisfaction,pricing_error,duplicate_order',
+        ]);
+
+        try {
+            $data = array_merge($validated, [
+                'invoice_id' => $invoice->id,
+                'customer_id' => $invoice->customer_id,
+            ]);
+
+            $return = $this->salesReturnService->create($data);
+
+            return redirect()->route('sales-returns.show', $return)
+                ->with('success', 'Return created from invoice successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('invoices.return-create', $invoice)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function discountCreate(Invoice $invoice): View
+    {
+        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
+        return view('invoices.discount-create', compact('invoice'));
+    }
+
+    public function discountStore(Request $request, Invoice $invoice): RedirectResponse
+    {
+        $validated = $request->validate([
+            'discount_amount' => 'required|numeric|min:0|max:' . $invoice->total,
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        DB::transaction(function () use ($invoice, $validated) {
+            $discount = $validated['discount_amount'];
+            $newTotal = max(0, $invoice->total - $discount);
+
+            CreditNote::create([
+                'invoice_id' => $invoice->id,
+                'customer_id' => $invoice->customer_id,
+                'amount' => $discount,
+                'notes' => $validated['reason'] ?? 'Discount adjustment',
+                'status' => 'issued',
+                'issued_date' => now(),
+                'created_by' => auth()->id(),
+            ]);
+
+            $invoice->update([
+                'discount' => $invoice->discount + $discount,
+                'total' => $newTotal,
+                'balance_due' => max(0, $invoice->balance_due - $discount),
+            ]);
+        });
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Discount applied successfully.');
+    }
+
+    public function creditNotes(Invoice $invoice): View
+    {
+        $creditNotes = CreditNote::where('invoice_id', $invoice->id)
+            ->with(['creator'])
+            ->latest()
+            ->get();
+
+        $invoice->load(['customer']);
+        return view('invoices.credit-notes', compact('invoice', 'creditNotes'));
     }
 
     public function destroy(Invoice $invoice): RedirectResponse

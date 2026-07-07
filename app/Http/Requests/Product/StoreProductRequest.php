@@ -25,6 +25,18 @@ class StoreProductRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
             'weight' => 'nullable|numeric|min:0',
 
+            'product_type' => 'nullable|in:goods,service,fixed_asset',
+            'price' => 'nullable|numeric|min:0',
+            'retail_price' => 'nullable|numeric|min:0',
+            'standard_cost' => 'nullable|numeric|min:0',
+            'costing_method' => 'nullable|in:fifo,moving_average,standard',
+            'income_account_id' => 'nullable|exists:accounts,id',
+            'cost_center' => 'nullable|string|max:255',
+            'brand_code' => 'nullable|string|max:100',
+            'expiry_date' => 'nullable|date',
+            'unit' => 'nullable|string|max:50',
+            'category' => 'nullable|string|max:255',
+
             'parent_product_id' => 'nullable|exists:products,id',
             'has_variants' => 'boolean',
             'variant_attributes' => 'nullable|array',
