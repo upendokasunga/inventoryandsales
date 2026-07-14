@@ -37,6 +37,12 @@ class BankingService
 
     public function updateAccount(BankAccount $account, array $data): BankAccount
     {
+        $hasNoTransactions = !$account->transactions()->exists();
+
+        if ($hasNoTransactions && array_key_exists('opening_balance', $data)) {
+            $data['current_balance'] = $data['opening_balance'];
+        }
+
         $account->update($data);
         return $account->fresh();
     }

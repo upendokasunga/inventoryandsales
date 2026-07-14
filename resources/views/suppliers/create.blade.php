@@ -9,7 +9,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6">
                 <div class="p-6">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="name" class="block text-sm font-medium text-slate-700">Name *</label>
                             <input type="text" name="name" id="name" value="{{ old('name') }}" required
@@ -20,9 +20,10 @@
                             <label for="contact_person" class="block text-sm font-medium text-slate-700">Contact Person</label>
                             <input type="text" name="contact_person" id="contact_person" value="{{ old('contact_person') }}"
                                 class="mt-1 block w-full erp-input">
+                            @error('contact_person') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
                             <input type="email" name="email" id="email" value="{{ old('email') }}"
@@ -33,30 +34,35 @@
                             <label for="phone1" class="block text-sm font-medium text-slate-700">Phone 1</label>
                             <input type="text" name="phone1" id="phone1" value="{{ old('phone1') }}"
                                 class="mt-1 block w-full erp-input">
+                            @error('phone1') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="phone2" class="block text-sm font-medium text-slate-700">Phone 2</label>
                             <input type="text" name="phone2" id="phone2" value="{{ old('phone2') }}"
                                 class="mt-1 block w-full erp-input">
+                            @error('phone2') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="city" class="block text-sm font-medium text-slate-700">City</label>
                             <input type="text" name="city" id="city" value="{{ old('city') }}"
                                 class="mt-1 block w-full erp-input">
+                            @error('city') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
                     <div class="mb-4">
                         <label for="address" class="block text-sm font-medium text-slate-700">Address</label>
                         <textarea name="address" id="address" rows="2"
                             class="mt-1 block w-full erp-input">{{ old('address') }}</textarea>
+                        @error('address') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="tax_id" class="block text-sm font-medium text-slate-700">Tax ID</label>
                             <input type="text" name="tax_id" id="tax_id" value="{{ old('tax_id') }}"
                                 class="mt-1 block w-full erp-input">
+                            @error('tax_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="payment_terms" class="block text-sm font-medium text-slate-700">Payment Terms</label>
@@ -68,6 +74,7 @@
                                 <option value="Net 90" {{ old('payment_terms') == 'Net 90' ? 'selected' : '' }}>Net 90</option>
                                 <option value="COD" {{ old('payment_terms') == 'COD' ? 'selected' : '' }}>Cash on Delivery</option>
                             </select>
+                            @error('payment_terms') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
                     <div class="mb-4">

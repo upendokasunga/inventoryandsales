@@ -20,10 +20,15 @@ class InventoryTransaction extends Model
     ];
 
     protected $fillable = [
-        'product_id', 'reference_type', 'reference_id',
+        'product_id', 'warehouse_id', 'reference_type', 'reference_id',
         'type', 'quantity', 'unit_cost', 'total_cost',
         'balance_before', 'balance_after', 'description', 'created_by',
     ];
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    }
 
     protected function casts(): array
     {

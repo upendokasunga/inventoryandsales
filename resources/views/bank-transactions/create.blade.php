@@ -1,50 +1,58 @@
 <x-app-layout>
-    <x-slot name="header">Record Transaction - {{ $bankAccount->name }}</x-slot>
-
-    <x-breadcrumbs :items="[['label' => 'Bank Accounts', 'url' => route('bank-accounts.index')], ['label' => $bankAccount->name, 'url' => route('bank-accounts.show', $bankAccount)], ['label' => 'New Transaction']]" />
+    <x-slot name="header">{{ __('Record Transaction') }} — {{ $bankAccount->name }}</x-slot>
 
     <div class="max-w-lg mx-auto">
-        <form method="POST" action="{{ route('bank-transactions.store', $bankAccount) }}" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="mb-4">
+            <a href="{{ route('bank-accounts.show', $bankAccount) }}" class="erp-btn-secondary">Back to Account</a>
+        </div>
+
+        <form method="POST" action="{{ route('bank-transactions.store', $bankAccount) }}">
             @csrf
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Type *</label>
-                <select name="type" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" id="tx-type">
-                    <option value="deposit" @selected(old('type') === 'deposit')>Deposit</option>
-                    <option value="withdrawal" @selected(old('type') === 'withdrawal')>Withdrawal</option>
-                </select>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6">
+                <div class="px-6 py-4 border-b border-slate-200/60">
+                    <h3 class="text-lg font-semibold text-slate-800">Transaction Details</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Type <span class="text-red-500">*</span></label>
+                        <select name="type" required class="mt-1 block w-full erp-input">
+                            <option value="deposit" @selected(old('type') === 'deposit')>Deposit</option>
+                            <option value="withdrawal" @selected(old('type') === 'withdrawal')>Withdrawal</option>
+                        </select>
+                        @error('type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Amount (TSh) <span class="text-red-500">*</span></label>
+                        <input type="number" step="0.01" min="0.01" name="amount" value="{{ old('amount') }}" required class="mt-1 block w-full erp-input" placeholder="0">
+                        @error('amount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Date <span class="text-red-500">*</span></label>
+                        <input type="date" name="transaction_date" value="{{ old('transaction_date', now()->format('Y-m-d')) }}" required class="mt-1 block w-full erp-input">
+                        @error('transaction_date') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Description <span class="text-red-500">*</span></label>
+                        <input type="text" name="description" value="{{ old('description') }}" required class="mt-1 block w-full erp-input" placeholder="e.g., Customer payment deposit">
+                        @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Reference Number</label>
+                        <input type="text" name="reference_number" value="{{ old('reference_number') }}" class="mt-1 block w-full erp-input" placeholder="Cheque / Ref #">
+                        @error('reference_number') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Notes</label>
+                        <textarea name="notes" rows="2" class="mt-1 block w-full erp-input" placeholder="Optional notes...">{{ old('notes') }}</textarea>
+                        @error('notes') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Amount *</label>
-                <input type="number" step="0.01" min="0.01" name="amount" value="{{ old('amount') }}" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="0.00">
-                @error('amount') <p class="text-xs text-danger mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Date *</label>
-                <input type="date" name="transaction_date" value="{{ old('transaction_date', now()->format('Y-m-d')) }}" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Description *</label>
-                <input type="text" name="description" value="{{ old('description') }}" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="e.g., Customer payment deposit">
-                @error('description') <p class="text-xs text-danger mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Reference Number</label>
-                <input type="text" name="reference_number" value="{{ old('reference_number') }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Cheque/Ref #">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                <textarea name="notes" rows="2" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Optional notes...">{{ old('notes') }}</textarea>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary-600 transition">Record Transaction</button>
-                <a href="{{ route('bank-accounts.show', $bankAccount) }}" class="px-4 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Cancel</a>
+            <div class="flex justify-end">
+                <a href="{{ route('bank-accounts.show', $bankAccount) }}" class="mr-4 erp-btn-secondary">Cancel</a>
+                <button type="submit" class="erp-btn-primary">Record Transaction</button>
             </div>
         </form>
     </div>

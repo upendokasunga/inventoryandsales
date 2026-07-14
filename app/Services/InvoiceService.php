@@ -6,18 +6,23 @@ use App\Models\InventoryBalance;
 use App\Models\InventoryTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
 use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
+use App\Support\InventoryAccounts;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceService
 {
     public function __construct(
         protected PricingService $pricingService,
+        protected InventoryService $inventoryService,
     ) {}
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
@@ -135,15 +140,13 @@ class InvoiceService
                 'customer_id' => $data['customer_id'],
                 'so_number' => 'SO-' . strtoupper(\Illuminate\Support\Str::random(8)),
                 'order_date' => $data['invoice_date'],
-                'status' => 'invoiced',
+                'status' => 'proforma',
                 'subtotal' => $subtotal,
                 'discount' => $data['discount'] ?? 0,
                 'tax' => $data['tax'] ?? $totalTax,
                 'total' => $data['total'],
                 'notes' => $data['notes'] ?? null,
                 'created_by' => auth()->id(),
-                'invoiced_by' => auth()->id(),
-                'invoiced_at' => now(),
             ]);
             $so->items()->saveMany($soItems);
             $data['sales_order_id'] = $so->id;
@@ -283,6 +286,159 @@ class InvoiceService
 
         $unitCost = (float) ($pu->purchase_price ?? 0);
         return $quantity * $unitCost;
+    }
+
+    public function postInvoice(Invoice $invoice): void
+    {
+        DB::transaction(function () use ($invoice) {
+            $invoice->loadMissing(['items.product', 'customer']);
+
+            $je = JournalEntry::create([
+                'entry_date' => $invoice->invoice_date ?? now(),
+                'type' => 'sales',
+                'status' => 'posted',
+                'description' => "Invoice {$invoice->invoice_number}",
+                'total_debit' => $invoice->total,
+                'total_credit' => $invoice->total,
+                'reference_type' => Invoice::class,
+                'reference_id' => $invoice->id,
+                'created_by' => $invoice->created_by ?? auth()->id(),
+            ]);
+
+            $arAccount = InventoryAccounts::accountsReceivable();
+            if ($arAccount) {
+                JournalEntryLine::create([
+                    'journal_entry_id' => $je->id,
+                    'account_id' => $arAccount->id,
+                    'description' => 'Account Receivable',
+                    'debit' => $invoice->total,
+                    'credit' => 0,
+                ]);
+            }
+
+            foreach ($invoice->items as $item) {
+                $revenueAccount = $item->product?->incomeAccount ?? InventoryAccounts::salesRevenue();
+                if ($revenueAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $je->id,
+                        'account_id' => $revenueAccount->id,
+                        'description' => $item->product?->name ?? 'Sales',
+                        'debit' => 0,
+                        'credit' => $item->line_total,
+                    ]);
+                }
+            }
+
+            if (($invoice->tax ?? 0) > 0) {
+                $vatAccount = InventoryAccounts::vatOutput();
+                if ($vatAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $je->id,
+                        'account_id' => $vatAccount->id,
+                        'description' => 'VAT Output',
+                        'debit' => 0,
+                        'credit' => $invoice->tax,
+                    ]);
+                }
+            }
+
+            if (($invoice->discount ?? 0) > 0) {
+                $discountAccount = InventoryAccounts::salesDiscounts();
+                if ($discountAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $je->id,
+                        'account_id' => $discountAccount->id,
+                        'description' => 'Sales Discounts',
+                        'debit' => $invoice->discount,
+                        'credit' => 0,
+                    ]);
+                }
+            }
+
+            $totalCogs = 0;
+            foreach ($invoice->items as $item) {
+                if ($item->product && $item->product->product_type === 'goods') {
+                    $cost = $this->computeIssueCost($item->product, $item->quantity, 'fifo');
+                    $totalCogs += $cost;
+                }
+            }
+
+            if ($totalCogs > 0) {
+                $cogsAccount = InventoryAccounts::cogs();
+                $invAccount = InventoryAccounts::inventory();
+                if ($cogsAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $je->id,
+                        'account_id' => $cogsAccount->id,
+                        'description' => 'COGS',
+                        'debit' => $totalCogs,
+                        'credit' => 0,
+                    ]);
+                }
+                if ($invAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $je->id,
+                        'account_id' => $invAccount->id,
+                        'description' => 'Inventory Out',
+                        'debit' => 0,
+                        'credit' => $totalCogs,
+                    ]);
+                }
+            }
+
+            if (($invoice->amount_paid ?? 0) > 0 && $invoice->payment_account_id) {
+                $receiptJe = JournalEntry::create([
+                    'entry_date' => $invoice->invoice_date ?? now(),
+                    'type' => 'receipt',
+                    'status' => 'posted',
+                    'description' => "Payment for Invoice {$invoice->invoice_number}",
+                    'total_debit' => $invoice->amount_paid,
+                    'total_credit' => $invoice->amount_paid,
+                    'reference_type' => Invoice::class,
+                    'reference_id' => $invoice->id,
+                    'created_by' => $invoice->created_by ?? auth()->id(),
+                ]);
+
+                $bankAccount = \App\Models\Account::find($invoice->payment_account_id);
+                if ($bankAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $receiptJe->id,
+                        'account_id' => $bankAccount->id,
+                        'description' => 'Payment received',
+                        'debit' => $invoice->amount_paid,
+                        'credit' => 0,
+                    ]);
+                }
+                if ($arAccount) {
+                    JournalEntryLine::create([
+                        'journal_entry_id' => $receiptJe->id,
+                        'account_id' => $arAccount->id,
+                        'description' => 'AR reduction',
+                        'debit' => 0,
+                        'credit' => $invoice->amount_paid,
+                    ]);
+                }
+            }
+
+            foreach ($invoice->items as $item) {
+                if ($item->product && $item->product->product_type === 'goods') {
+                    try {
+                        $this->inventoryService->issueStock(
+                            $item->product,
+                            $item->quantity,
+                            $invoice,
+                            "Invoice {$invoice->invoice_number}: {$item->quantity} units"
+                        );
+                    } catch (\InvalidArgumentException $e) {
+                        Log::warning("Stock issue failed for invoice {$invoice->id}: {$e->getMessage()}");
+                    }
+                }
+            }
+
+            Cache::forget('invoices.stats');
+            Cache::forget('pos.dashboard.stats');
+            Cache::forget('sales.dashboard');
+        });
     }
 
     public function getStats(): array

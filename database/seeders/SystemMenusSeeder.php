@@ -96,7 +96,9 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'POS Dashboard',        'route' => 'pos.dashboard',            'icon' => 'chart-pie',      'module' => 'Point of Sale', 'sort_order' => 21, 'parent' => 'Sales', 'section' => 'POS'],
             ['name' => 'Invoices',             'route' => 'invoices.index',           'icon' => 'document-text',  'module' => 'Sales',         'sort_order' => 22, 'parent' => 'Sales', 'section' => 'POS'],
             ['name' => 'Payments',             'route' => 'payments.index',           'icon' => 'cash',           'module' => 'Sales',         'sort_order' => 23, 'parent' => 'Sales', 'section' => 'POS'],
-            ['name' => 'Customer Advances',    'route' => 'customer-advances.index',   'icon' => 'banknotes',      'module' => 'Sales',         'sort_order' => 24, 'parent' => 'Sales', 'section' => 'POS'],
+            ['name' => 'Sales',                'route' => 'sales.index',              'icon' => 'shopping-cart',  'module' => 'Sales',         'sort_order' => 24, 'parent' => 'Sales', 'section' => 'POS'],
+            ['name' => 'New Sale',             'route' => 'sales.new',                'icon' => 'shopping-cart',  'module' => 'Sales',         'sort_order' => 25, 'parent' => 'Sales', 'section' => 'POS'],
+            ['name' => 'Customer Advances',    'route' => 'customer-advances.index',   'icon' => 'banknotes',      'module' => 'Sales',         'sort_order' => 26, 'parent' => 'Sales', 'section' => 'POS'],
 
             // ── Sales → Returns ──
             ['name' => 'Sales Returns',        'route' => 'sales-returns.index',      'icon' => 'refresh',        'module' => 'Sales', 'sort_order' => 30, 'parent' => 'Sales', 'section' => 'Returns'],
@@ -116,7 +118,8 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Tax Reports',          'route' => 'reports.tax',              'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 30, 'parent' => 'Finance', 'section' => 'Taxation'],
 
             // ── Finance → Payments ──
-            ['name' => 'Payment Reports',      'route' => 'reports.payments',         'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 40, 'parent' => 'Finance', 'section' => 'Payments'],
+            ['name' => 'Supplier Payments',    'route' => 'supplier-payments.index',  'icon' => 'cash',           'module' => 'Finance',   'sort_order' => 40, 'parent' => 'Finance', 'section' => 'Payments'],
+            ['name' => 'Payment Reports',      'route' => 'reports.payments',         'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 41, 'parent' => 'Finance', 'section' => 'Payments'],
 
             // ── Finance → Banking ──
             ['name' => 'Bank Accounts',        'route' => 'bank-accounts.index',       'icon' => 'banknotes',      'module' => 'Finance', 'sort_order' => 50, 'parent' => 'Finance', 'section' => 'Banking'],

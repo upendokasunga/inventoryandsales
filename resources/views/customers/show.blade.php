@@ -66,7 +66,7 @@
                     @if ($customer->contact_person)
                         <hr class="my-4 border-slate-100">
                         <h4 class="text-sm font-semibold text-slate-700 mb-2">Contact Person</h4>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div><span class="text-slate-500">Name:</span> <span class="font-medium">{{ $customer->contact_person }}</span></div>
                             <div><span class="text-slate-500">Phone:</span> <span class="font-medium">{{ $customer->contact_phone }}</span></div>
                             <div><span class="text-slate-500">Email:</span> <span class="font-medium">{{ $customer->contact_email }}</span></div>

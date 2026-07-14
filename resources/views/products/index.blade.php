@@ -11,7 +11,7 @@
 
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
-            <form action="{{ route('products.index') }}" method="GET" class="flex gap-2 flex-nowrap items-center">
+            <form action="{{ route('products.index') }}" method="GET" class="flex flex-nowrap items-center justify-between w-full">
                 <select name="category_id" class="erp-input">
                     <option value="">All Categories</option>
                     @foreach ($categories as $cat)

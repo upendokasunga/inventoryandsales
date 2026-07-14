@@ -10,34 +10,38 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Supplier</label>
-                    <select name="supplier_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <select name="supplier_id" required class="erp-input w-full">
                         <option value="">Select supplier</option>
                         @foreach(\App\Models\Supplier::all() as $s)
                             <option value="{{ $s->id }}">{{ $s->name }}</option>
                         @endforeach
                     </select>
+                    @error('supplier_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Purchase Order (optional)</label>
-                    <select name="purchase_order_id" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <select name="purchase_order_id" class="erp-input w-full">
                         <option value="">No PO</option>
                         @foreach(\App\Models\PurchaseOrder::where('status', '!=', 'cancelled')->get() as $po)
                             <option value="{{ $po->id }}">{{ $po->po_number }}</option>
                         @endforeach
                     </select>
+                    @error('purchase_order_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Reason</label>
-                    <select name="reason" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <select name="reason" class="erp-input w-full">
                         <option value="">Select reason</option>
                         @foreach(\App\Models\PurchaseReturn::REASONS as $r)
                             <option value="{{ $r }}">{{ ucfirst(str_replace('_', ' ', $r)) }}</option>
                         @endforeach
                     </select>
+                    @error('reason') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"></textarea>
+                    <textarea name="notes" rows="2" class="erp-input w-full"></textarea>
+                    @error('notes') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -57,7 +61,7 @@
                         <template x-for="(item, index) in items" :key="index">
                             <tr>
                                 <td class="px-3 py-2">
-                                    <select x-model="item.product_id" required class="w-48 border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <select x-model="item.product_id" required class="erp-input w-48">
                                         <option value="">Select product</option>
                                         @foreach(\App\Models\Product::all() as $p)
                                             <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -65,13 +69,13 @@
                                     </select>
                                 </td>
                                 <td class="px-3 py-2 text-center">
-                                    <input type="number" x-model="item.quantity" step="0.001" min="0.001" required class="w-20 text-center border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <input type="number" x-model="item.quantity" step="0.001" min="0.001" required class="erp-input w-20 text-center">
                                 </td>
                                 <td class="px-3 py-2 text-right">
-                                    <input type="number" x-model="item.unit_price" step="0.01" min="0" required class="w-24 text-right border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <input type="number" x-model="item.unit_price" step="0.01" min="0" required class="erp-input w-24 text-right">
                                 </td>
                                 <td class="px-3 py-2">
-                                    <select x-model="item.reason" required class="border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <select x-model="item.reason" required class="erp-input">
                                         <option value="">Reason</option>
                                         @foreach(\App\Models\PurchaseReturn::REASONS as $r)
                                             <option value="{{ $r }}">{{ ucfirst(str_replace('_', ' ', $r)) }}</option>
@@ -95,8 +99,9 @@
                 <input type="hidden" :name="`items[${index}][reason]`" :value="item.reason">
             </template>
 
-            <div class="flex justify-end">
-                <button type="submit" class="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 transition">Create Return</button>
+            <div class="flex justify-end gap-3">
+                <a href="{{ route('purchase-returns.index') }}" class="erp-btn-secondary">Cancel</a>
+                <button type="submit" class="erp-btn-primary">Create Return</button>
             </div>
         </form>
     </div>

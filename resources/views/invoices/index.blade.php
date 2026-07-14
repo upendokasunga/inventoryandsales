@@ -17,7 +17,7 @@
         </div>
 
         <div class="mb-6 border-b border-slate-200">
-            <nav class="flex space-x-4 -mb-px overflow-x-auto">
+            <nav class="flex space-x-4 -mb-px overflow-x-auto" role="tablist">
                 @foreach ([
                     'all' => 'All', 'draft' => 'Draft', 'proforma' => 'Proforma',
                     'pending_approval' => 'Pending', 'posted' => 'Posted',
@@ -25,6 +25,8 @@
                     'cancelled' => 'Cancelled', 'reversed' => 'Reversed',
                 ] as $key => $label)
                     <a href="{{ route('invoices.index', array_merge(request()->except('tab', 'page'), ['tab' => $key])) }}"
+                       role="tab"
+                       aria-selected="{{ $tab === $key ? 'true' : 'false' }}"
                        class="pb-3 px-2 text-sm font-medium border-b-2 whitespace-nowrap {{ $tab === $key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
                         {{ $label }}
                     </a>
@@ -105,8 +107,8 @@
                             <span class="{{ $pc[$invoice->payment_status] ?? 'erp-badge-draft' }}">{{ ucfirst($invoice->payment_status) }}</span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-slate-500">
-                            @if ($invoice->invoice_date)
-                                {{ $invoice->invoice_date->format('d M Y') }}
+                            @if ($invoice->due_date)
+                                {{ $invoice->due_date->format('d M Y') }}
                             @else
                                 -
                             @endif

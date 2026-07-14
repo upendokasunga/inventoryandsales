@@ -27,7 +27,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 mb-6">
-            <div class="grid grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 class="text-sm font-medium text-slate-500 mb-4">Adjustment Information</h3>
                     <dl class="space-y-3">

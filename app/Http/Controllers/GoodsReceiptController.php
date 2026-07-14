@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GoodsReceipt\StoreGoodsReceiptRequest;
 use App\Models\GoodsReceipt;
 use App\Models\PurchaseOrder;
+use App\Models\Warehouse;
 use App\Services\GoodsReceiptService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,7 +46,9 @@ class GoodsReceiptController extends Controller
                 ->findOrFail($request->purchase_order_id);
         }
 
-        return view('purchasing.receipts.create', compact('orders', 'purchaseOrder'));
+        $warehouses = Warehouse::active()->get();
+
+        return view('purchasing.receipts.create', compact('orders', 'purchaseOrder', 'warehouses'));
     }
 
     public function store(StoreGoodsReceiptRequest $request): RedirectResponse
@@ -62,13 +65,13 @@ class GoodsReceiptController extends Controller
 
     public function show(GoodsReceipt $goodsReceipt): View
     {
-        $goodsReceipt->load(['purchaseOrder.supplier', 'items.product', 'creator']);
+        $goodsReceipt->load(['purchaseOrder.supplier', 'warehouse', 'items.product', 'creator']);
         return view('purchasing.receipts.show', compact('goodsReceipt'));
     }
 
     public function print(GoodsReceipt $goodsReceipt): Response
     {
-        $goodsReceipt->load(['purchaseOrder.supplier', 'items.product', 'creator']);
+        $goodsReceipt->load(['purchaseOrder.supplier', 'warehouse', 'items.product', 'creator']);
         $data = app(\App\Services\PrintDocumentService::class)->getLetterheadData();
         $data['goodsReceipt'] = $goodsReceipt;
         return app(\App\Services\PrintDocumentService::class)->streamPdf('print.goods-receipt', $data, "grn-{$goodsReceipt->receipt_number}.pdf");

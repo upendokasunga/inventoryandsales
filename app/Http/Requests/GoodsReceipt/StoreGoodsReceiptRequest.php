@@ -16,6 +16,7 @@ class StoreGoodsReceiptRequest extends FormRequest
         return [
             'receipt_date' => 'nullable|date',
             'notes' => 'nullable|string|max:1000',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
             'items' => 'required|array|min:1',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.product_id' => 'required|exists:products,id',

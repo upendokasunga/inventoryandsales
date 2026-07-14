@@ -6,42 +6,103 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <form action="{{ route('invoices.store') }}" method="POST" x-data="invoiceForm()">
             @csrf
+            <input type="hidden" name="_action" value="submit">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                    <select name="customer_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <select name="customer_id" x-model="selectedCustomer" required class="erp-input w-full">
                         <option value="">Walk-in Customer</option>
-                        @foreach(\App\Models\Customer::all() as $c)
+                        @foreach($customers as $c)
                             <option value="{{ $c->id }}">{{ $c->name }}</option>
                         @endforeach
                     </select>
+                    @error('customer_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Invoice Date</label>
-                    <input type="date" name="invoice_date" value="{{ now()->format('Y-m-d') }}" required class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <input type="date" name="invoice_date" value="{{ now()->format('Y-m-d') }}" required class="erp-input w-full">
+                    @error('invoice_date') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Payment Type</label>
-                    <select name="payment_type" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <select name="payment_type" class="erp-input w-full">
                         <option value="cash">Cash</option>
                         <option value="credit">Credit</option>
                         <option value="bank_transfer">Bank Transfer</option>
                         <option value="mobile_money">Mobile Money</option>
                         <option value="cheque">Cheque</option>
                     </select>
+                    @error('payment_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
+                    <select name="currency_code" class="erp-input w-full">
+                        @foreach($currencies as $cur)
+                            <option value="{{ $cur }}" {{ $cur === 'TZS' ? 'selected' : '' }}>{{ $cur }}</option>
+                        @endforeach
+                    </select>
+                    @error('currency_code') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Exchange Rate</label>
+                    <input type="number" name="exchange_rate" step="0.00000001" min="0" value="1" class="erp-input w-full">
+                    @error('exchange_rate') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Account</label>
+                    <select name="payment_account_id" class="erp-input w-full">
+                        <option value="">Select</option>
+                        @foreach($paymentAccounts as $a)
+                            <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Cost Center</label>
+                    <select name="cost_center_id" class="erp-input w-full">
+                        <option value="">None</option>
+                        @foreach($costCenters as $cc)
+                            <option value="{{ $cc->id }}">{{ $cc->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('cost_center_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Discount</label>
-                    <input type="number" name="discount" step="0.01" min="0" value="0" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <input type="number" name="discount" step="0.01" min="0" value="0" class="erp-input w-full">
+                    @error('discount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Tax</label>
-                    <input type="number" name="tax" step="0.01" min="0" value="0" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm">
+                    <input type="number" name="tax" step="0.01" min="0" value="0" class="erp-input w-full">
+                    @error('tax') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
-                <div class="md:col-span-2">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Amount Paid</label>
+                    <input type="number" name="amount_paid" step="0.01" min="0" value="0" class="erp-input w-full">
+                    @error('amount_paid') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Customer Advance Application --}}
+                <div x-show="selectedCustomer">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Apply Customer Advance</label>
+                    <select name="customer_advance_id" class="erp-input w-full">
+                        <option value="">None</option>
+                        <template x-for="adv in customerAdvances" :key="adv.id">
+                            <option :value="adv.id" x-text="`${adv.advance_number} - ${adv.balance}`" :disabled="adv.balance <= 0"></option>
+                        </template>
+                    </select>
+                    <div class="mt-1">
+                        <input type="number" name="advance_amount" step="0.01" min="0" placeholder="Amount to apply" class="erp-input w-full">
+                    </div>
+                </div>
+
+                <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"></textarea>
+                    <textarea name="notes" rows="2" class="erp-input w-full"></textarea>
+                    @error('notes') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -53,6 +114,7 @@
                         <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
                             <tr>
                                 <th class="text-left px-3 py-2">Product</th>
+                                <th class="text-center px-3 py-2">Store</th>
                                 <th class="text-center px-3 py-2">Qty</th>
                                 <th class="text-right px-3 py-2">Unit Price</th>
                                 <th class="text-right px-3 py-2">Discount</th>
@@ -64,21 +126,29 @@
                             <template x-for="(item, index) in items" :key="index">
                                 <tr>
                                     <td class="px-3 py-2">
-                                        <select x-model="item.product_id" @change="loadProduct(index)" required class="w-48 border border-slate-200 rounded px-2 py-1.5 text-sm">
-                                            <option value="">Select product</option>
+                                        <select x-model="item.product_id" @change="loadProduct(index)" required class="erp-input w-40">
+                                            <option value="">Select</option>
                                             @foreach(\App\Models\Product::all() as $p)
                                                 <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->barcode ?? $p->sku }})</option>
                                             @endforeach
                                         </select>
                                     </td>
+                                    <td class="px-3 py-2">
+                                        <select x-model="item.store_id" class="erp-input w-32">
+                                            <option value="">Main Store</option>
+                                            @foreach($stores as $s)
+                                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
                                     <td class="px-3 py-2 text-center">
-                                        <input type="number" x-model="item.quantity" @input="updateLine(index)" step="0.001" min="0.001" required class="w-20 text-center border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <input type="number" x-model="item.quantity" @input="updateLine(index)" step="0.001" min="0.001" required class="erp-input w-20 text-center">
                                     </td>
                                     <td class="px-3 py-2 text-right">
-                                        <input type="number" x-model="item.unit_price" @input="updateLine(index)" step="0.01" min="0" required class="w-24 text-right border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <input type="number" x-model="item.unit_price" @input="updateLine(index)" step="0.01" min="0" required class="erp-input w-24 text-right">
                                     </td>
                                     <td class="px-3 py-2 text-right">
-                                        <input type="number" x-model="item.discount" @input="updateLine(index)" step="0.01" min="0" class="w-20 text-right border border-slate-200 rounded px-2 py-1.5 text-sm">
+                                        <input type="number" x-model="item.discount" @input="updateLine(index)" step="0.01" min="0" class="erp-input w-20 text-right">
                                     </td>
                                     <td class="px-3 py-2 text-right font-medium" x-text="formatCurrency(item.line_total)"></td>
                                     <td class="px-3 py-2 text-center">
@@ -87,6 +157,23 @@
                                 </tr>
                             </template>
                         </tbody>
+                        <tfoot>
+                            <tr class="bg-slate-50 font-semibold">
+                                <td colspan="5" class="px-3 py-2 text-right text-sm">Subtotal:</td>
+                                <td class="px-3 py-2 text-right text-sm" x-text="formatCurrency(subtotal)"></td>
+                                <td></td>
+                            </tr>
+                            <tr class="bg-slate-50 font-semibold">
+                                <td colspan="5" class="px-3 py-2 text-right text-sm text-red-600">Total Discount:</td>
+                                <td class="px-3 py-2 text-right text-sm text-red-600" x-text="formatCurrency(totalDiscount)"></td>
+                                <td></td>
+                            </tr>
+                            <tr class="bg-slate-50 font-semibold">
+                                <td colspan="5" class="px-3 py-2 text-right text-sm">Total:</td>
+                                <td class="px-3 py-2 text-right text-sm text-lg font-bold" x-text="formatCurrency(grandTotal)"></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 <button type="button" @click="addItem" class="mt-3 px-3 py-1.5 text-sm text-primary border border-primary rounded-lg hover:bg-primary-50 transition">+ Add Item</button>
@@ -95,14 +182,17 @@
             {{-- Hidden fields for items --}}
             <template x-for="(item, index) in items" :key="index">
                 <input type="hidden" :name="`items[${index}][product_id]`" :value="item.product_id">
+                <input type="hidden" :name="`items[${index}][store_id]`" :value="item.store_id">
                 <input type="hidden" :name="`items[${index}][quantity]`" :value="item.quantity">
                 <input type="hidden" :name="`items[${index}][unit_price]`" :value="item.unit_price">
                 <input type="hidden" :name="`items[${index}][discount]`" :value="item.discount">
                 <input type="hidden" :name="`items[${index}][tax]`" :value="0">
             </template>
 
-            <div class="flex justify-end">
-                <button type="submit" class="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 transition">Create Invoice</button>
+            <div class="flex justify-end gap-3">
+                <a href="{{ route('invoices.index') }}" class="erp-btn-secondary">Cancel</a>
+                <button type="submit" name="save_draft" value="1" class="erp-btn-secondary border-primary text-primary hover:bg-primary-50">Save Draft</button>
+                <button type="submit" class="erp-btn-primary">Submit Invoice</button>
             </div>
         </form>
     </div>
@@ -112,8 +202,10 @@
         function invoiceForm() {
             return {
                 items: [this.newItem()],
+                selectedCustomer: '',
+                customerAdvances: [],
                 newItem() {
-                    return { product_id: "", quantity: 1, unit_price: 0, discount: 0, tax: 0, line_total: 0 };
+                    return { product_id: "", store_id: "", quantity: 1, unit_price: 0, discount: 0, tax: 0, line_total: 0 };
                 },
                 addItem() { this.items.push(this.newItem()); },
                 removeItem(index) { if (this.items.length > 1) this.items.splice(index, 1); },
@@ -137,8 +229,29 @@
                         })
                         .catch(() => {});
                 },
+                get subtotal() {
+                    return this.items.reduce((sum, item) => sum + (parseFloat(item.unit_price) || 0) * (parseFloat(item.quantity) || 0), 0);
+                },
+                get totalDiscount() {
+                    return this.items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0);
+                },
+                get grandTotal() {
+                    return this.subtotal - this.totalDiscount;
+                },
                 formatCurrency(value) {
                     return new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
+                },
+                init() {
+                    this.$watch('selectedCustomer', (val) => {
+                        if (val) {
+                            fetch(`/customer-advances/available?customer_id=${val}`)
+                                .then(r => r.json())
+                                .then(data => { this.customerAdvances = data.advances || []; })
+                                .catch(() => { this.customerAdvances = []; });
+                        } else {
+                            this.customerAdvances = [];
+                        }
+                    });
                 },
             };
         }

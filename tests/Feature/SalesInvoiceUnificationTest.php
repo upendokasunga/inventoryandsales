@@ -44,7 +44,7 @@ class SalesInvoiceUnificationTest extends TestCase
         ]);
     }
 
-    public function test_invoice_creation_auto_creates_linked_sales_order(): void
+    public function test_invoice_creation_creates_linked_proforma(): void
     {
         $response = $this->actingAs($this->admin)->post(route('invoices.store'), [
             'customer_id' => $this->customer->id,
@@ -64,11 +64,12 @@ class SalesInvoiceUnificationTest extends TestCase
         ]);
 
         $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
+        $this->assertEquals('approved', $invoice->status);
         $this->assertNotNull($invoice->sales_order_id);
 
         $so = SalesOrder::find($invoice->sales_order_id);
         $this->assertNotNull($so);
-        $this->assertEquals('invoiced', $so->status);
+        $this->assertEquals('proforma', $so->status);
         $this->assertEquals($this->customer->id, $so->customer_id);
         $this->assertEquals(100000, $so->total);
 
@@ -126,7 +127,7 @@ class SalesInvoiceUnificationTest extends TestCase
 
     public function test_invoice_can_be_approved(): void
     {
-        $response = $this->actingAs($this->admin)->post(route('invoices.store'), [
+        $response = $this->actingAs($this->admin)->post(route('invoices.drafts'), [
             'customer_id' => $this->customer->id,
             'invoice_date' => now()->format('Y-m-d'),
             'items' => [
@@ -139,58 +140,6 @@ class SalesInvoiceUnificationTest extends TestCase
         ]);
 
         $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
-
-        $response = $this->actingAs($this->admin)->post(route('invoices.approve', $invoice));
-        $response->assertRedirect();
-        $invoice->refresh();
-        $this->assertEquals('approved', $invoice->status);
-        $this->assertNotNull($invoice->approved_by);
-        $this->assertNotNull($invoice->approved_at);
-    }
-
-    public function test_draft_invoice_can_be_converted_to_proforma(): void
-    {
-        $response = $this->actingAs($this->admin)->post(route('invoices.store'), [
-            'customer_id' => $this->customer->id,
-            'invoice_date' => now()->format('Y-m-d'),
-            'items' => [
-                [
-                    'product_id' => $this->product->id,
-                    'quantity' => 2,
-                    'unit_price' => 50000,
-                ],
-            ],
-        ]);
-
-        $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
-        $this->assertEquals('draft', $invoice->status);
-
-        $response = $this->actingAs($this->admin)->post(route('invoices.proforma', $invoice));
-        $response->assertRedirect();
-        $invoice->refresh();
-        $this->assertEquals('proforma', $invoice->status);
-    }
-
-    public function test_proforma_invoice_can_be_submitted_and_approved(): void
-    {
-        $response = $this->actingAs($this->admin)->post(route('invoices.store'), [
-            'customer_id' => $this->customer->id,
-            'invoice_date' => now()->format('Y-m-d'),
-            'items' => [
-                [
-                    'product_id' => $this->product->id,
-                    'quantity' => 2,
-                    'unit_price' => 50000,
-                ],
-            ],
-        ]);
-
-        $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
-
-        $response = $this->actingAs($this->admin)->post(route('invoices.proforma', $invoice));
-        $response->assertRedirect();
-        $invoice->refresh();
-        $this->assertEquals('proforma', $invoice->status);
 
         $response = $this->actingAs($this->admin)->post(route('invoices.approve', $invoice));
         $response->assertRedirect();
@@ -202,19 +151,20 @@ class SalesInvoiceUnificationTest extends TestCase
 
     public function test_proforma_can_be_reverted_to_draft(): void
     {
-        $response = $this->actingAs($this->admin)->post(route('invoices.store'), [
+        $response = $this->actingAs($this->admin)->post(route('invoices.drafts'), [
             'customer_id' => $this->customer->id,
             'invoice_date' => now()->format('Y-m-d'),
             'items' => [
                 [
                     'product_id' => $this->product->id,
-                    'quantity' => 1,
-                    'unit_price' => 100000,
+                    'quantity' => 2,
+                    'unit_price' => 50000,
                 ],
             ],
         ]);
 
         $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
+        $this->assertEquals('draft', $invoice->status);
 
         $response = $this->actingAs($this->admin)->post(route('invoices.proforma', $invoice));
         $response->assertRedirect();
@@ -225,6 +175,36 @@ class SalesInvoiceUnificationTest extends TestCase
         $response->assertRedirect();
         $invoice->refresh();
         $this->assertEquals('draft', $invoice->status);
+    }
+
+    public function test_proforma_invoice_can_be_submitted_and_approved(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('invoices.drafts'), [
+            'customer_id' => $this->customer->id,
+            'invoice_date' => now()->format('Y-m-d'),
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 2,
+                    'unit_price' => 50000,
+                ],
+            ],
+        ]);
+
+        $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
+        $this->assertEquals('draft', $invoice->status);
+
+        $response = $this->actingAs($this->admin)->post(route('invoices.proforma', $invoice));
+        $response->assertRedirect();
+        $invoice->refresh();
+        $this->assertEquals('proforma', $invoice->status);
+
+        $response = $this->actingAs($this->admin)->post(route('invoices.approve', $invoice));
+        $response->assertRedirect();
+        $invoice->refresh();
+        $this->assertEquals('approved', $invoice->status);
+        $this->assertNotNull($invoice->approved_by);
+        $this->assertNotNull($invoice->approved_at);
     }
 
     public function test_non_draft_invoice_cannot_be_converted_to_proforma(): void
@@ -242,8 +222,6 @@ class SalesInvoiceUnificationTest extends TestCase
         ]);
 
         $invoice = \App\Models\Invoice::where('customer_id', $this->customer->id)->first();
-        $this->actingAs($this->admin)->post(route('invoices.approve', $invoice));
-        $invoice->refresh();
         $this->assertEquals('approved', $invoice->status);
 
         $response = $this->actingAs($this->admin)->post(route('invoices.proforma', $invoice));

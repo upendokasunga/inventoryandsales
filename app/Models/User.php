@@ -38,6 +38,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Group::class)->withTimestamps();
     }
 
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Warehouse::class, 'store_user')
+            ->withTimestamps();
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

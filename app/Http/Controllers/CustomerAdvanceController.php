@@ -30,6 +30,22 @@ class CustomerAdvanceController extends Controller
         return view('customer-advances.index', compact('advances', 'stats', 'customers', 'tab'));
     }
 
+    public function available(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $customerId = $request->get('customer_id');
+        if (!$customerId) {
+            return response()->json(['advances' => []]);
+        }
+
+        $advances = CustomerAdvance::where('customer_id', $customerId)
+            ->whereIn('status', ['completed', 'partially_applied'])
+            ->where('balance', '>', 0)
+            ->orderBy('created_at')
+            ->get(['id', 'advance_number', 'amount', 'balance']);
+
+        return response()->json(['advances' => $advances]);
+    }
+
     public function create(): View
     {
         $customers = Customer::where('is_active', true)->orderBy('name')->get();

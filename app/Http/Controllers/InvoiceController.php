@@ -6,13 +6,17 @@ use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Models\CreditNote;
 use App\Models\Invoice;
 use App\Models\SalesReturn;
+use App\Models\CustomerAdvance;
+use App\Services\AdvanceService;
 use App\Services\BarcodeService;
 use App\Services\CentralApprovalService;
 use App\Services\InvoiceService;
 use App\Services\PrintDocumentService;
 use App\Services\ReceiptService;
 use App\Services\SalesReturnService;
+use App\Support\Approvals;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -25,6 +29,7 @@ class InvoiceController extends Controller
         protected BarcodeService $barcodeService,
         protected CentralApprovalService $centralApproval,
         protected SalesReturnService $salesReturnService,
+        protected AdvanceService $advanceService,
     ) {}
 
     public function index(Request $request): View
@@ -39,15 +44,64 @@ class InvoiceController extends Controller
 
     public function create(): View
     {
-        return view('invoices.create');
+        $customers = \App\Models\Customer::where('is_active', true)->orderBy('name')->get();
+        $stores = \App\Models\Warehouse::orderBy('name')->get();
+        $paymentAccounts = \App\Models\Account::where('type', 'asset')
+            ->whereHas('parent', fn($q) => $q->where('code', 'like', '110%'))
+            ->orWhere('code', 'like', '110%')
+            ->orderBy('name')
+            ->get();
+        $costCenters = \App\Models\CostCenter::all();
+        $currencies = ['TZS', 'USD', 'EUR'];
+
+        return view('invoices.create', compact(
+            'customers', 'stores', 'paymentAccounts', 'costCenters', 'currencies'
+        ));
     }
 
     public function store(StoreInvoiceRequest $request): RedirectResponse
     {
-        $invoice = $this->invoiceService->create($request->validated());
+        if ($request->has('save_draft')) {
+            return $this->storeDraft($request);
+        }
+
+        $data = $request->validated();
+        $data['status'] = 'draft';
+        $invoice = $this->invoiceService->create($data);
+
+        if (Approvals::isLevelZero('invoice')) {
+            $this->centralApproval->submit($invoice);
+        }
+
+        if (!empty($data['customer_advance_id']) && !empty($data['advance_amount'])) {
+            try {
+                $advance = CustomerAdvance::findOrFail($data['customer_advance_id']);
+                $this->advanceService->applyToInvoice($advance, $invoice, (float) $data['advance_amount']);
+                Cache::forget('customer.advances.stats');
+            } catch (\InvalidArgumentException $e) {
+                return redirect()->route('invoices.show', $invoice)
+                    ->with('warning', 'Invoice created but advance application failed: ' . $e->getMessage());
+            }
+        }
+
+        Cache::forget('invoices.stats');
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
+    }
+
+    public function storeDraft(StoreInvoiceRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $data['status'] = 'draft';
+        $data['amount_paid'] = 0;
+
+        $invoice = $this->invoiceService->create($data);
+
+        Cache::forget('invoices.stats');
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Draft invoice saved.');
     }
 
     public function show(Invoice $invoice): View
@@ -102,9 +156,11 @@ class InvoiceController extends Controller
             if (in_array($invoice->status, ['draft', 'proforma'])) {
                 $this->centralApproval->submit($invoice);
             }
-            $this->centralApproval->approve($invoice);
+            if ($invoice->status !== 'posted') {
+                $this->centralApproval->approve($invoice);
+            }
             return redirect()->route('invoices.show', $invoice)
-                ->with('success', 'Invoice approved successfully.');
+                ->with('success', 'Invoice approved and posted successfully.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', $e->getMessage());

@@ -21,7 +21,7 @@ class GoodsReceiptService
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
     {
-        $query = GoodsReceipt::with(['purchaseOrder.supplier', 'creator']);
+        $query = GoodsReceipt::with(['purchaseOrder.supplier', 'warehouse', 'creator']);
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -43,6 +43,8 @@ class GoodsReceiptService
             $data['receipt_date'] = $data['receipt_date'] ?? now()->format('Y-m-d');
 
             $receipt = GoodsReceipt::create($data);
+
+            $this->ensureWarehouse($receipt);
 
             $receiptItems = [];
             foreach ($items as $item) {
@@ -88,7 +90,8 @@ class GoodsReceiptService
                     null,
                     null,
                     $receipt,
-                    "Goods receipt: {$item->received_quantity} units received"
+                    "Goods receipt: {$item->received_quantity} units received",
+                    $receipt->warehouse_id
                 );
             }
 
@@ -139,23 +142,44 @@ class GoodsReceiptService
             }
 
             if ($po->supplier_id && $totalReceivedValue > 0) {
-                SupplierPayment::create([
-                    'purchase_order_id' => $po->id,
-                    'goods_receipt_id' => $receipt->id,
-                    'supplier_id' => $po->supplier_id,
-                    'amount' => $totalReceivedValue,
-                    'status' => 'pending',
-                    'payment_date' => $receipt->receipt_date ?? now(),
-                    'notes' => "Auto-generated from goods receipt #{$receipt->id}",
-                    'created_by' => auth()->id(),
-                ]);
+                $supplierPayment = SupplierPayment::where('purchase_order_id', $po->id)->first();
+                if ($supplierPayment) {
+                    $supplierPayment->update([
+                        'amount' => $totalReceivedValue,
+                        'goods_receipt_id' => $receipt->id,
+                        'notes' => "Updated from goods receipt #{$receipt->id}",
+                    ]);
+                } else {
+                    SupplierPayment::create([
+                        'purchase_order_id' => $po->id,
+                        'goods_receipt_id' => $receipt->id,
+                        'supplier_id' => $po->supplier_id,
+                        'amount' => $totalReceivedValue,
+                        'status' => 'pending',
+                        'payment_date' => $receipt->receipt_date ?? now(),
+                        'notes' => "Auto-generated from goods receipt #{$receipt->id}",
+                        'created_by' => auth()->id(),
+                    ]);
+                }
             }
 
             Cache::forget('purchasing.order.stats');
             Cache::forget('purchasing.receipt.stats');
 
-            return $receipt->fresh(['items', 'purchaseOrder']);
+            return $receipt->fresh(['items', 'purchaseOrder', 'warehouse']);
         });
+    }
+
+    protected function ensureWarehouse(GoodsReceipt $receipt): void
+    {
+        if ($receipt->warehouse_id) {
+            return;
+        }
+
+        $mainStore = \App\Models\Warehouse::where('code', 'MAIN')->first();
+        if ($mainStore) {
+            $receipt->update(['warehouse_id' => $mainStore->id]);
+        }
     }
 
     public function getStats(): array

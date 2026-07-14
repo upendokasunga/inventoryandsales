@@ -8,9 +8,9 @@ use Illuminate\Support\Str;
 
 class SkuService
 {
-    public function generate(Category $category): string
+    public function generate(?Category $category = null): string
     {
-        $prefix = $this->getCategoryCode($category);
+        $prefix = $category ? $this->getCategoryCode($category) : 'GEN';
         $lastSku = Product::where('sku', 'like', $prefix . '-%')
             ->orderBy('id', 'desc')
             ->value('sku');

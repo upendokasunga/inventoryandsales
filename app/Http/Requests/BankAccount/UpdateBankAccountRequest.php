@@ -9,7 +9,7 @@ class UpdateBankAccountRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('bank-accounts.update', 'can_edit') ?? false;
     }
 
     public function rules(): array
@@ -21,6 +21,7 @@ class UpdateBankAccountRequest extends FormRequest
             'branch' => 'nullable|string|max:255',
             'account_type' => 'required|in:checking,savings,fixed_deposit',
             'account_id' => 'nullable|exists:accounts,id',
+            'opening_balance' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',
         ];
     }

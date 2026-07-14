@@ -26,6 +26,7 @@ return [
                 ['name' => 'Suppliers',           'route' => 'suppliers.index',             'section' => 'Relations'],
                 ['name' => 'Price Lists',         'route' => 'price-lists.index',           'section' => 'Pricing'],
                 ['name' => 'Pricing Simulator',   'route' => 'price-lists.simulator',       'section' => 'Pricing'],
+                ['name' => 'Cost Centres',        'route' => 'cost-centers.index',          'section' => 'Organization'],
             ],
         ],
 
@@ -38,6 +39,7 @@ return [
                 ['name' => 'Purchase Orders',        'route' => 'purchasing.orders.index',      'section' => 'Orders'],
                 ['name' => 'Goods Receiving',        'route' => 'purchasing.receipts.index',    'section' => 'Orders'],
                 ['name' => 'Purchase Returns',       'route' => 'purchase-returns.index',       'section' => 'Returns'],
+                ['name' => 'Supplier Payments',      'route' => 'supplier-payments.index',      'section' => 'Payments'],
                 ['name' => 'Supplier Performance',   'route' => 'purchasing.analytics',         'section' => 'Analytics'],
                 ['name' => 'Reports',                'route' => 'reports.procurement',          'section' => 'Analytics'],
             ],
@@ -62,10 +64,9 @@ return [
             'icon' => 'shopping-cart',
             'route' => null,
             'children' => [
-                ['name' => 'Proforma',         'route' => null,                    'section' => 'Orders'],
                 ['name' => 'Sales Orders',     'route' => 'sales.orders.index',    'section' => 'Orders'],
                 ['name' => 'Invoices',         'route' => 'invoices.index',        'section' => 'Orders'],
-                ['name' => 'POS',              'route' => 'pos.index',             'section' => 'POS'],
+                ['name' => 'POS',              'route' => 'sales.new',             'section' => 'POS'],
                 ['name' => 'Payments',         'route' => 'payments.index',        'section' => 'Payments'],
                 ['name' => 'Customer Advances','route' => 'customer-advances.index','section' => 'Payments'],
                 ['name' => 'Sales Returns',    'route' => 'sales-returns.index',   'section' => 'Returns'],
@@ -89,6 +90,17 @@ return [
                 ['name' => 'Tax',                 'route' => 'reports.tax',                'section' => 'Taxation'],
                 ['name' => 'Profit Analysis',     'route' => 'reports.profit',             'section' => 'Profitability'],
                 ['name' => 'Financial Statements','route' => null,                         'section' => 'Reporting'],
+            ],
+        ],
+
+        [
+            'name' => 'Data Migration',
+            'icon' => 'arrow-up-tray',
+            'route' => 'data-migration.index',
+            'children' => [
+                ['name' => 'Import Products',  'route' => 'data-migration.products.upload',  'section' => 'Import'],
+                ['name' => 'Import Customers', 'route' => 'data-migration.customers.upload', 'section' => 'Import'],
+                ['name' => 'Import Sales',     'route' => 'data-migration.sales.upload',     'section' => 'Import'],
             ],
         ],
 

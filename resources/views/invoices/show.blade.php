@@ -125,50 +125,46 @@
                 <h3 class="text-sm font-semibold text-slate-700">Actions</h3>
 
                 @if($invoice->status === 'draft')
-                    <form action="{{ route('invoices.proforma', $invoice) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full px-3 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition">Convert to Proforma</button>
-                    </form>
                     <form action="{{ route('invoices.approve', $invoice) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Approve Invoice</button>
+                        <button type="submit" class="erp-btn-primary w-full">Submit & Approve</button>
                     </form>
                 @endif
 
                 @if($invoice->status === 'proforma')
                     <form action="{{ route('invoices.approve', $invoice) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Submit for Approval</button>
+                        <button type="submit" class="erp-btn-primary w-full">Submit for Approval</button>
                     </form>
                     <form action="{{ route('invoices.revert-draft', $invoice) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full px-3 py-2 bg-slate-500 text-white text-sm rounded-lg hover:bg-slate-600 transition">Revert to Draft</button>
+                        <button type="submit" class="erp-btn-secondary w-full">Revert to Draft</button>
                     </form>
                 @endif
 
                 @if(in_array($invoice->payment_status, ['pending', 'partial']))
-                    <a href="{{ route('payments.create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-success text-white text-sm rounded-lg hover:bg-success-600 transition">Record Payment</a>
+                    <a href="{{ route('payments.create', $invoice) }}" class="erp-btn-primary w-full text-center">Record Payment</a>
                 @endif
 
                 @if(in_array($invoice->status, ['approved', 'posted']))
-                    <a href="{{ route('invoices.return-create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-warning text-white text-sm rounded-lg hover:bg-warning-600 transition">Create Return</a>
-                    <a href="{{ route('invoices.discount-create', $invoice) }}" class="block w-full text-center px-3 py-2 bg-info text-white text-sm rounded-lg hover:bg-info-600 transition">Apply Discount</a>
+                    <a href="{{ route('invoices.return-create', $invoice) }}" class="erp-btn-secondary w-full text-center">Create Return</a>
+                    <a href="{{ route('invoices.discount-create', $invoice) }}" class="erp-btn-secondary w-full text-center">Apply Discount</a>
                 @endif
 
-                <a href="{{ route('invoices.credit-notes', $invoice) }}" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Credit Notes</a>
+                <a href="{{ route('invoices.credit-notes', $invoice) }}" class="erp-btn-secondary w-full text-center">Credit Notes</a>
 
-                <a href="{{ route('invoices.print', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print Invoice</a>
-                <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print PDF</a>
-                <a href="{{ route('invoices.receipt', $invoice) }}" target="_blank" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Print Receipt</a>
+                <a href="{{ route('invoices.print', $invoice) }}" target="_blank" class="erp-btn-secondary w-full text-center">Print Invoice</a>
+                <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="erp-btn-secondary w-full text-center">Print PDF</a>
+                <a href="{{ route('invoices.receipt', $invoice) }}" target="_blank" class="erp-btn-secondary w-full text-center">Print Receipt</a>
 
                 @can('edit')
-                    <a href="{{ route('invoices.edit', $invoice) }}" class="block w-full text-center px-3 py-2 border border-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition">Edit</a>
+                    <a href="{{ route('invoices.edit', $invoice) }}" class="erp-btn-secondary w-full text-center">Edit</a>
                 @endcan
 
                 @can('delete')
                     <form action="{{ route('invoices.destroy', $invoice) }}" method="POST" onsubmit="return confirm('Delete this invoice?')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="w-full px-3 py-2 bg-danger text-white text-sm rounded-lg hover:bg-danger-600 transition">Delete</button>
+                        <button type="submit" class="erp-btn-danger w-full">Delete</button>
                     </form>
                 @endcan
             </div>

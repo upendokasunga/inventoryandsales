@@ -14,7 +14,7 @@ class GoodsReceipt extends Model
     use HasFactory, AutoHasUuid, SoftDeletes;
 
     protected $fillable = [
-        'purchase_order_id', 'receipt_number', 'receipt_date', 'status', 'notes', 'created_by',
+        'purchase_order_id', 'warehouse_id', 'receipt_number', 'receipt_date', 'status', 'notes', 'created_by',
     ];
 
     protected function casts(): array
@@ -29,6 +29,11 @@ class GoodsReceipt extends Model
     public function purchaseOrder(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function items(): HasMany

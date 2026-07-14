@@ -9,7 +9,9 @@ use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\CustomerGroupController;
+use App\Http\Controllers\CostCenterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\GoodsReceiptController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvoiceController;
@@ -37,8 +39,10 @@ use App\Http\Controllers\SalesDashboardController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\StoreRequestController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\DashboardCardConfigController;
 use App\Http\Controllers\DocumentNumberingController;
@@ -166,6 +170,22 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_delete")->group(function () {
         Route::delete("units/{unit}", [UnitController::class, "destroy"])->name("units.destroy");
+    });
+
+    // --- Cost Centres ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("cost-centers", [CostCenterController::class, "index"])->name("cost-centers.index");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("cost-centers/create", [CostCenterController::class, "create"])->name("cost-centers.create");
+        Route::post("cost-centers", [CostCenterController::class, "store"])->name("cost-centers.store");
+    });
+    Route::middleware("menu.access:can_edit")->group(function () {
+        Route::get("cost-centers/{costCenter}/edit", [CostCenterController::class, "edit"])->name("cost-centers.edit");
+        Route::patch("cost-centers/{costCenter}", [CostCenterController::class, "update"])->name("cost-centers.update");
+    });
+    Route::middleware("menu.access:can_delete")->group(function () {
+        Route::delete("cost-centers/{costCenter}", [CostCenterController::class, "destroy"])->name("cost-centers.destroy");
     });
 
     // --- Products (fixed paths BEFORE wildcard {product}) ---
@@ -422,10 +442,21 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::post("pos/checkout", [PosController::class, "checkout"])->name("pos.checkout")->middleware("throttle:10,1");
     });
 
+    // --- Sales (POS-style) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("sales", [SalesController::class, "index"])->name("sales.index");
+        Route::get("sales/new", [SalesController::class, "new"])->name("sales.new");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::post("sales", [SalesController::class, "store"])->name("sales.store");
+        Route::post("sales/drafts", [SalesController::class, "storeDraft"])->name("sales.drafts.store");
+    });
+
     // --- Invoices (Phase 9) ---
     Route::middleware("menu.access:can_create")->group(function () {
         Route::get("invoices/create", [InvoiceController::class, "create"])->name("invoices.create");
         Route::post("invoices", [InvoiceController::class, "store"])->name("invoices.store")->middleware("throttle:30,1");
+        Route::post("invoices/drafts", [InvoiceController::class, "storeDraft"])->name("invoices.drafts")->middleware("throttle:30,1");
     });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("invoices", [InvoiceController::class, "index"])->name("invoices.index");
@@ -458,6 +489,21 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("invoices/{invoice}/credit-notes", [InvoiceController::class, "creditNotes"])->name("invoices.credit-notes");
     });
 
+    // --- Supplier Payments ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("supplier-payments", [SupplierPaymentController::class, "index"])->name("supplier-payments.index");
+        Route::get("supplier-payments/{supplierPayment}", [SupplierPaymentController::class, "show"])->name("supplier-payments.show");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("supplier-payments/create", [SupplierPaymentController::class, "create"])->name("supplier-payments.create");
+        Route::post("supplier-payments", [SupplierPaymentController::class, "store"])->name("supplier-payments.store");
+        Route::post("supplier-payments/{supplierPayment}/process-payment", [SupplierPaymentController::class, "processPayment"])->name("supplier-payments.process-payment");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("supplier-payments/{supplierPayment}/approve", [SupplierPaymentController::class, "approve"])->name("supplier-payments.approve");
+        Route::post("supplier-payments/{supplierPayment}/reject", [SupplierPaymentController::class, "reject"])->name("supplier-payments.reject");
+    });
+
     // --- Customer Advances (Phase 4.3) ---
     Route::middleware("menu.access:can_create")->group(function () {
         Route::get("customer-advances/create", [\App\Http\Controllers\CustomerAdvanceController::class, "create"])->name("customer-advances.create");
@@ -465,6 +511,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("customer-advances", [\App\Http\Controllers\CustomerAdvanceController::class, "index"])->name("customer-advances.index");
+        Route::get("customer-advances/available", [\App\Http\Controllers\CustomerAdvanceController::class, "available"])->name("customer-advances.available");
         Route::get("customer-advances/{customerAdvance}", [\App\Http\Controllers\CustomerAdvanceController::class, "show"])->name("customer-advances.show");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
@@ -750,6 +797,25 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::post("bank-reconciliations/{bankReconciliation}/match", [BankReconciliationController::class, "match"])->name("bank-reconciliations.match");
         Route::post("bank-reconciliations/{bankReconciliation}/complete", [BankReconciliationController::class, "complete"])->name("bank-reconciliations.complete");
         Route::post("bank-reconciliations/{bankReconciliation}/cancel", [BankReconciliationController::class, "cancel"])->name("bank-reconciliations.cancel");
+    });
+
+    // --- Data Migration ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("data-migration", [DataMigrationController::class, "index"])->name("data-migration.index");
+        Route::get("data-migration/sample/{type}", [DataMigrationController::class, "downloadSample"])->name("data-migration.sample");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("data-migration/products/upload", [DataMigrationController::class, "productsUpload"])->name("data-migration.products.upload");
+        Route::post("data-migration/products/preview", [DataMigrationController::class, "productsPreview"])->name("data-migration.products.preview");
+        Route::post("data-migration/products/import", [DataMigrationController::class, "productsImport"])->name("data-migration.products.import");
+
+        Route::get("data-migration/customers/upload", [DataMigrationController::class, "customersUpload"])->name("data-migration.customers.upload");
+        Route::post("data-migration/customers/preview", [DataMigrationController::class, "customersPreview"])->name("data-migration.customers.preview");
+        Route::post("data-migration/customers/import", [DataMigrationController::class, "customersImport"])->name("data-migration.customers.import");
+
+        Route::get("data-migration/sales/upload", [DataMigrationController::class, "salesUpload"])->name("data-migration.sales.upload");
+        Route::post("data-migration/sales/preview", [DataMigrationController::class, "salesPreview"])->name("data-migration.sales.preview");
+        Route::post("data-migration/sales/import", [DataMigrationController::class, "salesImport"])->name("data-migration.sales.import");
     });
 });
 

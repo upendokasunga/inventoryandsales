@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             ApprovalSeeder::class,
             DashboardCardConfigSeeder::class,
             DocumentNumberingConfigSeeder::class,
+            MainStoreSeeder::class,
+            PaymentTermsSeeder::class,
         ]);
     }
 }

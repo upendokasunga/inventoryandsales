@@ -67,9 +67,10 @@ class InventoryService
         ?string $batchNumber = null,
         ?string $expiryDate = null,
         ?object $reference = null,
-        ?string $description = null
+        ?string $description = null,
+        ?int $warehouseId = null
     ): InventoryTransaction {
-        return DB::transaction(function () use ($product, $quantity, $unitCost, $batchNumber, $expiryDate, $reference, $description) {
+        return DB::transaction(function () use ($product, $quantity, $unitCost, $batchNumber, $expiryDate, $reference, $description, $warehouseId) {
             $balance = $this->getOrCreateBalance($product->id);
             $balanceBefore = $balance->quantity_on_hand;
             $balanceAfter = $balanceBefore + $quantity;
@@ -96,6 +97,7 @@ class InventoryService
 
             $transaction = InventoryTransaction::create([
                 'product_id' => $product->id,
+                'warehouse_id' => $warehouseId,
                 'reference_type' => $reference ? get_class($reference) : null,
                 'reference_id' => $reference?->id,
                 'type' => 'purchase_receipt',

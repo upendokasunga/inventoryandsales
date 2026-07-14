@@ -29,7 +29,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6">
                     <div class="p-6">
                         <h3 class="text-sm font-medium text-slate-500 mb-4">Receipt Details</h3>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="grid grid-cols-3 gap-4 mb-4">
                             <div>
                                 <label for="receipt_date" class="block text-sm font-medium text-slate-700">Receipt Date *</label>
                                 <input type="date" name="receipt_date" id="receipt_date"
@@ -40,6 +40,18 @@
                             <div>
                                 <label class="block text-sm font-medium text-slate-700">PO Number</label>
                                 <p class="mt-1 text-sm font-medium text-slate-800">{{ $purchaseOrder->po_number }}</p>
+                            </div>
+                            <div>
+                                <label for="warehouse_id" class="block text-sm font-medium text-slate-700">Store *</label>
+                                <select name="warehouse_id" id="warehouse_id" required class="mt-1 block w-full erp-input">
+                                    <option value="">Select Store</option>
+                                    @foreach ($warehouses as $wh)
+                                        <option value="{{ $wh->id }}" {{ old('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                            {{ $wh->name }} ({{ $wh->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('warehouse_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="mb-4">

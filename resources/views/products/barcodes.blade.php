@@ -81,7 +81,7 @@
                 {!! $label['barcode_svg'] !!}
                 <div class="unit">{{ $label['unit'] }}</div>
                 @if ($label['price'])
-                    <div class="price">${{ number_format($label['price'], 2) }}</div>
+                    <div class="price">TSh {{ number_format($label['price'], 0) }}</div>
                 @endif
             </div>
         @empty

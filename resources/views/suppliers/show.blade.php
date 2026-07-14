@@ -17,17 +17,17 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mb-6">
             <div class="border-b border-slate-100">
-                <nav class="flex px-6" aria-label="Tabs">
-                    <button class="px-4 py-3 text-sm font-medium text-primary border-b-2 border-primary">Overview</button>
-                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Products</button>
-                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Purchases</button>
-                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Performance</button>
-                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled>Audit Logs</button>
+                <nav class="flex px-6" aria-label="Tabs" role="tablist">
+                    <button class="px-4 py-3 text-sm font-medium text-primary border-b-2 border-primary" role="tab" aria-selected="true">Overview</button>
+                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled role="tab" aria-selected="false" aria-disabled="true">Products</button>
+                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled role="tab" aria-selected="false" aria-disabled="true">Purchases</button>
+                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled role="tab" aria-selected="false" aria-disabled="true">Performance</button>
+                    <button class="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" disabled role="tab" aria-selected="false" aria-disabled="true">Audit Logs</button>
                 </nav>
             </div>
 
             <div class="p-6">
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <h3 class="text-sm font-medium text-slate-500 mb-4">General Information</h3>
                         <dl class="space-y-3">

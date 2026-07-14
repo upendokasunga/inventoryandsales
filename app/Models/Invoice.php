@@ -47,9 +47,13 @@ class Invoice extends Model implements Approvable
         'uuid',
         'invoice_number',
         'customer_id',
+        'currency_code',
+        'exchange_rate',
         'sales_order_id',
         'invoice_date',
         'payment_type',
+        'payment_account_id',
+        'cost_center_id',
         'payment_status',
         'subtotal',
         'discount',
@@ -70,6 +74,7 @@ class Invoice extends Model implements Approvable
         return [
             'invoice_date' => 'date',
             'approved_at' => 'datetime',
+            'exchange_rate' => 'decimal:8',
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
             'tax' => 'decimal:2',
@@ -77,6 +82,16 @@ class Invoice extends Model implements Approvable
             'amount_paid' => 'decimal:2',
             'balance_due' => 'decimal:2',
         ];
+    }
+
+    public function onApproved(): void
+    {
+        app(\App\Services\InvoiceService::class)->postInvoice($this);
+    }
+
+    public function getApprovedStatus(): string
+    {
+        return 'approved';
     }
 
     public function customer(): BelongsTo
@@ -87,6 +102,11 @@ class Invoice extends Model implements Approvable
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function costCenter(): BelongsTo
+    {
+        return $this->belongsTo(CostCenter::class);
     }
 
     public function items(): HasMany

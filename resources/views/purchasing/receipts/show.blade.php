@@ -37,6 +37,10 @@
                                 <dd class="text-sm font-medium text-slate-800">{{ $goodsReceipt->purchaseOrder?->supplier?->name ?? '-' }}</dd>
                             </div>
                             <div class="flex justify-between">
+                                <dt class="text-sm text-slate-500">Store</dt>
+                                <dd class="text-sm font-medium text-slate-800">{{ $goodsReceipt->warehouse?->name ?? 'Main Store' }}</dd>
+                            </div>
+                            <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Receipt Date</dt>
                                 <dd class="text-sm font-medium text-slate-800">{{ $goodsReceipt->receipt_date?->format('M d, Y') ?? '-' }}</dd>
                             </div>

@@ -15,6 +15,7 @@ class SupplierPayment extends Model
         'uuid', 'purchase_order_id', 'goods_receipt_id', 'supplier_id',
         'amount', 'payment_method', 'status', 'reference_number',
         'payment_date', 'notes', 'created_by',
+        'approved_by', 'approved_at',
     ];
 
     protected function casts(): array

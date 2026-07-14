@@ -105,6 +105,6 @@ class ProductService
         }
 
         $product->productUnits()->delete();
-        $product->delete();
+        $product->forceDelete();
     }
 }

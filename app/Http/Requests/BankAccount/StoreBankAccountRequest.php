@@ -8,7 +8,7 @@ class StoreBankAccountRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasMenuAccess('bank-accounts.store', 'can_create') ?? false;
     }
 
     public function rules(): array

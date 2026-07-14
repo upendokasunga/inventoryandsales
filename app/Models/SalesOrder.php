@@ -22,7 +22,7 @@ class SalesOrder extends Model implements Approvable
     }
 
     public const STATUSES = [
-        'draft', 'pending_approval', 'approved', 'reserved',
+        'draft', 'proforma', 'pending_approval', 'approved', 'reserved',
         'picking', 'packed', 'partially_fulfilled', 'fulfilled',
         'invoiced', 'cancelled',
     ];

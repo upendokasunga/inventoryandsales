@@ -6,7 +6,7 @@
             @csrf
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 mb-6">
-                <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
                         <select name="type" class="erp-input w-full" required>
@@ -49,7 +49,7 @@
                             <span class="text-sm font-medium text-slate-700" x-text="'Item ' + (index + 1)"></span>
                             <button type="button" @click="removeItem(index)" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Product</label>
                                 <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required>

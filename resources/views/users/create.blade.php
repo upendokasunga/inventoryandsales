@@ -38,6 +38,7 @@
                                 class="erp-input">
                             <span class="ml-2 text-sm text-slate-700">Active</span>
                         </label>
+                        @error('is_active') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

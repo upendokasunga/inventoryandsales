@@ -23,12 +23,13 @@
             </nav>
         </div>
 
-        <x-table-card :empty="count($receipts) === 0" emptyMessage="No goods receipts found." colspan="7">
+        <x-table-card :empty="count($receipts) === 0" emptyMessage="No goods receipts found." colspan="8">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Receipt #</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PO #</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Supplier</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Store</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created By</th>
@@ -43,6 +44,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->po_number ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->purchaseOrder?->supplier?->name ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->warehouse?->name ?? 'Main Store' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->receipt_date?->format('M d, Y') ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
