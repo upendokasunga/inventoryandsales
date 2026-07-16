@@ -32,16 +32,6 @@
                         @error('expense_date') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700">Payment Method</label>
-                        <select name="payment_method" class="mt-1 block w-full erp-input">
-                            <option value="">Select</option>
-                            @foreach (['cash' => 'Cash', 'bank_transfer' => 'Bank Transfer', 'mobile_money' => 'Mobile Money', 'cheque' => 'Cheque'] as $val => $label)
-                                <option value="{{ $val }}" {{ old('payment_method') == $val ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('payment_method') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
                         <label class="block text-sm font-medium text-slate-700">Paid To</label>
                         <select name="paid_to" class="mt-1 block w-full erp-input">
                             <option value="">Select</option>

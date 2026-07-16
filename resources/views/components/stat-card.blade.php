@@ -19,10 +19,10 @@ $iconBg = $colors[$color] ?? $colors['primary'];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'erp-card']) }}>
-    <div class="flex items-center justify-between">
-        <div class="min-w-0">
+    <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-slate-500">{{ $label }}</p>
-            <p class="mt-1 text-[32px] font-bold text-slate-800 truncate">{{ $value }}</p>
+            <p class="mt-1 text-[clamp(1.25rem,3.5vw,2rem)] font-bold text-slate-800 leading-tight break-all">{{ $value }}</p>
         </div>
         @if ($icon)
             <div class="w-12 h-12 rounded-xl {{ $iconBg }} flex items-center justify-center shrink-0">

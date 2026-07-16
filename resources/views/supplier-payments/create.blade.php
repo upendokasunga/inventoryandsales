@@ -35,7 +35,7 @@
                             <option value="">No linked PO</option>
                             @foreach ($purchaseOrders as $po)
                                 @php
-                                    $remaining = (float) ($po->total_amount ?: $po->total) - (float) $po->amount_paid;
+                                    $remaining = ((float) $po->total_amount > 0 ? (float) $po->total_amount : (float) $po->total) - (float) $po->amount_paid;
                                 @endphp
                                 <option value="{{ $po->id }}" data-remaining="{{ $remaining }}" data-supplier="{{ $po->supplier_id }}"
                                     {{ old('purchase_order_id') == $po->id ? 'selected' : '' }}>

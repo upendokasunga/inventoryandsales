@@ -98,8 +98,8 @@ class PurchaseOrder extends Model implements Approvable
 
     public function onApproved(): void
     {
-        if ($this->supplier_id && ($this->total > 0 || $this->total_amount > 0)) {
-            $poTotal = $this->total_amount ?: $this->total;
+        if ($this->supplier_id && ((float) $this->total > 0 || (float) $this->total_amount > 0)) {
+            $poTotal = (float) $this->total_amount > 0 ? (float) $this->total_amount : (float) $this->total;
 
             $this->update([
                 'balance_due' => $poTotal,
@@ -123,12 +123,12 @@ class PurchaseOrder extends Model implements Approvable
 
     public function getRemainingBalanceAttribute(): float
     {
-        return (float) ($this->total_amount ?: $this->total) - (float) $this->amount_paid;
+        return ((float) $this->total_amount > 0 ? (float) $this->total_amount : (float) $this->total) - (float) $this->amount_paid;
     }
 
     public function getIsFullyPaidAttribute(): bool
     {
-        return $this->amount_paid >= ($this->total_amount ?: $this->total);
+        return (float) $this->amount_paid >= ((float) $this->total_amount > 0 ? (float) $this->total_amount : (float) $this->total);
     }
 
     public function scopePendingApproval($query)

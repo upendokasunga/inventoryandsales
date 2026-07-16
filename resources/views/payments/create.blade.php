@@ -27,15 +27,14 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Method</label>
-                    <select name="payment_method" required class="erp-input w-full">
-                        <option value="cash">Cash</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="mobile_money">Mobile Money</option>
-                        <option value="cheque">Cheque</option>
-                        <option value="credit">Credit</option>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Account</label>
+                    <select name="payment_account_id" required class="erp-input w-full">
+                        <option value="">Select Account</option>
+                        @foreach($accounts as $account)
+                            <option value="{{ $account->id }}">{{ $account->code }} - {{ $account->name }}</option>
+                        @endforeach
                     </select>
-                    @error('payment_method') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-4">

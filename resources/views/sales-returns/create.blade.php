@@ -111,7 +111,6 @@
         </form>
     </div>
 
-    @push("scripts")
     <script>
         function returnForm() {
             return {
@@ -124,5 +123,4 @@
             };
         }
     </script>
-    @endpush
 </x-app-layout>

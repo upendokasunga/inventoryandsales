@@ -63,7 +63,7 @@ class SupplierPaymentController extends Controller
 
         if (!empty($validated['purchase_order_id'])) {
             $po = PurchaseOrder::findOrFail($validated['purchase_order_id']);
-            $remaining = (float) ($po->total_amount ?: $po->total) - (float) $po->amount_paid;
+            $remaining = ((float) $po->total_amount > 0 ? (float) $po->total_amount : (float) $po->total) - (float) $po->amount_paid;
             if ($validated['amount'] > $remaining) {
                 return back()->withErrors(['amount' => "Payment amount exceeds remaining balance of {$remaining}."])->withInput();
             }
@@ -171,7 +171,7 @@ class SupplierPaymentController extends Controller
 
             if ($supplierPayment->purchaseOrder) {
                 $po = $supplierPayment->purchaseOrder;
-                $poTotal = (float) ($po->total_amount ?: $po->total);
+                $poTotal = (float) $po->total_amount > 0 ? (float) $po->total_amount : (float) $po->total;
                 $newAmountPaid = (float) $po->amount_paid + $amount;
                 $newBalance = $poTotal - $newAmountPaid;
 

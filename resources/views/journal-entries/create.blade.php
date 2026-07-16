@@ -63,7 +63,6 @@
             </div>
         </form>
     </div>
-    @push('scripts')
     <script>
         function journalEntryForm() {
             return {
@@ -91,5 +90,4 @@
             }
         }
     </script>
-    @endpush
 </x-app-layout>

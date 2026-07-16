@@ -151,7 +151,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         let itemIndex = {{ $priceList->items->count() }};
         function addItem() {
@@ -160,5 +159,4 @@
             document.getElementById('items-container').insertAdjacentHTML('beforeend', html);
         }
     </script>
-    @endpush
 </x-app-layout>

@@ -123,7 +123,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         function salesOrderForm() {
             return {
@@ -147,7 +146,8 @@
                     const productId = this.items[index].product_id;
                     if (!productId) return;
                     const qty = parseFloat(this.items[index].quantity) || 1;
-                    fetch(`/pos/price-simple?product_id=${productId}&quantity=${qty}`)
+                    const customerId = document.getElementById('customer_id')?.value || '';
+                    fetch(`/pos/price-simple?product_id=${productId}&quantity=${qty}&customer_id=${customerId}`)
                         .then(r => r.json())
                         .then(data => {
                             this.items[index].unit_price = parseFloat(data.unit_price) || 0;
@@ -164,5 +164,4 @@
             }
         }
     </script>
-    @endpush
 </x-app-layout>

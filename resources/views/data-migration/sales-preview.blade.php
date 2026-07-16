@@ -56,17 +56,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label for="default_payment_type" class="block text-sm font-medium text-slate-700">Default Payment Type <span class="text-red-500">*</span></label>
-                        <select name="default_payment_type" id="default_payment_type" required class="mt-1 block w-full erp-input">
-                            <option value="cash">Cash</option>
-                            <option value="credit">Credit</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="mobile_money">Mobile Money</option>
-                            <option value="cheque">Cheque</option>
-                        </select>
-                        <p class="text-xs text-slate-500 mt-1">Applied to rows without a payment_type value</p>
-                    </div>
                 </div>
             </div>
 

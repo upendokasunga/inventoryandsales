@@ -103,7 +103,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         function salesOrderForm() {
             return {
@@ -117,5 +116,4 @@
             }
         }
     </script>
-    @endpush
 </x-app-layout>

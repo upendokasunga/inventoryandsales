@@ -62,7 +62,7 @@
                         @if ($supplierPayment->purchaseOrder)
                             @php
                                 $po = $supplierPayment->purchaseOrder;
-                                $poTotal = (float) ($po->total_amount ?: $po->total);
+                                $poTotal = (float) $po->total_amount > 0 ? (float) $po->total_amount : (float) $po->total;
                                 $paid = (float) $po->amount_paid;
                                 $remaining = $poTotal - $paid;
                                 $pct = $poTotal > 0 ? round(($paid / $poTotal) * 100) : 0;

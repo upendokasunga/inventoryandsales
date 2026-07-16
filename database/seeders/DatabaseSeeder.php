@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
             DocumentNumberingConfigSeeder::class,
             MainStoreSeeder::class,
             PaymentTermsSeeder::class,
+            BankInstitutionSeeder::class,
+            AccountTypesSeeder::class,
+            PaymentAccountsSeeder::class,
         ]);
     }
 }

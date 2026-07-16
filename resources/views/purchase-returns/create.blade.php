@@ -88,7 +88,6 @@
                                     <th class="text-right px-3 py-2">Unit Price</th>
                                     <th class="text-right px-3 py-2">Line Total</th>
                                     <th class="text-left px-3 py-2">Reason</th>
-                                    <th class="text-center px-3 py-2"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -122,15 +121,12 @@
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td class="px-3 py-2 text-center">
-                                            <button type="button" @click="removeItem(index)" class="text-danger text-xs hover:underline">Remove</button>
-                                        </td>
+
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
                     </div>
-                    <button type="button" @click="addItem" class="mt-3 px-3 py-1.5 text-sm text-primary border border-primary rounded-lg hover:bg-primary-50 transition">+ Add Item</button>
                 </div>
 
                 <div class="flex justify-between items-center">
@@ -144,19 +140,11 @@
         </div>
     @endif
 
-    @push("scripts")
     <script>
         function returnForm() {
             return {
                 items: @js($poItems),
-                addItem() {
-                    this.items.push({ product_id: "", product_name: "", product_unit_id: null, quantity: 1, received_quantity: 0, unit_price: 0, returnable: 0, reason: "" });
-                },
-                removeItem(index) {
-                    if (this.items.length > 1) this.items.splice(index, 1);
-                },
             };
         }
     </script>
-    @endpush
 </x-app-layout>

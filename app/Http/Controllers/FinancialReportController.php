@@ -125,38 +125,61 @@ class FinancialReportController extends Controller
     {
         $from = $request->input('from', now()->startOfYear()->toDateString());
         $to = $request->input('to', now()->toDateString());
+        $accountId = $request->input('account_id');
 
-        $accounts = Account::where('is_active', true)
-            ->where('reportable', true)
+        $cashBankAccounts = Account::where('is_active', true)
+            ->whereIn('ifrs_category', ['cash', 'bank'])
             ->orderBy('code')
-            ->get()
-            ->map(function ($account) use ($from, $to) {
-                $balance = AccountingHelper::accountBalanceAsOf($account->id, $to);
-                $openingBalance = AccountingHelper::accountBalanceAsOf($account->id, Carbon::parse($from)->subDay()->toDateString());
-                return [
-                    'account' => $account,
-                    'amount' => $balance - $openingBalance,
-                ];
-            });
+            ->get();
 
-        $operatingCash = $accounts->filter(fn ($r) =>
-            in_array($r['account']->ifrs_category, ['cash', 'bank', 'ar', 'inventory', 'prepaid', 'ap', 'accrued', 'taxes_payable', 'unearned'])
-        );
-        $investingCash = $accounts->filter(fn ($r) =>
-            in_array($r['account']->ifrs_category, ['ppe', 'lt_investments', 'intangible', 'securities'])
-        );
-        $financingCash = $accounts->filter(fn ($r) =>
-            in_array($r['account']->ifrs_category, ['lt_loans', 'st_loans', 'bonds', 'equity', 'retained_earnings', 'capital'])
-        );
+        $account = $accountId
+            ? Account::findOrFail($accountId)
+            : $cashBankAccounts->first();
 
-        $operatingTotal = $operatingCash->sum('amount');
-        $investingTotal = $investingCash->sum('amount');
-        $financingTotal = $financingCash->sum('amount');
-        $netCashFlow = $operatingTotal + $investingTotal + $financingTotal;
+        if (!$account) {
+            abort(404, 'No active cash or bank accounts found.');
+        }
+
+        $openingBalance = AccountingHelper::accountBalanceAsOf($account->id, Carbon::parse($from)->subDay()->toDateString());
+
+        $lines = DB::table('journal_entry_lines')
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->where('journal_entry_lines.account_id', $account->id)
+            ->where('journal_entries.entry_date', '>=', $from)
+            ->where('journal_entries.entry_date', '<=', $to)
+            ->where(function ($q) {
+                $q->where('journal_entries.status', 'posted')
+                  ->orWhere('journal_entries.status', 'approved');
+            })
+            ->whereNull('journal_entries.deleted_at')
+            ->select(
+                'journal_entries.entry_date',
+                'journal_entries.entry_number',
+                'journal_entries.description as entry_description',
+                'journal_entry_lines.description as line_description',
+                'journal_entry_lines.debit',
+                'journal_entry_lines.credit'
+            )
+            ->orderBy('journal_entries.entry_date')
+            ->orderBy('journal_entry_lines.id')
+            ->get();
+
+        $runningBalance = $openingBalance;
+        $lines = $lines->map(function ($line) use (&$runningBalance) {
+            $runningBalance += $line->debit - $line->credit;
+            $line->balance = $runningBalance;
+            return $line;
+        });
+
+        $closingBalance = $runningBalance;
+        $totalCashIn = $lines->sum('debit');
+        $totalCashOut = $lines->sum('credit');
+        $netCashFlow = $totalCashIn - $totalCashOut;
 
         return view('financial-reports.cash-flow', compact(
-            'from', 'to', 'operatingCash', 'investingCash', 'financingCash',
-            'operatingTotal', 'investingTotal', 'financingTotal', 'netCashFlow'
+            'from', 'to', 'account', 'cashBankAccounts',
+            'openingBalance', 'lines', 'closingBalance',
+            'totalCashIn', 'totalCashOut', 'netCashFlow'
         ));
     }
 
@@ -191,6 +214,10 @@ class FinancialReportController extends Controller
 
         $accounts = Account::where('is_active', true)->orderBy('code')->get();
         $account = $accountId ? Account::findOrFail($accountId) : $accounts->first();
+
+        if (!$account) {
+            abort(404, 'No active accounts found. Please create an account first.');
+        }
 
         $openingBalance = $account ? AccountingHelper::accountBalanceAsOf($account->id, Carbon::parse($from)->subDay()->toDateString()) : 0;
 

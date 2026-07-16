@@ -16,7 +16,6 @@ class StoreCustomerAdvanceRequest extends FormRequest
         return [
             'customer_id' => 'required|exists:customers,id',
             'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|in:cash,bank_transfer,mobile_money,cheque',
             'reference_number' => 'nullable|string|max:255',
             'advance_date' => 'required|date',
             'notes' => 'nullable|string|max:1000',

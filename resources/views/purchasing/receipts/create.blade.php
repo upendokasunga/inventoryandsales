@@ -173,7 +173,6 @@
         @endif
     </div>
 
-    @push('scripts')
     <script>
         function receivingApp() {
             return {
@@ -184,5 +183,4 @@
             }
         }
     </script>
-    @endpush
 </x-app-layout>

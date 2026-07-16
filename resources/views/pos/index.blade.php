@@ -1,38 +1,66 @@
 <x-app-layout>
     <x-slot name="header">Point of Sale</x-slot>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6" x-data="posApp()">
+    <div x-data="posApp()">
+    <div x-show="toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium"
+         :class="toast.type === 'error' ? 'bg-red-600 text-white' : toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'"
+         x-text="toast.message"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {{-- Left Panel: Scanner & Product Info --}}
         <div class="lg:col-span-3 space-y-4">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
                 <h3 class="text-sm font-semibold text-slate-700 mb-3">Scan Barcode</h3>
-                <input type="text" x-model="barcodeInput" @keydown.enter.prevent="lookupBarcode"
-                       placeholder="Scan or enter barcode..."
-                       class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
-                <div class="mt-3">
-                    <button @click="startCamera" class="w-full px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition">
-                        <svg class="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Camera Scan
-                    </button>
+                <div class="relative">
+                    <input type="text" x-ref="barcodeInput" x-model="barcodeInput" @keydown.enter.prevent="lookupBarcode"
+                           placeholder="Scan or enter barcode / SKU..."
+                           class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary pr-10">
+                    <div x-show="barcodeLoading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg class="animate-spin h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    </div>
                 </div>
+                <p class="text-xs text-slate-400 mt-1.5">USB scanner: type barcode + Enter. Manual: type name/SKU + Enter.</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Search Product</h3>
+                <input type="text" x-model="searchQuery" @input.debounce.300ms="searchProducts"
+                       placeholder="Search by name, SKU, or code..."
+                       class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                <template x-if="searchResults.length > 0">
+                    <div class="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                        <template x-for="p in searchResults" :key="p.id">
+                            <div @click="selectSearchResult(p)" class="px-3 py-2 hover:bg-slate-50 cursor-pointer">
+                                <p class="text-sm font-medium text-slate-700" x-text="p.name"></p>
+                                <p class="text-xs text-slate-400">
+                                    <span x-text="p.sku || p.product_code || ''"></span>
+                                    <span x-show="p.current_stock !== undefined"> &middot; Stock: <span x-text="p.current_stock"></span></span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <template x-if="searchQuery.length >= 2 && searchResults.length === 0 && !searchLoading">
+                    <p class="mt-2 text-xs text-slate-400 text-center">No products found</p>
+                </template>
             </div>
 
             <template x-if="lastScanned">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3">Last Scanned</h3>
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3">Last Added</h3>
                     <p class="text-sm text-slate-600" x-text="lastScanned.name"></p>
                     <p class="text-xs text-slate-400">SKU: <span x-text="lastScanned.sku"></span></p>
                 </div>
             </template>
 
-            {{-- Recent Scans --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
                 <h3 class="text-sm font-semibold text-slate-700 mb-3">Cart Summary</h3>
                 <p class="text-sm text-slate-600">Items: <span class="font-medium" x-text="cart.length"></span></p>
                 <p class="text-sm text-slate-600">Total: <span class="font-medium text-primary" x-text="formatPrice(cartTotal)"></span></p>
             </div>
 
-            {{-- Product Preview --}}
+            {{-- Product Preview (for search results) --}}
             <template x-if="previewProduct">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-2">
                     <h3 class="text-sm font-semibold text-slate-700" x-text="previewProduct.name"></h3>
@@ -150,18 +178,6 @@
                 </div>
 
                 <div class="pt-2">
-                    <label class="text-xs text-slate-500 block mb-1">Payment Method</label>
-                    <select x-model="paymentMethod" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm">
-                        <option value="cash">Cash</option>
-                        <option value="credit">Credit</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="mobile_money">Mobile Money</option>
-                        <option value="cheque">Cheque</option>
-                        <option value="mixed">Mixed</option>
-                    </select>
-                </div>
-
-                <div class="pt-2">
                     <label class="text-xs text-slate-500 block mb-1">Amount Tendered</label>
                     <input type="number" x-model="amountTendered" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm" min="0">
                 </div>
@@ -173,60 +189,130 @@
             </div>
         </div>
     </div>
+    </div>
 
-    @push("scripts")
     <script>
         function posApp() {
             return {
                 barcodeInput: "",
+                barcodeLoading: false,
                 customerId: "",
                 customers: [],
                 customerData: null,
                 cart: [],
                 previewProduct: null,
+                previewStock: 0,
+                previewPrice: 0,
                 lastScanned: null,
                 paymentMethod: "cash",
                 amountTendered: 0,
                 processing: false,
+                searchQuery: "",
+                searchResults: [],
+                searchLoading: false,
+                toast: { show: false, message: '', type: 'info' },
 
                 init() {
                     fetch("/customers?per_page=1000")
                         .then(r => r.json())
                         .then(data => { this.customers = data.data || []; });
+                    this.$nextTick(() => this.$refs.barcodeInput?.focus());
+                },
+
+                showToast(message, type = 'info') {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => { this.toast.show = false; }, 2500);
+                },
+
+                focusBarcode() {
+                    this.$nextTick(() => this.$refs.barcodeInput?.focus());
                 },
 
                 async lookupBarcode() {
-                    if (!this.barcodeInput) return;
+                    if (!this.barcodeInput || this.barcodeLoading) return;
+                    const input = this.barcodeInput;
+                    this.barcodeInput = "";
+                    this.barcodeLoading = true;
                     try {
-                        const res = await fetch(`/pos/barcode?barcode=${encodeURIComponent(this.barcodeInput)}`);
-                        if (!res.ok) { alert("Product not found"); this.barcodeInput = ""; return; }
+                        let res = await fetch(`/pos/barcode?barcode=${encodeURIComponent(input)}`);
+                        if (!res.ok) {
+                            res = await fetch(`/pos/sku?sku=${encodeURIComponent(input)}`);
+                        }
+                        if (!res.ok) {
+                            this.showToast("Product not found: " + input, "error");
+                            this.focusBarcode();
+                            return;
+                        }
                         const data = await res.json();
-                        this.previewProduct = data.product;
+                        this.addToCartDirect(data.product, data.stock);
                         this.lastScanned = data.product;
-                        this.previewStock = data.stock;
-                        this.previewPrice = data.product.unit_price;
-                        this.barcodeInput = "";
+                        this.showToast(data.product.name + " added to cart", "success");
                     } catch (e) {
-                        alert("Error looking up barcode");
+                        this.showToast("Error looking up product", "error");
+                    } finally {
+                        this.barcodeLoading = false;
+                        this.focusBarcode();
                     }
                 },
 
-                async startCamera() {
-                    if (!navigator.mediaDevices?.getUserMedia) {
-                        alert("Camera access is not supported by your browser. Use a keyboard scanner or manual entry.");
-                        return;
+                addToCartDirect(product, stock) {
+                    const existing = this.cart.find(i => i.product_id === product.id);
+                    if (existing) {
+                        existing.quantity = parseFloat(existing.quantity) + 1;
+                        this.fetchItemPrice(existing);
+                    } else {
+                        const item = {
+                            product_id: product.id,
+                            name: product.name,
+                            product_unit_id: product.units?.[0]?.id || null,
+                            units: (product.units || []).map(u => ({ id: u.unit_id || u.id, name: u.unit?.name || u.name })),
+                            quantity: 1,
+                            unit_price: parseFloat(product.unit_price),
+                            discount: 0,
+                            tax: 0,
+                            lineTotal: parseFloat(product.unit_price),
+                        };
+                        this.cart.push(item);
+                        this.fetchItemPrice(item);
                     }
+                    this.updateTotals();
+                },
+
+                fetchItemPrice(item) {
+                    const customerId = this.customerId || '';
+                    fetch(`/pos/price-simple?product_id=${item.product_id}&quantity=${item.quantity}&customer_id=${customerId}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.unit_price) {
+                                item.unit_price = parseFloat(data.unit_price);
+                                this.updateItem(this.cart.indexOf(item));
+                            }
+                        })
+                        .catch(() => {});
+                },
+
+                async searchProducts() {
+                    const q = this.searchQuery.trim();
+                    if (q.length < 2) { this.searchResults = []; return; }
+                    this.searchLoading = true;
                     try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                        stream.getTracks().forEach(t => t.stop());
-                        alert("Camera initialized. Point at a barcode and press Enter after scanning.");
+                        const res = await fetch(`/pos/search?q=${encodeURIComponent(q)}`);
+                        const data = await res.json();
+                        this.searchResults = data.products || [];
                     } catch (e) {
-                        if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
-                            alert("Camera permission denied. Use keyboard scanner or manual entry.");
-                        } else {
-                            alert("Camera scanning requires a secure connection (HTTPS). Use keyboard scanner or manual entry.");
-                        }
+                        this.searchResults = [];
+                    } finally {
+                        this.searchLoading = false;
                     }
+                },
+
+                selectSearchResult(product) {
+                    this.previewProduct = product;
+                    this.previewStock = product.current_stock;
+                    this.previewPrice = product.unit_price;
+                    this.lastScanned = product;
+                    this.searchQuery = "";
+                    this.searchResults = [];
                 },
 
                 loadCustomer() {
@@ -234,28 +320,15 @@
                     fetch(`/pos/customer?customer_id=${this.customerId}`)
                         .then(r => r.json())
                         .then(data => { this.customerData = data; });
+                    this.cart.forEach(item => this.fetchItemPrice(item));
                 },
 
                 addToCart() {
                     if (!this.previewProduct) return;
-                    const existing = this.cart.find(i => i.product_id === this.previewProduct.id);
-                    if (existing) {
-                        existing.quantity = parseFloat(existing.quantity) + 1;
-                    } else {
-                        this.cart.push({
-                            product_id: this.previewProduct.id,
-                            name: this.previewProduct.name,
-                            product_unit_id: this.previewProduct.units?.[0]?.id || null,
-                            units: (this.previewProduct.units || []).map(u => ({ id: u.unit_id, name: u.unit?.name })),
-                            quantity: 1,
-                            unit_price: parseFloat(this.previewProduct.unit_price),
-                            discount: 0,
-                            tax: 0,
-                            lineTotal: parseFloat(this.previewProduct.unit_price),
-                        });
-                    }
-                    this.updateTotals();
+                    this.addToCartDirect(this.previewProduct, this.previewStock);
+                    this.showToast(this.previewProduct.name + " added to cart", "success");
                     this.previewProduct = null;
+                    this.focusBarcode();
                 },
 
                 updateItem(index) {
@@ -272,9 +345,7 @@
                     this.updateTotals();
                 },
 
-                updateTotals() {
-                    // Recalculate - computed properties handle this
-                },
+                updateTotals() {},
 
                 get subtotal() {
                     return this.cart.reduce((sum, i) => sum + (parseFloat(i.unit_price) * parseFloat(i.quantity || 0)), 0);
@@ -324,7 +395,7 @@
                                 })),
                                 payment: {
                                     amount: parseFloat(this.amountTendered) || this.grandTotal,
-                                    payment_method: this.paymentMethod,
+                                    payment_method: "cash",
                                 },
                                 discount: this.discountTotal,
                                 discount_type: "fixed",
@@ -334,10 +405,10 @@
                         if (data.success) {
                             window.location.href = `/invoices/${data.invoice.id}`;
                         } else {
-                            alert(data.error || "Checkout failed");
+                            this.showToast(data.error || "Checkout failed", "error");
                         }
                     } catch (e) {
-                        alert("Error processing sale");
+                        this.showToast("Error processing sale", "error");
                     } finally {
                         this.processing = false;
                     }
@@ -345,5 +416,4 @@
             };
         }
     </script>
-    @endpush
 </x-app-layout>

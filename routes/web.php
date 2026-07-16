@@ -327,6 +327,7 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("price-lists", fn() => redirect()->route('dashboard'))->name("price-lists.dashboard");
         Route::get("price-lists/list", [PriceListController::class, "index"])->name("price-lists.index");
         Route::get("price-lists/export", [PriceListController::class, "exportCsv"])->name("price-lists.export-csv");
+        Route::get("price-lists/data/default-prices", [PriceListController::class, "defaultPrices"])->name("price-lists.default-prices");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
         Route::get("price-lists/{priceList}/edit", [PriceListController::class, "edit"])->name("price-lists.edit");
@@ -425,6 +426,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("pos/barcode", [PosController::class, "lookupBarcode"])->name("pos.barcode");
         Route::get("pos/sku", [PosController::class, "lookupSku"])->name("pos.sku");
+        Route::get("pos/search", [PosController::class, "searchProducts"])->name("pos.search");
         Route::get("pos/customer", [PosController::class, "getCustomer"])->name("pos.customer");
         Route::get("pos/price", [PosController::class, "getPrice"])->name("pos.price");
         Route::get("pos/price-simple", [PosController::class, "getPriceSimple"])->name("pos.price-simple");

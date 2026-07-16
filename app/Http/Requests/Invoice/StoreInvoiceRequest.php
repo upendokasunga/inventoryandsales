@@ -18,7 +18,6 @@ class StoreInvoiceRequest extends FormRequest
             'customer_id' => 'required|exists:customers,id',
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'invoice_date' => 'nullable|date',
-            'payment_type' => 'nullable|string|in:cash,credit,bank_transfer,mobile_money,cheque,mixed',
             'currency_code' => 'nullable|string|max:3',
             'exchange_rate' => 'nullable|numeric|min:0',
             'payment_account_id' => 'nullable|exists:accounts,id',

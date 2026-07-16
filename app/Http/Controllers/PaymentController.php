@@ -18,7 +18,7 @@ class PaymentController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['payment_method', 'customer_id', 'date_from', 'date_to']);
+        $filters = $request->only(['customer_id', 'date_from', 'date_to']);
         $payments = $this->paymentService->getAllPaginated(20, $filters);
         $methods = $this->paymentService->getPaymentMethods();
         return view('payments.index', compact('payments', 'methods'));
@@ -26,7 +26,12 @@ class PaymentController extends Controller
 
     public function create(Invoice $invoice): View
     {
-        return view('payments.create', compact('invoice'));
+        $accounts = \App\Models\Account::where('is_active', true)
+            ->whereIn('ifrs_category', ['cash', 'bank'])
+            ->orderBy('code')
+            ->get();
+
+        return view('payments.create', compact('invoice', 'accounts'));
     }
 
     public function store(StorePaymentRequest $request, Invoice $invoice): RedirectResponse

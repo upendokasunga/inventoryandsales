@@ -30,18 +30,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Payment Method *</label>
-                <select name="payment_method" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm @error('payment_method') border-danger @enderror">
-                    <option value="">Select Method</option>
-                    <option value="cash" @selected(old('payment_method') === 'cash')>Cash</option>
-                    <option value="bank_transfer" @selected(old('payment_method') === 'bank_transfer')>Bank Transfer</option>
-                    <option value="mobile_money" @selected(old('payment_method') === 'mobile_money')>Mobile Money</option>
-                    <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
-                </select>
-                @error('payment_method') <p class="text-xs text-danger mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Reference Number</label>
                 <input type="text" name="reference_number" value="{{ old('reference_number') }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Cheque/Transaction ref">
             </div>

@@ -18,7 +18,6 @@ class UpdateExpenseRequest extends FormRequest
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'description' => 'nullable|string',
-            'payment_method' => 'nullable|string|max:50',
             'paid_to' => 'nullable|exists:users,id',
             'account_id' => 'nullable|exists:accounts,id',
         ];

@@ -26,7 +26,7 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|string|in:cash,credit,bank_transfer,mobile_money,cheque',
+            'payment_account_id' => 'nullable|exists:accounts,id',
             'reference_number' => 'nullable|string|max:255',
             'payment_date' => 'nullable|date',
             'notes' => 'nullable|string|max:1000',

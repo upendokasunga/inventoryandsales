@@ -30,17 +30,6 @@
                     @error('invoice_date') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Type</label>
-                    <select name="payment_type" class="erp-input w-full">
-                        <option value="cash">Cash</option>
-                        <option value="credit">Credit</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="mobile_money">Mobile Money</option>
-                        <option value="cheque">Cheque</option>
-                    </select>
-                    @error('payment_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
                     <select name="currency_code" class="erp-input w-full">
                         @foreach($currencies as $cur)
@@ -53,27 +42,6 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Exchange Rate</label>
                     <input type="number" name="exchange_rate" step="0.00000001" min="0" value="1" class="erp-input w-full">
                     @error('exchange_rate') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Account</label>
-                    <select name="payment_account_id" class="erp-input w-full">
-                        <option value="">Select</option>
-                        @if($bankAccounts->count())
-                            <optgroup label="Bank Accounts">
-                                @foreach($bankAccounts as $a)
-                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
-                                @endforeach
-                            </optgroup>
-                        @endif
-                        @if($cashAccounts->count())
-                            <optgroup label="Cash Registers">
-                                @foreach($cashAccounts as $a)
-                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
-                                @endforeach
-                            </optgroup>
-                        @endif
-                    </select>
-                    @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Cost Center</label>
@@ -192,6 +160,30 @@
                         </tfoot>
                     </table>
                 </div>
+
+                {{-- Payment Account (below totals) --}}
+                <div class="mt-4 max-w-sm">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Payment Account</label>
+                    <select name="payment_account_id" class="erp-input w-full">
+                        <option value="">Select</option>
+                        @if($bankAccounts->count())
+                            <optgroup label="Bank Accounts">
+                                @foreach($bankAccounts as $a)
+                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if($cashAccounts->count())
+                            <optgroup label="Cash Registers">
+                                @foreach($cashAccounts as $a)
+                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                    </select>
+                    @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
                 <button type="button" @click="addItem" class="mt-3 erp-btn-secondary">+ Add Item</button>
             </div>
 
@@ -213,11 +205,10 @@
         </form>
     </div>
 
-    @push("scripts")
     <script>
         function invoiceForm() {
             return {
-                items: [this.newItem()],
+                items: [],
                 selectedCustomer: '',
                 customerAdvances: [],
                 newItem() {
@@ -236,7 +227,7 @@
                     const productId = this.items[index].product_id;
                     if (!productId) return;
                     const qty = parseFloat(this.items[index].quantity) || 1;
-                    let url = `/pos/price-simple?product_id=${productId}&quantity=${qty}`;
+                    let url = `/pos/price-simple?product_id=${productId}&quantity=${qty}&customer_id=${this.selectedCustomer || ''}`;
                     fetch(url)
                         .then(r => r.json())
                         .then(data => {
@@ -255,6 +246,7 @@
                     return this.subtotal - this.totalDiscount;
                 },
                 init() {
+                    this.items.push(this.newItem());
                     this.$watch('selectedCustomer', (val) => {
                         if (val) {
                             fetch(`/customer-advances/available?customer_id=${val}`)
@@ -269,5 +261,4 @@
             };
         }
     </script>
-    @endpush
 </x-app-layout>

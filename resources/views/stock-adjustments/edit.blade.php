@@ -80,7 +80,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         function adjustmentForm() {
             return {
@@ -110,5 +109,4 @@
             }
         }
     </script>
-    @endpush
 </x-app-layout>

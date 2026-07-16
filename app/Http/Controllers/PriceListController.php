@@ -149,4 +149,29 @@ class PriceListController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+    public function defaultPrices(): \Illuminate\Http\JsonResponse
+    {
+        $defaultList = PriceList::whereNull('customer_group_id')
+            ->active()
+            ->valid()
+            ->with(['items.product', 'items.unit'])
+            ->first();
+
+        if (!$defaultList) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = $defaultList->items->map(fn($item) => [
+            'product_id' => $item->product_id,
+            'product_name' => $item->product?->name,
+            'unit_id' => $item->unit_id,
+            'unit_name' => $item->unit?->short_code ?? $item->unit?->name,
+            'min_quantity' => $item->min_quantity,
+            'max_quantity' => $item->max_quantity,
+            'price' => $item->price,
+        ]);
+
+        return response()->json(['items' => $items]);
+    }
 }

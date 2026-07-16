@@ -41,6 +41,7 @@ class User extends Authenticatable
     public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Warehouse::class, 'store_user')
+            ->select('warehouses.*')
             ->withTimestamps();
     }
 

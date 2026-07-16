@@ -99,7 +99,6 @@ class SalesController extends Controller
             'currency_code' => 'nullable|string|max:10',
             'exchange_rate' => 'nullable|numeric|min:0',
             'store_id' => 'nullable|exists:warehouses,id',
-            'payment_type' => 'nullable|string|max:30',
             'payment_account_id' => 'nullable|exists:accounts,id',
             'amount_paid' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',

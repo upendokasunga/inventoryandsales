@@ -83,6 +83,7 @@ class PurchaseOrderService
             $data['total'] = $this->calculateTotal(
                 $subtotal, $data['tax'], $data['discount'], $data['discount_type']
             );
+            $data['total_amount'] = $data['total'];
 
             $purchaseOrder = PurchaseOrder::create($data);
             $purchaseOrder->items()->saveMany($poItems);
@@ -122,6 +123,7 @@ class PurchaseOrderService
             $data['total'] = $this->calculateTotal(
                 $subtotal, $data['tax'], $data['discount'], $data['discount_type']
             );
+            $data['total_amount'] = $data['total'];
 
             $purchaseOrder->update($data);
             $purchaseOrder->items()->forceDelete();

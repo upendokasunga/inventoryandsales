@@ -16,11 +16,7 @@ class PaymentService
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
     {
-        $query = Payment::with(['invoice', 'customer', 'receiver']);
-
-        if (isset($filters['payment_method'])) {
-            $query->where('payment_method', $filters['payment_method']);
-        }
+        $query = Payment::with(['invoice', 'customer', 'receiver', 'account']);
 
         if (isset($filters['customer_id'])) {
             $query->where('customer_id', $filters['customer_id']);
@@ -45,10 +41,15 @@ class PaymentService
             $newBalanceDue = max(0, $invoice->total - $newAmountPaid);
             $newPaymentStatus = $newBalanceDue <= 0 ? 'paid' : 'partial';
 
+            $accountId = $data['payment_account_id'] ?? null;
+            $account = $accountId ? \App\Models\Account::find($accountId) : null;
+            $paymentMethod = $account ? strtolower(str_replace(' ', '_', $account->name)) : ($data['payment_method'] ?? 'cash');
+
             $payment = Payment::create([
                 'invoice_id' => $invoice->id,
                 'customer_id' => $invoice->customer_id,
-                'payment_method' => $data['payment_method'],
+                'payment_method' => $paymentMethod,
+                'account_id' => $accountId,
                 'amount' => $amount,
                 'reference_number' => $data['reference_number'] ?? null,
                 'payment_date' => $data['payment_date'] ?? now(),
@@ -79,6 +80,6 @@ class PaymentService
 
     public function getPaymentMethods(): array
     {
-        return Payment::METHODS;
+        return [];
     }
 }

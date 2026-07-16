@@ -135,9 +135,9 @@ class SupplierAnalyticsService
                   ->whereIn('status', ['completed', 'partially_received']);
             })
                 ->selectRaw('COALESCE(SUM(received_quantity), 0) as total_received')
-                ->selectRaw("COALESCE(SUM(CASE WHEN condition = 'damaged' THEN received_quantity ELSE 0 END), 0) as total_damaged")
-                ->selectRaw("COALESCE(SUM(CASE WHEN condition = 'return' THEN received_quantity ELSE 0 END), 0) as total_returned")
-                ->selectRaw("COALESCE(SUM(CASE WHEN condition = 'good' THEN received_quantity ELSE 0 END), 0) as total_good")
+                ->selectRaw("COALESCE(SUM(CASE WHEN `condition` = 'damaged' THEN received_quantity ELSE 0 END), 0) as total_damaged")
+                ->selectRaw("COALESCE(SUM(CASE WHEN `condition` = 'return' THEN received_quantity ELSE 0 END), 0) as total_returned")
+                ->selectRaw("COALESCE(SUM(CASE WHEN `condition` = 'good' THEN received_quantity ELSE 0 END), 0) as total_good")
                 ->selectRaw("COALESCE(SUM(CASE WHEN received_quantity = expected_quantity THEN 1 ELSE 0 END), 0) as accurate_items")
                 ->selectRaw('COUNT(*) as total_items')
                 ->first();

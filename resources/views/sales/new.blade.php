@@ -53,15 +53,6 @@
                         </div>
                         <div class="grid grid-cols-3 gap-4 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Payment Type</label>
-                                <select name="payment_type" class="mt-1 block w-full erp-input">
-                                    <option value="cash">Cash</option>
-                                    <option value="credit">Credit</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="mobile_money">Mobile Money</option>
-                                </select>
-                            </div>
-                            <div>
                                 <label class="block text-sm font-medium text-slate-700">Cost Center</label>
                                 <select name="cost_center_id" class="mt-1 block w-full erp-input">
                                     <option value="">Select</option>
@@ -220,7 +211,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         function newSale() {
             return {
@@ -242,16 +232,26 @@
                 },
 
                 addLine(product) {
-                    this.lines.push({
+                    const line = {
                         product_id: product.id,
                         product_name: product.name,
                         quantity: 1,
                         unit_price: 0,
                         store_id: '',
                         line_total: 0,
-                    });
+                    };
+                    this.lines.push(line);
                     this.searchQuery = '';
                     this.filteredProducts = [];
+                    const qty = 1;
+                    const customerId = this.customerId || '';
+                    fetch(`/pos/price-simple?product_id=${product.id}&quantity=${qty}&customer_id=${customerId}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            line.unit_price = parseFloat(data.unit_price) || 0;
+                            this.recalcLine(this.lines.indexOf(line));
+                        })
+                        .catch(() => {});
                     this.recalcTotals();
                 },
 
@@ -269,7 +269,6 @@
                 },
 
                 recalcTotals() {
-                    // Trigger reactivity
                     this.lines = [...this.lines];
                 },
 
@@ -286,5 +285,4 @@
             };
         }
     </script>
-    @endpush
 </x-app-layout>

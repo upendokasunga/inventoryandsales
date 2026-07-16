@@ -62,6 +62,36 @@ class PosController extends Controller
         ]);
     }
 
+    public function searchProducts(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['q' => 'required|string|min:1']);
+
+        $products = Product::where(function ($q) use ($request) {
+                $term = $request->input('q');
+                $q->where('name', 'LIKE', "%{$term}%")
+                  ->orWhere('sku', 'LIKE', "%{$term}%")
+                  ->orWhere('barcode', 'LIKE', "%{$term}%")
+                  ->orWhere('product_code', 'LIKE', "%{$term}%");
+            })
+            ->where('is_active', true)
+            ->with(['units.unit'])
+            ->limit(20)
+            ->get()
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'sku' => $p->sku,
+                'barcode' => $p->barcode,
+                'product_code' => $p->product_code,
+                'image_url' => $p->image_url,
+                'unit_price' => $p->price,
+                'current_stock' => $p->current_stock,
+                'units' => $p->units->map(fn($u) => ['id' => $u->id, 'unit_id' => $u->unit_id, 'name' => $u->unit?->name]),
+            ]);
+
+        return response()->json(['products' => $products]);
+    }
+
     public function lookupSku(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate(['sku' => 'required|string']);
@@ -115,22 +145,59 @@ class PosController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|numeric|min:0.001',
+            'customer_id' => 'nullable|exists:customers,id',
             'customer_group_id' => 'nullable|exists:customer_groups,id',
+            'unit_id' => 'nullable|exists:units,id',
         ]);
 
         $product = \App\Models\Product::findOrFail($request->product_id);
-        $unitId = $product->units()->first()?->id ?? 1;
+        $unitId = $request->input('unit_id') ?: $product->productUnits()->where('is_default_sale', true)->first()?->unit_id ?? $product->units()->first()?->id ?? 1;
+
+        $customerGroupId = $request->input('customer_group_id');
+        if (!$customerGroupId && $request->input('customer_id')) {
+            $customerGroupId = \App\Models\Customer::find($request->input('customer_id'))?->customer_group_id;
+        }
 
         $price = $this->pricingService->getPrice(
             $request->product_id,
             $unitId,
             $request->quantity,
-            $request->customer_group_id
+            $customerGroupId
         );
+
+        $unitPrice = $price['price'] ?? null;
+
+        if ($unitPrice === null) {
+            $pu = $product->productUnits()->where('is_default_sale', true)->first();
+            if ($pu && $pu->wholesale_price > 0) {
+                $unitPrice = $pu->wholesale_price;
+            }
+        }
+
+        if ($unitPrice === null) {
+            $latestPoItem = \App\Models\PurchaseOrderItem::where('product_id', $product->id)
+                ->whereHas('purchaseOrder', fn($q) => $q->whereIn('status', ['approved', 'completed']))
+                ->latest()
+                ->first();
+            if ($latestPoItem) {
+                $unitPrice = $latestPoItem->selling_price ?? $latestPoItem->unit_price;
+            }
+        }
+
+        if ($unitPrice === null) {
+            $pu = $product->productUnits()->where('is_default_sale', true)->first();
+            if ($pu && $pu->selling_price > 0) {
+                $unitPrice = $pu->selling_price;
+            }
+        }
+
+        if ($unitPrice === null) {
+            $unitPrice = $product->productUnits()->min('selling_price') ?? $product->price ?? 0;
+        }
 
         return response()->json([
             'price' => $price,
-            'unit_price' => $price['price'] ?? $product->price,
+            'unit_price' => $unitPrice,
         ]);
     }
 
@@ -156,7 +223,6 @@ class PosController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment.amount' => 'required|numeric|min:0',
-            'payment.payment_method' => 'required|string|in:cash,credit,bank_transfer,mobile_money,cheque,mixed',
         ]);
 
         try {

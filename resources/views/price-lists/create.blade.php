@@ -56,7 +56,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-slate-800">Price List Items</h2>
-                    <button type="button" onclick="addItem()" class="inline-flex items-center px-3 py-1.5 erp-btn-secondary text-sm">Add Item</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="loadDefaultPrices()" class="inline-flex items-center px-3 py-1.5 erp-btn-secondary text-sm">Copy from Default</button>
+                        <button type="button" onclick="addItem()" class="inline-flex items-center px-3 py-1.5 erp-btn-secondary text-sm">Add Item</button>
+                    </div>
                 </div>
 
                 <div id="items-container" class="space-y-3">
@@ -110,7 +113,6 @@
         </form>
     </div>
 
-    @push('scripts')
     <script>
         let itemIndex = 0;
         function addItem() {
@@ -119,6 +121,31 @@
             const html = clone.querySelector('.item-row').outerHTML.replace(/INDEX/g, itemIndex++);
             document.getElementById('items-container').insertAdjacentHTML('beforeend', html);
         }
+        function loadDefaultPrices() {
+            fetch('{{ route("price-lists.default-prices") }}')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.items || data.items.length === 0) {
+                        alert('No default price list items found. Create a General price list first.');
+                        return;
+                    }
+                    data.items.forEach(item => {
+                        const template = document.getElementById('item-template');
+                        const clone = template.content.cloneNode(true);
+                        const row = clone.querySelector('.item-row');
+                        let html = row.outerHTML.replace(/INDEX/g, itemIndex++);
+                        const temp = document.createElement('div');
+                        temp.innerHTML = html;
+                        const rowEl = temp.firstElementChild;
+                        rowEl.querySelector('select[name*="[product_id]"]').value = item.product_id;
+                        rowEl.querySelector('select[name*="[unit_id]"]').value = item.unit_id;
+                        rowEl.querySelector('input[name*="[min_quantity]"]').value = item.min_quantity || 1;
+                        if (item.max_quantity) rowEl.querySelector('input[name*="[max_quantity]"]').value = item.max_quantity;
+                        rowEl.querySelector('input[name*="[price]"]').value = item.price;
+                        document.getElementById('items-container').insertAdjacentElement('beforeend', rowEl);
+                    });
+                })
+                .catch(() => alert('Failed to load default prices.'));
+        }
     </script>
-    @endpush
 </x-app-layout>

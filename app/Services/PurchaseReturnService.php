@@ -142,10 +142,8 @@ class PurchaseReturnService
                     ]);
                 }
 
-                $newAmountPaid = max(0, (float) $po->amount_paid - $returnValue);
-                $newBalanceDue = (float) $po->total_amount - $newAmountPaid;
+                $newBalanceDue = max(0, (float) $po->balance_due - $returnValue);
                 $po->update([
-                    'amount_paid' => $newAmountPaid,
                     'balance_due' => $newBalanceDue,
                 ]);
 

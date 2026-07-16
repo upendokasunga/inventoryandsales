@@ -6,15 +6,6 @@
         <div class="erp-card mb-6">
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <div>
-                    <label class="text-xs font-medium text-slate-500 block mb-1.5">Method</label>
-                    <select name="payment_method" class="erp-input">
-                        <option value="">All</option>
-                        @foreach($methods as $m)
-                            <option value="{{ $m }}" @selected(request('payment_method') === $m)>{{ ucfirst(str_replace('_', ' ', $m)) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
                     <label class="text-xs font-medium text-slate-500 block mb-1.5">From</label>
                     <input type="date" name="date_from" value="{{ request('date_from') }}" class="erp-input">
                 </div>
@@ -33,7 +24,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Invoice</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Customer</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Method</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Account</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reference</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Received By</th>
@@ -47,7 +38,7 @@
                             <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-primary hover:text-primary/80 transition">{{ $payment->invoice->invoice_number }}</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $payment->customer->name ?? 'Walk-in' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-slate-500">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-slate-500">{{ $payment->account?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-success">{{ number_format($payment->amount, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $payment->reference_number ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $payment->receiver?->name ?? 'System' }}</td>
