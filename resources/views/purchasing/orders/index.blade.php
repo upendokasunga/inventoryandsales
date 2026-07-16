@@ -11,7 +11,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 border-b border-slate-200/60">
             <nav class="flex gap-6 -mb-px overflow-x-auto">
-                @php $tabs = ['all' => 'All', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'partially_received' => 'Partial', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
+                @php $tabs = ['all' => 'All', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'cancelled' => 'Cancelled']; @endphp
                 @foreach ($tabs as $key => $label)
                     <a href="{{ route('purchasing.orders.index', ['tab' => $key] + request()->except(['tab', 'status'])) }}"
                        class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
