@@ -58,9 +58,10 @@
                         </div>
                         <div>
                             <label for="cost_center_id" class="block text-sm font-medium text-slate-700">Cost Center</label>
+                            @php $ccAll = \App\Models\CostCenter::all(); @endphp
                             <select name="cost_center_id" id="cost_center_id" class="mt-1 block w-full erp-input">
-                                <option value="">Select</option>
-                                @foreach (\App\Models\CostCenter::all() as $cc)
+                                @if(count($ccAll) !== 1)<option value="">Select</option>@endif
+                                @foreach ($ccAll as $cc)
                                     <option value="{{ $cc->id }}" {{ old('cost_center_id', $purchaseOrder->cost_center_id) == $cc->id ? 'selected' : '' }}>{{ $cc->name }}</option>
                                 @endforeach
                             </select>

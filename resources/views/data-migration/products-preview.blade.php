@@ -51,9 +51,9 @@
                     <div>
                         <label for="warehouse_id" class="block text-sm font-medium text-slate-700">Default Warehouse <span class="text-red-500">*</span></label>
                         <select name="warehouse_id" id="warehouse_id" required class="mt-1 block w-full erp-input">
-                            <option value="">Select Warehouse</option>
+                            @if(count($warehouses) !== 1)<option value="">Select Warehouse</option>@endif
                             @foreach ($warehouses as $warehouse)
-                                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                <option value="{{ $warehouse->id }}" @selected(count($warehouses) === 1)>{{ $warehouse->name }}</option>
                             @endforeach
                         </select>
                     </div>

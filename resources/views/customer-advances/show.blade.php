@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="space-y-2 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-500">Payment Method</span><span class="capitalize">{{ str_replace('_', ' ', $customerAdvance->payment_method) }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Account</span><span>{{ $customerAdvance->account?->name ?? $customerAdvance->payment_method ?? '-' }}</span></div>
                     @if($customerAdvance->reference_number)
                         <div class="flex justify-between"><span class="text-slate-500">Reference</span><span>{{ $customerAdvance->reference_number }}</span></div>
                     @endif

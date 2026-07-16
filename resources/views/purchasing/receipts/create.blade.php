@@ -90,9 +90,9 @@
                             <div>
                                 <label for="warehouse_id" class="block text-sm font-medium text-slate-700">Store *</label>
                                 <select name="warehouse_id" id="warehouse_id" required class="mt-1 block w-full erp-input">
-                                    <option value="">Select Store</option>
+                                    @if(count($warehouses) !== 1)<option value="">Select Store</option>@endif
                                     @foreach ($warehouses as $wh)
-                                        <option value="{{ $wh->id }}" {{ old('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                        <option value="{{ $wh->id }}" @selected(count($warehouses) === 1 || old('warehouse_id') == $wh->id)>
                                             {{ $wh->name }} ({{ $wh->code }})
                                         </option>
                                     @endforeach

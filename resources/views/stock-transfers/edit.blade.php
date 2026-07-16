@@ -10,7 +10,7 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Source Warehouse</label>
                         <select name="source_warehouse_id" required class="mt-1 block w-full erp-input">
-                            <option value="">Select</option>
+                            @if(count($warehouses) !== 1)<option value="">Select</option>@endif
                             @foreach ($warehouses as $w)
                                 <option value="{{ $w->id }}" {{ old('source_warehouse_id', $stockTransfer->source_warehouse_id) == $w->id ? 'selected' : '' }}>{{ $w->name }} ({{ $w->code }})</option>
                             @endforeach
@@ -20,7 +20,7 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Destination Warehouse</label>
                         <select name="destination_warehouse_id" required class="mt-1 block w-full erp-input">
-                            <option value="">Select</option>
+                            @if(count($warehouses) !== 1)<option value="">Select</option>@endif
                             @foreach ($warehouses as $w)
                                 <option value="{{ $w->id }}" {{ old('destination_warehouse_id', $stockTransfer->destination_warehouse_id) == $w->id ? 'selected' : '' }}>{{ $w->name }} ({{ $w->code }})</option>
                             @endforeach

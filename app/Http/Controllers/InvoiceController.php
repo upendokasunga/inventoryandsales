@@ -45,7 +45,7 @@ class InvoiceController extends Controller
     public function create(): View
     {
         $customers = \App\Models\Customer::where('is_active', true)->orderBy('name')->get();
-        $stores = \App\Models\Warehouse::orderBy('name')->get();
+        $stores = \App\Models\Warehouse::active()->orderBy('name')->get();
         $bankAccounts = \App\Models\Account::where('is_active', true)
             ->where('ifrs_category', 'bank')
             ->orderBy('code')

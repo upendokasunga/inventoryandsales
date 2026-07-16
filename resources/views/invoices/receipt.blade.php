@@ -49,7 +49,7 @@
         @if($invoice->payments->count() > 0)
             <tr><td colspan="2"><div class="line"></div></td></tr>
             @foreach($invoice->payments as $payment)
-                <tr><td>{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</td><td class="right">{{ number_format($payment->amount, 2) }}</td></tr>
+                <tr><td>{{ $payment->account?->name ?? '-' }}</td><td class="right">{{ number_format($payment->amount, 2) }}</td></tr>
             @endforeach
         @endif
     </table>

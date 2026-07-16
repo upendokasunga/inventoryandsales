@@ -62,7 +62,7 @@ class CustomerAdvanceController extends Controller
 
     public function show(CustomerAdvance $customerAdvance): View
     {
-        $customerAdvance->load(['customer', 'creator', 'applications.invoice', 'applications.appliedBy']);
+        $customerAdvance->load(['customer', 'creator', 'account', 'applications.invoice', 'applications.appliedBy']);
         return view('customer-advances.show', compact('customerAdvance'));
     }
 

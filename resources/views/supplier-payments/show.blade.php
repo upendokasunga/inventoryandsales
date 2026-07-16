@@ -42,8 +42,8 @@
                                 <dd class="text-sm font-medium text-slate-800">{{ $supplierPayment->payment_date?->format('M d, Y') ?? '-' }}</dd>
                             </div>
                             <div class="flex justify-between">
-                                <dt class="text-sm text-slate-500">Method</dt>
-                                <dd class="text-sm font-medium text-slate-800">{{ $supplierPayment->payment_method ?? '-' }}</dd>
+                                <dt class="text-sm text-slate-500">Account</dt>
+                                <dd class="text-sm font-medium text-slate-800">{{ $supplierPayment->account?->name ?? $supplierPayment->payment_method ?? '-' }}</dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Created By</dt>

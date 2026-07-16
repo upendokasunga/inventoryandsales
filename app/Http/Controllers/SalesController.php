@@ -6,7 +6,6 @@ use App\Models\Account;
 use App\Models\CostCenter;
 use App\Models\Customer;
 use App\Models\Invoice;
-use App\Models\PaymentTerm;
 use App\Models\Product;
 use App\Models\Warehouse;
 use App\Services\CentralApprovalService;
@@ -45,12 +44,11 @@ class SalesController extends Controller
             ->whereNotNull('parent_id')
             ->get();
         $costCenters = CostCenter::pluck('name', 'id');
-        $paymentTerms = PaymentTerm::active()->ordered()->get();
         $userStores = auth()->user()->stores()->pluck('id')->toArray();
 
         return view('sales.new', compact(
             'customers', 'products', 'stores', 'paymentAccounts',
-            'costCenters', 'paymentTerms', 'userStores'
+            'costCenters', 'userStores'
         ));
     }
 

@@ -54,7 +54,7 @@
                     <th class="text-left px-4 py-3">Customer</th>
                     <th class="text-right px-4 py-3">Amount</th>
                     <th class="text-right px-4 py-3">Balance</th>
-                    <th class="text-left px-4 py-3">Method</th>
+                    <th class="text-left px-4 py-3">Account</th>
                     <th class="text-left px-4 py-3">Date</th>
                     <th class="text-left px-4 py-3">Status</th>
                     <th class="text-left px-4 py-3">Actions</th>
@@ -67,7 +67,7 @@
                         <td class="px-4 py-3">{{ $advance->customer->name ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-right">{{ number_format($advance->amount, 0) }}</td>
                         <td class="px-4 py-3 text-right">{{ number_format($advance->balance, 0) }}</td>
-                        <td class="px-4 py-3 capitalize">{{ str_replace('_', ' ', $advance->payment_method) }}</td>
+                        <td class="px-4 py-3">{{ $advance->account?->name ?? $advance->payment_method ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $advance->advance_date->format('d M Y') }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-0.5 text-xs rounded-full font-medium

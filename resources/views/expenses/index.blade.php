@@ -25,7 +25,7 @@
                     <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Payment Method</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Account</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created By</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -41,7 +41,7 @@
                             @php $c = ['pending' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'paid' => 'erp-badge-fulfilled', 'rejected' => 'erp-badge-cancelled', 'reversed' => 'erp-badge-draft']; @endphp
                             <span class="{{ $c[$expense->status] ?? 'erp-badge-draft' }}">{{ ucfirst($expense->status) }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $expense->payment_method ? ucfirst(str_replace('_', ' ', $expense->payment_method)) : '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $expense->account?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $expense->creator?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <x-action-links :view="route('expenses.show', $expense)" :edit="route('expenses.edit', $expense)" :delete="route('expenses.destroy', $expense)" />

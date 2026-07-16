@@ -20,7 +20,7 @@ class SupplierPaymentController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = SupplierPayment::with(['supplier', 'purchaseOrder', 'creator']);
+        $query = SupplierPayment::with(['supplier', 'purchaseOrder', 'creator', 'account']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -87,7 +87,7 @@ class SupplierPaymentController extends Controller
 
     public function show(SupplierPayment $supplierPayment): View
     {
-        $supplierPayment->loadMissing(['supplier', 'purchaseOrder', 'goodsReceipt', 'creator']);
+        $supplierPayment->loadMissing(['supplier', 'purchaseOrder', 'goodsReceipt', 'creator', 'account']);
 
         $paymentHistory = [];
         if ($supplierPayment->purchaseOrder) {
@@ -166,6 +166,7 @@ class SupplierPaymentController extends Controller
             $supplierPayment->update([
                 'status' => 'paid',
                 'payment_method' => $account->name,
+                'account_id' => $account->id,
                 'payment_date' => $request->payment_date ?? now(),
             ]);
 

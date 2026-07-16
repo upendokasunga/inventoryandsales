@@ -6,7 +6,7 @@
     <div class="doc-header">
         <div class="doc-title">Payment Receipt</div>
         <div class="doc-meta">
-            <strong>{{ $payment->payment_method }} - {{ $payment->reference_number ?? 'N/A' }}</strong><br>
+            <strong>{{ $payment->account?->name ?? '-' }} - {{ $payment->reference_number ?? 'N/A' }}</strong><br>
             Date: {{ $payment->payment_date->format('d M Y') }}<br>
         </div>
     </div>
@@ -35,7 +35,7 @@
         <tbody>
             <tr>
                 <td>1</td>
-                <td>Payment for Invoice {{ $payment->invoice->invoice_number }} ({{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }})</td>
+                <td>Payment for Invoice {{ $payment->invoice->invoice_number }} ({{ $payment->account?->name ?? '-' }})</td>
                 <td class="text-right"><strong>{{ number_format($payment->amount, 0) }} TZS</strong></td>
             </tr>
         </tbody>

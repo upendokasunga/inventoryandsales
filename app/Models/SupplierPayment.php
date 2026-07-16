@@ -13,7 +13,7 @@ class SupplierPayment extends Model
 
     protected $fillable = [
         'uuid', 'purchase_order_id', 'goods_receipt_id', 'supplier_id',
-        'amount', 'payment_method', 'status', 'reference_number',
+        'amount', 'payment_method', 'account_id', 'status', 'reference_number',
         'payment_date', 'notes', 'created_by',
         'approved_by', 'approved_at',
     ];
@@ -39,6 +39,11 @@ class SupplierPayment extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     public function creator(): BelongsTo

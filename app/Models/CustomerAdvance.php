@@ -16,8 +16,6 @@ class CustomerAdvance extends Model
 
     public const STATUSES = ['pending', 'completed', 'partially_applied', 'applied', 'cancelled'];
 
-    public const PAYMENT_METHODS = ['cash', 'bank_transfer', 'mobile_money', 'cheque'];
-
     protected function casts(): array
     {
         return [
@@ -47,6 +45,11 @@ class CustomerAdvance extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     public function applications(): HasMany

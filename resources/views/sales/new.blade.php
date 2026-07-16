@@ -34,9 +34,9 @@
                                 <label class="block text-sm font-medium text-slate-700">Store</label>
                                 <select name="store_id" class="mt-1 block w-full erp-input"
                                     x-on:change="headerStore = $event.target.value">
-                                    <option value="">All Stores</option>
+                                    @if(count($stores) !== 1)<option value="">All Stores</option>@endif
                                     @foreach ($stores as $s)
-                                        <option value="{{ $s->id }}" @selected(in_array($s->id, $userStores))>{{ $s->name }}</option>
+                                        <option value="{{ $s->id }}" @selected(count($stores) === 1 || in_array($s->id, $userStores))>{{ $s->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -51,22 +51,13 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div class="grid grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-700">Cost Center</label>
                                 <select name="cost_center_id" class="mt-1 block w-full erp-input">
-                                    <option value="">Select</option>
+                                    @if(count($costCenters) !== 1)<option value="">Select</option>@endif
                                     @foreach ($costCenters as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Payment Terms</label>
-                                <select name="payment_term_id" class="mt-1 block w-full erp-input">
-                                    <option value="">Select</option>
-                                    @foreach ($paymentTerms as $pt)
-                                        <option value="{{ $pt->id }}">{{ $pt->name }}</option>
+                                        <option value="{{ $id }}" @selected(count($costCenters) === 1)>{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -114,9 +105,9 @@
                                         <td class="px-3 py-2">
                                             <select class="erp-input text-xs" x-model="line.store_id"
                                                 x-show="headerStore === ''">
-                                                <option value="">Default</option>
+                                                @if(count($stores) !== 1)<option value="">Default</option>@endif
                                                 @foreach ($stores as $s)
-                                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                                    <option value="{{ $s->id }}" @selected(count($stores) === 1)>{{ $s->name }}</option>
                                                 @endforeach
                                             </select>
                                             <span class="text-xs text-slate-400" x-show="headerStore !== ''" x-text="'Store set in header'"></span>

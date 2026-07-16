@@ -35,8 +35,8 @@
                             <dd>@php $c = ['pending' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'paid' => 'erp-badge-fulfilled', 'rejected' => 'erp-badge-cancelled', 'reversed' => 'erp-badge-draft']; @endphp <span class="{{ $c[$expense->status] ?? 'erp-badge-draft' }}">{{ ucfirst($expense->status) }}</span></dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-sm text-slate-500">Payment Method</dt>
-                            <dd class="text-sm font-medium text-slate-800">{{ $expense->payment_method ? ucfirst(str_replace('_', ' ', $expense->payment_method)) : '-' }}</dd>
+                            <dt class="text-sm text-slate-500">Payment Account</dt>
+                            <dd class="text-sm font-medium text-slate-800">{{ $expense->account?->name ?? '-' }}</dd>
                         </div>
                     </dl>
                 </div>

@@ -46,9 +46,9 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Cost Center</label>
                     <select name="cost_center_id" class="erp-input w-full">
-                        <option value="">None</option>
+                        @if(count($costCenters) !== 1)<option value="">None</option>@endif
                         @foreach($costCenters as $cc)
-                            <option value="{{ $cc->id }}">{{ $cc->name }}</option>
+                            <option value="{{ $cc->id }}" @selected(count($costCenters) === 1)>{{ $cc->name }}</option>
                         @endforeach
                     </select>
                     @error('cost_center_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -119,9 +119,9 @@
                                     </td>
                                     <td class="px-3 py-2">
                                         <select x-model="item.store_id" class="erp-input w-32">
-                                            <option value="">Main Store</option>
+                                            @if(count($stores) !== 1)<option value="">Main Store</option>@endif
                                             @foreach($stores as $s)
-                                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                                <option value="{{ $s->id }}" @selected(count($stores) === 1)>{{ $s->name }}</option>
                                             @endforeach
                                         </select>
                                     </td>

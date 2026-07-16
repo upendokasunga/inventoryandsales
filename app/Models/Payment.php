@@ -11,8 +11,6 @@ class Payment extends Model
 {
     use HasFactory, AutoHasUuid;
 
-    public const METHODS = ['cash', 'credit', 'bank_transfer', 'mobile_money', 'cheque'];
-
     protected $fillable = [
         'uuid',
         'invoice_id',

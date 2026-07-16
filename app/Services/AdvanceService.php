@@ -11,7 +11,7 @@ class AdvanceService
 {
     public function getAllPaginated(int $perPage = 20, ?array $filters = []): mixed
     {
-        $query = CustomerAdvance::with(['customer', 'creator']);
+        $query = CustomerAdvance::with(['customer', 'creator', 'account']);
 
         if ($tab = $filters['tab'] ?? null) {
             if ($tab === 'all') {
@@ -47,7 +47,7 @@ class AdvanceService
                 'customer_id' => $data['customer_id'],
                 'amount' => $data['amount'],
                 'balance' => $data['amount'],
-                'payment_method' => $data['payment_method'],
+                'account_id' => $data['account_id'] ?? null,
                 'reference_number' => $data['reference_number'] ?? null,
                 'advance_date' => $data['advance_date'],
                 'notes' => $data['notes'] ?? null,

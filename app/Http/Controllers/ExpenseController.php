@@ -16,7 +16,7 @@ class ExpenseController extends Controller
     public function index(Request $request): View
     {
         $tab = $request->get('tab', 'all');
-        $query = Expense::with('category', 'creator', 'approver');
+        $query = Expense::with('category', 'creator', 'approver', 'account');
 
         if ($tab !== 'all') {
             $query->where('status', $tab);

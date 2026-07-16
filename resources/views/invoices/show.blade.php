@@ -96,7 +96,7 @@
                         <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
                             <tr>
                                 <th class="text-left px-3 py-2">Date</th>
-                                <th class="text-left px-3 py-2">Method</th>
+                                <th class="text-left px-3 py-2">Account</th>
                                 <th class="text-right px-3 py-2">Amount</th>
                                 <th class="text-left px-3 py-2">Reference</th>
                             </tr>
@@ -105,7 +105,7 @@
                             @foreach($invoice->payments as $payment)
                                 <tr>
                                     <td class="px-3 py-2">{{ $payment->payment_date->format('d M Y') }}</td>
-                                    <td class="px-3 py-2 capitalize">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                                    <td class="px-3 py-2 capitalize">{{ $payment->account?->name ?? '-' }}</td>
                                     <td class="px-3 py-2 text-right font-medium text-green-600">TSh {{ number_format($payment->amount, 2) }}</td>
                                     <td class="px-3 py-2 text-slate-500">{{ $payment->reference_number ?? '-' }}</td>
                                 </tr>
@@ -171,7 +171,6 @@
                     @if($invoice->approver)
                         <div class="flex justify-between"><span class="text-slate-500">Approved By</span><span>{{ $invoice->approver->name }}</span></div>
                     @endif
-                    <div class="flex justify-between"><span class="text-slate-500">Payment Type</span><span class="capitalize">{{ str_replace('_', ' ', $invoice->payment_type) }}</span></div>
                     @if($invoice->paymentAccount)
                         <div class="flex justify-between"><span class="text-slate-500">Payment Account</span><span class="font-mono text-xs">{{ $invoice->paymentAccount->code }} - {{ $invoice->paymentAccount->name }}</span></div>
                     @endif

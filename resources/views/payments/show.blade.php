@@ -18,8 +18,8 @@
                         <h3 class="text-sm font-medium text-slate-500 mb-4">Payment Information</h3>
                         <dl class="space-y-3">
                             <div class="flex justify-between">
-                                <dt class="text-sm text-slate-500">Payment Method</dt>
-                                <dd class="text-sm font-semibold text-slate-800">{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</dd>
+                                <dt class="text-sm text-slate-500">Payment Account</dt>
+                                <dd class="text-sm font-semibold text-slate-800">{{ $payment->account?->name ?? '-' }}</dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Reference #</dt>
