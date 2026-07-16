@@ -142,4 +142,70 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
+Alpine.data('createInline', (config) => ({
+    open: false,
+    loading: false,
+    errors: {},
+    form: {},
+    init() {
+        this.resetForm();
+        this.$nextTick(() => {
+            const sel = document.getElementById(config.selectId);
+            if (sel) {
+                sel.addEventListener('change', () => {
+                    if (sel.value === '__create__') {
+                        this.open = true;
+                        sel.value = '';
+                    }
+                });
+            }
+        });
+    },
+    resetForm() {
+        this.form = {};
+        this.errors = {};
+        if (config.fields) {
+            config.fields.forEach(f => { this.form[f.name] = f.default || ''; });
+        }
+    },
+    submit() {
+        this.loading = true;
+        this.errors = {};
+        const fd = new FormData();
+        fd.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+        fd.append('_method', 'POST');
+        Object.keys(this.form).forEach(k => fd.append(k, this.form[k]));
+
+        fetch(config.createUrl, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: fd,
+        })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                this.errors = data.errors || { name: [data.message || 'Creation failed'] };
+                this.loading = false;
+                return;
+            }
+            const sel = document.getElementById(config.selectId);
+            if (sel) {
+                const opt = document.createElement('option');
+                opt.value = data.id;
+                opt.textContent = data.name || data.label || data.code;
+                sel.appendChild(opt);
+                sel.value = data.id;
+                sel.dispatchEvent(new Event('change'));
+            }
+            this.open = false;
+            this.resetForm();
+            this.loading = false;
+        })
+        .catch(() => {
+            this.errors = { name: ['Network error. Please try again.'] };
+            this.loading = false;
+        });
+    },
+}));
+
 Alpine.start();

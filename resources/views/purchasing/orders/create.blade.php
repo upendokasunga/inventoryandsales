@@ -13,13 +13,18 @@
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="supplier_id" class="block text-sm font-medium text-slate-700">Supplier *</label>
-                            <select name="supplier_id" id="supplier_id" required
-                                class="mt-1 block w-full erp-input">
-                                <option value="">Select Supplier</option>
-                                @foreach ($suppliers as $id => $name)
-                                    <option value="{{ $id }}" {{ old('supplier_id', request('supplier_id')) == $id ? 'selected' : '' }}>{{ $name }}</option>
-                                @endforeach
-                            </select>
+                            <x-create-inline selectId="supplier_id" :createUrl="route('suppliers.store')" title="Create New Supplier"
+                                :fields="[['name'=>'name','label'=>'Supplier Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                                <select name="supplier_id" id="supplier_id" required
+                                    class="mt-1 block w-full erp-input">
+                                    <option value="">Select Supplier</option>
+                                    @foreach ($suppliers as $id => $name)
+                                        <option value="{{ $id }}" {{ old('supplier_id', request('supplier_id')) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                    @endforeach
+                                    <option value="" disabled>---</option>
+                                    <option value="__create__">&plus; Not in the list? Create new</option>
+                                </select>
+                            </x-create-inline>
                             @error('supplier_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
@@ -138,29 +143,28 @@
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-slate-700">Subtotal:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-slate-800" id="order-subtotal">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="px-4 py-1 text-right text-sm text-slate-500">Discount:</td>
-                                <td class="px-4 py-1 text-sm text-slate-500" id="order-discount">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="px-4 py-1 text-right text-sm text-slate-500">Tax:</td>
-                                <td class="px-4 py-1 text-sm text-slate-500" id="order-tax-display">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-slate-700">Total:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-slate-800" id="order-total">0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
+
+                    <div class="flex justify-end mt-4">
+                        <div class="min-w-[280px] max-w-[420px] space-y-2 text-sm">
+                            <div class="flex justify-between gap-4">
+                                <span class="text-slate-500">Subtotal:</span>
+                                <span class="font-medium text-slate-700 whitespace-nowrap" id="order-subtotal">TSh 0</span>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <span class="text-slate-500">Discount:</span>
+                                <span class="text-slate-500 whitespace-nowrap" id="order-discount">-TSh 0</span>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <span class="text-slate-500">Tax:</span>
+                                <span class="text-slate-500 whitespace-nowrap" id="order-tax-display">TSh 0</span>
+                            </div>
+                            <div class="flex justify-between gap-4 border-t border-slate-200 pt-2">
+                                <span class="font-medium text-slate-700">Total:</span>
+                                <span class="font-bold text-slate-800 text-base whitespace-nowrap" id="order-total">TSh 0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -189,8 +193,8 @@
             visible.type = 'text';
             visible.className = el.className.replace('item-price', '').replace('item-selling-price', '').trim();
             visible.style.width = el.style.width;
-            visible.placeholder = 'TSh 0.00';
-            visible.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+            visible.placeholder = 'TSh 0';
+            visible.value = raw ? raw.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
             wrapper.insertBefore(visible, el);
 
             visible.addEventListener('input', function () {
@@ -199,7 +203,7 @@
                 el.value = raw || '';
                 const pos = this.selectionStart;
                 const oldLen = this.value.length;
-                this.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                this.value = raw ? raw.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
                 this.setSelectionRange(pos + (this.value.length - oldLen), pos + (this.value.length - oldLen));
                 recalcRow(el);
             });
@@ -210,7 +214,7 @@
             });
 
             visible.addEventListener('blur', function () {
-                this.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                this.value = raw ? raw.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
             });
         }
 
@@ -225,14 +229,14 @@
             const priceInput = row.querySelector('.item-price');
             const price = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
             const subtotal = qty * price;
-            row.querySelector('.item-subtotal').textContent = subtotal.toFixed(2);
+            row.querySelector('.item-subtotal').textContent = subtotal.toLocaleString('en-US', { maximumFractionDigits: 0 });
             calcTotal();
         }
 
         function calcTotal() {
             let subtotal = 0;
             document.querySelectorAll('.item-subtotal').forEach(el => {
-                subtotal += parseFloat(el.textContent) || 0;
+                subtotal += parseFloat(el.textContent.replace(/[^0-9.-]/g, '')) || 0;
             });
             const tax = parseFloat(document.getElementById('tax').value) || 0;
             const discount = parseFloat(document.getElementById('discount').value) || 0;
@@ -247,10 +251,10 @@
 
             const total = afterDiscount + tax;
 
-            document.getElementById('order-subtotal').textContent = 'TSh ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 });
-            document.getElementById('order-discount').textContent = '-TSh ' + (subtotal - afterDiscount).toLocaleString('en-US', { minimumFractionDigits: 2 });
-            document.getElementById('order-tax-display').textContent = 'TSh ' + tax.toLocaleString('en-US', { minimumFractionDigits: 2 });
-            document.getElementById('order-total').textContent = 'TSh ' + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            document.getElementById('order-subtotal').textContent = 'TSh ' + subtotal.toLocaleString('en-US', { maximumFractionDigits: 0 });
+            document.getElementById('order-discount').textContent = '-TSh ' + (subtotal - afterDiscount).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            document.getElementById('order-tax-display').textContent = 'TSh ' + tax.toLocaleString('en-US', { maximumFractionDigits: 0 });
+            document.getElementById('order-total').textContent = 'TSh ' + total.toLocaleString('en-US', { maximumFractionDigits: 0 });
         }
 
         function fetchLatestPrice(productSelect) {
@@ -282,7 +286,7 @@
             if (wrapper && wrapper.classList.contains('relative')) {
                 const visible = wrapper.querySelector('input[type="text"]');
                 if (visible) {
-                    visible.value = value ? value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                    visible.value = value ? value.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
                 }
             }
         }
@@ -325,6 +329,9 @@
         document.addEventListener('change', function (e) {
             if (e.target.classList.contains('product-select')) {
                 fetchLatestPrice(e.target);
+            }
+            if (e.target.id === 'tax' || e.target.id === 'discount' || e.target.id === 'discount_type') {
+                calcTotal();
             }
         });
 

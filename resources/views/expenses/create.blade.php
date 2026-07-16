@@ -8,12 +8,17 @@
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Category</label>
-                        <select name="expense_category_id" class="mt-1 block w-full erp-input">
-                            <option value="">Select Category</option>
-                            @foreach ($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-create-inline selectId="expense_category_id" :createUrl="route('expense-categories.store')" title="Create New Expense Category"
+                            :fields="[['name'=>'name','label'=>'Category Name','required'=>true],['name'=>'description','label'=>'Description']]">
+                            <select name="expense_category_id" id="expense_category_id" class="mt-1 block w-full erp-input">
+                                <option value="">Select Category</option>
+                                @foreach ($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                @endforeach
+                                <option value="" disabled>---</option>
+                                <option value="__create__">&plus; Not in the list? Create new</option>
+                            </select>
+                        </x-create-inline>
                         @error('expense_category_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>

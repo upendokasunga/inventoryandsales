@@ -20,14 +20,8 @@
             </div>
         </div>
 
-        {{-- Right: Clock, Search, Notifications, Profile --}}
+        {{-- Right: Clock, Notifications, Profile --}}
         <div class="flex items-center gap-2" x-data="clock">
-            {{-- Search --}}
-            <div class="hidden lg:block relative">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" placeholder="Search..." class="w-56 lg:w-64 pl-10 pr-4 py-2 text-sm bg-gray-50 border-0 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:bg-white transition-all">
-            </div>
-
             {{-- Clock --}}
             <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl text-xs">
                 <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

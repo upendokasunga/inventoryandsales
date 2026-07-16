@@ -26,9 +26,15 @@
         </div>
 
         <div class="flex items-center justify-between mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded erp-input" name="remember">
-                <span class="ms-2 text-sm text-slate-600">{{ __('Remember me') }}</span>
+            <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer group">
+                <span class="relative flex items-center">
+                    <input id="remember_me" type="checkbox" name="remember"
+                        class="peer w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30 cursor-pointer">
+                    <svg class="absolute w-4 h-4 pointer-events-none opacity-0 peer-checked:opacity-100 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </span>
+                <span class="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">{{ __('Remember me') }}</span>
             </label>
 
             @if (Route::has('password.request'))

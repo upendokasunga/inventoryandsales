@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             SuperAdminUserSeeder::class,
             ApprovalSeeder::class,
+            UserGroupsSeeder::class,
             DashboardCardConfigSeeder::class,
             DocumentNumberingConfigSeeder::class,
             MainStoreSeeder::class,

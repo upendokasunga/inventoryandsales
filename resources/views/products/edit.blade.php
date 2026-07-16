@@ -40,12 +40,17 @@
                     </div>
                     <div>
                         <label for="category_id" class="block text-sm font-medium text-slate-700">Category</label>
-                        <select name="category_id" id="category_id" required class="mt-1 block w-full erp-input">
-                            <option value="">Select Category</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-create-inline selectId="category_id" :createUrl="route('categories.store')" title="Create New Category"
+                            :fields="[['name'=>'name','label'=>'Category Name','required'=>true],['name'=>'description','label'=>'Description']]">
+                            <select name="category_id" id="category_id" required class="mt-1 block w-full erp-input">
+                                <option value="">Select Category</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                                <option value="" disabled>---</option>
+                                <option value="__create__">&plus; Not in the list? Create new</option>
+                            </select>
+                        </x-create-inline>
                         @error('category_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="md:col-span-3">

@@ -13,13 +13,18 @@
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-700">Customer *</label>
-                                <select name="customer_id" required class="mt-1 block w-full erp-input"
-                                    x-on:change="customerId = $event.target.value">
-                                    <option value="">Select Customer</option>
-                                    @foreach ($customers as $c)
-                                        <option value="{{ $c->id }}">{{ $c->name }}</option>
-                                    @endforeach
-                                </select>
+                                <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                                    :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                                    <select name="customer_id" id="customer_id" required class="mt-1 block w-full erp-input"
+                                        x-on:change="customerId = $event.target.value">
+                                        <option value="">Select Customer</option>
+                                        @foreach ($customers as $c)
+                                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                        @endforeach
+                                        <option value="" disabled>---</option>
+                                        <option value="__create__">&plus; Not in the list? Create new</option>
+                                    </select>
+                                </x-create-inline>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700">Date *</label>

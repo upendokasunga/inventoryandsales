@@ -804,6 +804,16 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::get("accounts/{account}/balance-json", [\App\Http\Controllers\AccountController::class, "balanceJson"])->name("accounts.balance-json");
     Route::get("accounts/{account}/statement", [\App\Http\Controllers\AccountController::class, "bankStatement"])->name("accounts.statement");
 
+    // --- Financial Reports ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("financial-reports/trial-balance", [\App\Http\Controllers\FinancialReportController::class, "trialBalance"])->name("financial-reports.trial-balance");
+        Route::get("financial-reports/income-statement", [\App\Http\Controllers\FinancialReportController::class, "incomeStatement"])->name("financial-reports.income-statement");
+        Route::get("financial-reports/balance-sheet", [\App\Http\Controllers\FinancialReportController::class, "balanceSheet"])->name("financial-reports.balance-sheet");
+        Route::get("financial-reports/cash-flow", [\App\Http\Controllers\FinancialReportController::class, "cashFlowStatement"])->name("financial-reports.cash-flow");
+        Route::get("financial-reports/general-ledger", [\App\Http\Controllers\FinancialReportController::class, "generalLedger"])->name("financial-reports.general-ledger");
+        Route::get("financial-reports/account-statement", [\App\Http\Controllers\FinancialReportController::class, "accountStatement"])->name("financial-reports.account-statement");
+    });
+
     // --- Banks (Institution Directory) ---
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("banks", [\App\Http\Controllers\BanksController::class, "index"])->name("banks.index");

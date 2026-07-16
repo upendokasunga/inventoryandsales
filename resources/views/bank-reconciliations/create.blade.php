@@ -9,12 +9,17 @@
 
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Bank Account *</label>
-                <select name="bank_account_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                    <option value="">Select Account</option>
-                    @foreach($bankAccounts as $acc)
-                        <option value="{{ $acc->id }}" @selected(old('bank_account_id') == $acc->id)>{{ $acc->name }} ({{ $acc->bank_name }} - {{ $acc->account_number }})</option>
-                    @endforeach
-                </select>
+                <x-create-inline selectId="bank_account_id" :createUrl="route('bank-accounts.store')" title="Create New Bank Account"
+                    :fields="[['name'=>'name','label'=>'Account Name','required'=>true],['name'=>'account_number','label'=>'Account Number'],['name'=>'bank_name','label'=>'Bank Name','required'=>true],['name'=>'branch','label'=>'Branch']]">
+                    <select name="bank_account_id" id="bank_account_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Select Account</option>
+                        @foreach($bankAccounts as $acc)
+                            <option value="{{ $acc->id }}" @selected(old('bank_account_id') == $acc->id)>{{ $acc->name }} ({{ $acc->bank_name }} - {{ $acc->account_number }})</option>
+                        @endforeach
+                        <option value="" disabled>---</option>
+                        <option value="__create__">&plus; Not in the list? Create new</option>
+                    </select>
+                </x-create-inline>
                 @error('bank_account_id') <p class="text-xs text-danger mt-1">{{ $message }}</p> @enderror
             </div>
 

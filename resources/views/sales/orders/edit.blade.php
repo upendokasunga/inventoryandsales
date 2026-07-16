@@ -10,11 +10,16 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                        <select name="customer_id" class="erp-input w-full" required>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ old('customer_id', $salesOrder->customer_id) == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                            :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                            <select name="customer_id" id="customer_id" class="erp-input w-full" required>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ old('customer_id', $salesOrder->customer_id) == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>
+                                @endforeach
+                                <option value="" disabled>---</option>
+                                <option value="__create__">&plus; Not in the list? Create new</option>
+                            </select>
+                        </x-create-inline>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Order Date</label>

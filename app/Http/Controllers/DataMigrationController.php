@@ -625,8 +625,7 @@ class DataMigrationController extends Controller
             foreach ($reader->getSheetIterator() as $sheet) {
                 $headers = null;
                 foreach ($sheet->getRowIterator() as $spoutRow) {
-                    $cells = $spoutRow->getCells();
-                    $values = array_map(fn($c) => trim((string) $c->getValue()), $cells);
+                    $values = array_map(fn($v) => trim((string) $v), $spoutRow->toArray());
 
                     if ($headers === null) {
                         $headers = array_map(fn($h) => strtolower(trim(str_replace(' ', '_', $h))), $values);

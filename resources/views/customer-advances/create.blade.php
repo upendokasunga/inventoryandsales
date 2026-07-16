@@ -9,12 +9,17 @@
 
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Customer *</label>
-                <select name="customer_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm @error('customer_id') border-danger @enderror">
-                    <option value="">Select Customer</option>
-                    @foreach($customers as $customer)
-                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
-                    @endforeach
-                </select>
+                <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                    :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                    <select name="customer_id" id="customer_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm @error('customer_id') border-danger @enderror">
+                        <option value="">Select Customer</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
+                        @endforeach
+                        <option value="" disabled>---</option>
+                        <option value="__create__">&plus; Not in the list? Create new</option>
+                    </select>
+                </x-create-inline>
                 @error('customer_id') <p class="text-xs text-danger mt-1">{{ $message }}</p> @enderror
             </div>
 

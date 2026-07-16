@@ -11,12 +11,17 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                    <select name="customer_id" x-model="selectedCustomer" required class="erp-input w-full">
-                        <option value="">Walk-in Customer</option>
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                        :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                        <select name="customer_id" id="customer_id" x-model="selectedCustomer" required class="erp-input w-full">
+                            <option value="">Walk-in Customer</option>
+                            @foreach($customers as $c)
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
+                            @endforeach
+                            <option value="" disabled>---</option>
+                            <option value="__create__">&plus; Not in the list? Create new</option>
+                        </select>
+                    </x-create-inline>
                     @error('customer_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -156,7 +161,7 @@
                                         <input type="number" x-model="item.quantity" @input="updateLine(index)" step="0.001" min="0.001" required class="erp-input w-20 text-center">
                                     </td>
                                     <td class="px-3 py-2 text-right">
-                                        <input type="number" x-model="item.unit_price" @input="updateLine(index)" step="0.01" min="0" required class="erp-input w-24 text-right">
+                                        <input type="number" x-model="item.unit_price" @input="updateLine(index)" step="any" min="0" required class="erp-input w-24 text-right">
                                     </td>
                                     <td class="px-3 py-2 text-right">
                                         <input type="number" x-model="item.discount" @input="updateLine(index)" step="0.01" min="0" class="erp-input w-20 text-right">
@@ -171,17 +176,17 @@
                         <tfoot>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm">Subtotal:</td>
-                                <td class="px-3 py-2 text-right text-sm" x-text="formatPrice(subtotal)"></td>
+                                <td class="px-3 py-2 text-right text-sm whitespace-nowrap" x-text="formatPrice(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm text-red-600">Total Discount:</td>
-                                <td class="px-3 py-2 text-right text-sm text-red-600" x-text="formatPrice(totalDiscount)"></td>
+                                <td class="px-3 py-2 text-right text-sm text-red-600 whitespace-nowrap" x-text="formatPrice(totalDiscount)"></td>
                                 <td></td>
                             </tr>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm">Total:</td>
-                                <td class="px-3 py-2 text-right text-sm text-lg font-bold" x-text="formatPrice(grandTotal)"></td>
+                                <td class="px-3 py-2 text-right text-sm text-lg font-bold whitespace-nowrap" x-text="formatPrice(grandTotal)"></td>
                                 <td></td>
                             </tr>
                         </tfoot>

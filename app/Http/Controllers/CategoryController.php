@@ -51,9 +51,13 @@ class CategoryController extends Controller
         return view('categories.create', compact('parents'));
     }
 
-    public function store(StoreCategoryRequest $request): RedirectResponse
+    public function store(StoreCategoryRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $this->categoryService->create($request->validated());
+        $category = $this->categoryService->create($request->validated());
+
+        if ($request->ajax()) {
+            return response()->json(['id' => $category->id, 'name' => $category->name]);
+        }
 
         return redirect()->route('categories.index')
             ->with('success', 'Category created successfully.');

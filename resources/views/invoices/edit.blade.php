@@ -9,11 +9,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                    <select name="customer_id" required class="erp-input w-full">
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}" @selected($invoice->customer_id === $c->id)>{{ $c->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                        :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                        <select name="customer_id" id="customer_id" required class="erp-input w-full">
+                            @foreach($customers as $c)
+                                <option value="{{ $c->id }}" @selected($invoice->customer_id === $c->id)>{{ $c->name }}</option>
+                            @endforeach
+                            <option value="" disabled>---</option>
+                            <option value="__create__">&plus; Not in the list? Create new</option>
+                        </select>
+                    </x-create-inline>
                     @error('customer_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>

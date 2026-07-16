@@ -82,13 +82,28 @@ return [
             'children' => [
                 ['name' => 'Chart of Accounts',   'route' => 'accounts.index',            'section' => 'Accounting'],
                 ['name' => 'Journal Entries',     'route' => 'journal-entries.index',      'section' => 'Accounting'],
-                ['name' => 'Expenses',            'route' => 'expenses.index',             'section' => 'Accounting'],
                 ['name' => 'Accounts Receivable', 'route' => 'customers.statement',        'section' => 'Receivables'],
                 ['name' => 'Accounts Payable',    'route' => null,                         'section' => 'Payables'],
                 ['name' => 'Reconciliations',    'route' => 'bank-reconciliations.index',  'section' => 'Banking'],
                 ['name' => 'Tax',                 'route' => 'reports.tax',                'section' => 'Taxation'],
                 ['name' => 'Profit Analysis',     'route' => 'reports.profit',             'section' => 'Profitability'],
                 ['name' => 'Financial Statements','route' => null,                         'section' => 'Reporting'],
+                ['name' => 'Trial Balance',       'route' => 'financial-reports.trial-balance',   'section' => 'Financial Reports'],
+                ['name' => 'Income Statement',     'route' => 'financial-reports.income-statement', 'section' => 'Financial Reports'],
+                ['name' => 'Balance Sheet',        'route' => 'financial-reports.balance-sheet',    'section' => 'Financial Reports'],
+                ['name' => 'Cash Flow Statement',  'route' => 'financial-reports.cash-flow',        'section' => 'Financial Reports'],
+                ['name' => 'General Ledger',       'route' => 'financial-reports.general-ledger',   'section' => 'Financial Reports'],
+                ['name' => 'Account Statement',    'route' => 'financial-reports.account-statement', 'section' => 'Financial Reports'],
+            ],
+        ],
+
+        [
+            'name' => 'Expenses',
+            'icon' => 'receipt-refund',
+            'route' => null,
+            'children' => [
+                ['name' => 'All Expenses',    'route' => 'expenses.index',  'section' => 'Expenses'],
+                ['name' => 'New Expense',     'route' => 'expenses.create', 'section' => 'Expenses'],
             ],
         ],
 

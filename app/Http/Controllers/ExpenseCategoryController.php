@@ -21,9 +21,14 @@ class ExpenseCategoryController extends Controller
         return view('expense-categories.create');
     }
 
-    public function store(StoreExpenseCategoryRequest $request): RedirectResponse
+    public function store(StoreExpenseCategoryRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        ExpenseCategory::create($request->validated());
+        $category = ExpenseCategory::create($request->validated());
+
+        if ($request->ajax()) {
+            return response()->json(['id' => $category->id, 'name' => $category->name]);
+        }
+
         return redirect()->route('expense-categories.index')->with('success', 'Category created successfully.');
     }
 

@@ -13,6 +13,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('branch');
             $table->string('swift_code');
+            $table->string('country', 100)->nullable();
+            $table->string('currency_code', 10)->nullable();
             $table->timestamps();
 
             $table->unique(['name', 'branch', 'swift_code']);

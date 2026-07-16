@@ -40,9 +40,13 @@ class CustomerController extends Controller
         return view('customers.create', compact('customerGroups'));
     }
 
-    public function store(StoreCustomerRequest $request): RedirectResponse
+    public function store(StoreCustomerRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $this->customerService->create($request->validated());
+        $customer = $this->customerService->create($request->validated());
+
+        if ($request->ajax()) {
+            return response()->json(['id' => $customer->id, 'name' => $customer->name]);
+        }
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer created successfully.');

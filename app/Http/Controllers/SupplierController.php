@@ -41,9 +41,13 @@ class SupplierController extends Controller
         return view('suppliers.create');
     }
 
-    public function store(StoreSupplierRequest $request): RedirectResponse
+    public function store(StoreSupplierRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $this->supplierService->create($request->validated());
+        $supplier = $this->supplierService->create($request->validated());
+
+        if ($request->ajax()) {
+            return response()->json(['id' => $supplier->id, 'name' => $supplier->name]);
+        }
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier created successfully.');

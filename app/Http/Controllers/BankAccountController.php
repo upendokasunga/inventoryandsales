@@ -32,9 +32,14 @@ class BankAccountController extends Controller
         return view('bank-accounts.create', compact('banks', 'accountTypes'));
     }
 
-    public function store(StoreBankAccountRequest $request): RedirectResponse
+    public function store(StoreBankAccountRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $this->bankingService->createAccount($request->validated());
+        $bankAccount = $this->bankingService->createAccount($request->validated());
+
+        if ($request->ajax()) {
+            return response()->json(['id' => $bankAccount->id, 'name' => $bankAccount->name]);
+        }
+
         return redirect()->route('bank-accounts.index')
             ->with('success', 'Bank account created successfully.');
     }

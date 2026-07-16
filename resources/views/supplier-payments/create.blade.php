@@ -16,12 +16,17 @@
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="supplier_id" class="block text-sm font-medium text-slate-700">Supplier <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" id="supplier_id" required class="mt-1 block w-full erp-input">
-                            <option value="">Select Supplier</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-create-inline selectId="supplier_id" :createUrl="route('suppliers.store')" title="Create New Supplier"
+                            :fields="[['name'=>'name','label'=>'Supplier Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                            <select name="supplier_id" id="supplier_id" required class="mt-1 block w-full erp-input">
+                                <option value="">Select Supplier</option>
+                                @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
+                                @endforeach
+                                <option value="" disabled>---</option>
+                                <option value="__create__">&plus; Not in the list? Create new</option>
+                            </select>
+                        </x-create-inline>
                         @error('supplier_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>

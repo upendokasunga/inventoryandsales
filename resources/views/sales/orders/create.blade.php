@@ -9,12 +9,17 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                        <select name="customer_id" class="erp-input w-full" required>
-                            <option value="">Select Customer</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }} ({{ $customer->code }})</option>
-                            @endforeach
-                        </select>
+                        <x-create-inline selectId="customer_id" :createUrl="route('customers.store')" title="Create New Customer"
+                            :fields="[['name'=>'name','label'=>'Customer Name','required'=>true],['name'=>'phone','label'=>'Phone'],['name'=>'email','label'=>'Email']]">
+                            <select name="customer_id" id="customer_id" class="erp-input w-full" required>
+                                <option value="">Select Customer</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }} ({{ $customer->code }})</option>
+                                @endforeach
+                                <option value="" disabled>---</option>
+                                <option value="__create__">&plus; Not in the list? Create new</option>
+                            </select>
+                        </x-create-inline>
                         @error('customer_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
@@ -64,7 +69,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Unit Price (TSh)</label>
-                                <input type="number" step="0.01" min="0" x-model="item.unit_price" @input="updateLine(index)" class="erp-input w-full" required>
+                                <input type="number" step="any" min="0" x-model="item.unit_price" @input="updateLine(index)" class="erp-input w-full" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Unit</label>
