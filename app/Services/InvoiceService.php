@@ -95,7 +95,7 @@ class InvoiceService
             $soItems = [];
             foreach ($items as $item) {
                 $productId = $item['product_id'];
-                $storeId = $item['store_id'] ?? $data['store_id'] ?? null;
+                $storeId = ($item['store_id'] ?? $data['store_id'] ?? null) ?: null;
 
                 $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                 $subtotal += $item['unit_price'] * $item['quantity'];
@@ -175,7 +175,7 @@ class InvoiceService
 
                 foreach ($items as $item) {
                     $productId = $item['product_id'];
-                    $storeId = $item['store_id'] ?? null;
+                    $storeId = ($item['store_id'] ?? null) ?: null;
 
                     $lineTotal = ($item['unit_price'] * $item['quantity']) - ($item['discount'] ?? 0) + ($item['tax'] ?? 0);
                     $subtotal += $item['unit_price'] * $item['quantity'];

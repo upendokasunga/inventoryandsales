@@ -157,6 +157,19 @@
                 </template>
             </div>
 
+            {{-- Payment Account Card --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Payment Account</h3>
+                <select x-model="paymentAccountId" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm">
+                    @if(count($paymentAccounts) !== 1)
+                        <option value="">Select Account</option>
+                    @endif
+                    @foreach($paymentAccounts as $acct)
+                        <option value="{{ $acct->id }}" @selected(count($paymentAccounts) === 1)>{{ $acct->name }} ({{ $acct->code }})</option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- Totals Card --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
                 <div class="flex justify-between text-sm text-slate-600">
@@ -205,6 +218,7 @@
                 previewPrice: 0,
                 lastScanned: null,
                 paymentMethod: "cash",
+                paymentAccountId: "",
                 amountTendered: 0,
                 processing: false,
                 searchQuery: "",
@@ -283,7 +297,7 @@
                     fetch(`/pos/price-simple?product_id=${item.product_id}&quantity=${item.quantity}&customer_id=${customerId}`)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.unit_price) {
+                            if (data.unit_price && parseFloat(data.unit_price) > 0) {
                                 item.unit_price = parseFloat(data.unit_price);
                                 this.updateItem(this.cart.indexOf(item));
                             }
@@ -396,6 +410,7 @@
                                 payment: {
                                     amount: parseFloat(this.amountTendered) || this.grandTotal,
                                     payment_method: "cash",
+                                    payment_account_id: this.paymentAccountId || null,
                                 },
                                 discount: this.discountTotal,
                                 discount_type: "fixed",

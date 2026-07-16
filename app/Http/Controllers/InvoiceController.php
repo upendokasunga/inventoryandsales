@@ -70,7 +70,7 @@ class InvoiceController extends Controller
         }
 
         $data = $request->validated();
-        $data['status'] = 'pending_approval';
+        $data['status'] = 'proforma';
         $invoice = $this->invoiceService->create($data);
 
         if (Approvals::isLevelZero('invoice')) {
@@ -97,7 +97,7 @@ class InvoiceController extends Controller
     public function storeDraft(StoreInvoiceRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['status'] = 'pending_approval';
+        $data['status'] = 'proforma';
         $data['amount_paid'] = 0;
 
         $invoice = $this->invoiceService->create($data);

@@ -63,11 +63,6 @@
                     <input type="number" name="tax" step="0.01" min="0" value="0" class="erp-input w-full">
                     @error('tax') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Amount Paid</label>
-                    <input type="number" name="amount_paid" step="0.01" min="0" value="0" class="erp-input w-full">
-                    @error('amount_paid') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
 
                 {{-- Customer Advance Application --}}
                 <div x-show="selectedCustomer">
@@ -182,6 +177,12 @@
                         @endif
                     </select>
                     @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mt-4 max-w-sm">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Amount Paid</label>
+                    <input type="number" name="amount_paid" step="0.01" min="0" value="0" class="erp-input w-full">
+                    @error('amount_paid') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <button type="button" @click="addItem" class="mt-3 erp-btn-secondary">+ Add Item</button>

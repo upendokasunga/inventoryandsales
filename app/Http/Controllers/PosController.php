@@ -20,7 +20,15 @@ class PosController extends Controller
 
     public function index(): View
     {
-        return view('pos.index');
+        $paymentAccounts = \App\Models\Account::where('is_active', true)
+            ->where(function ($q) {
+                $q->where('ifrs_category', 'bank')
+                  ->orWhere('ifrs_category', 'cash');
+            })
+            ->orderBy('code')
+            ->get();
+
+        return view('pos.index', compact('paymentAccounts'));
     }
 
     public function dashboard(): View
@@ -56,7 +64,15 @@ class PosController extends Controller
         $stock = $product->current_stock;
 
         return response()->json([
-            'product' => $product,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'barcode' => $product->barcode,
+                'product_code' => $product->product_code,
+                'unit_price' => $product->price,
+                'image_url' => $product->image_url,
+            ],
             'units' => $units,
             'stock' => $stock,
         ]);
@@ -223,6 +239,7 @@ class PosController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment.amount' => 'required|numeric|min:0',
+            'payment.payment_account_id' => 'nullable|exists:accounts,id',
         ]);
 
         try {
