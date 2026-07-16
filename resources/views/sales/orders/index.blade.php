@@ -1,19 +1,19 @@
 <x-app-layout>
-    <x-slot name="header">{{ __('Sales Orders') }}</x-slot>
-    <x-slot name="headerDescription">Track and manage all sales orders from creation through fulfillment.</x-slot>
+    <x-slot name="header">{{ __('Proforma Invoices') }}</x-slot>
+    <x-slot name="headerDescription">Track and manage all proforma invoices from creation through fulfillment.</x-slot>
     <x-slot name="headerActions">
         <a href="{{ route('sales.orders.create') }}" class="erp-btn-primary">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Create Sales Order
+            Create Proforma Invoice
         </a>
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-3 gap-4 mb-6">
             <x-stats-card title="Total Orders" :value="$stats['total']" color="primary" />
             <x-stats-card title="Pending Approval" :value="$stats['pending_approval']" color="warning" />
             <x-stats-card title="Fulfilled" :value="$stats['fulfilled']" color="success" />
-            <x-stats-card title="Draft" :value="$stats['draft']" color="slate" />
+
         </div>
 
         <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
@@ -38,7 +38,7 @@
             </form>
         </div>
 
-        <x-table-card :empty="count($orders) === 0" emptyMessage="No sales orders found. Create one to get started." colspan="6">
+        <x-table-card :empty="count($orders) === 0" emptyMessage="No proforma invoices found. Create one to get started." colspan="6">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SO #</th>
@@ -59,15 +59,15 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800 font-medium">{{ number_format($order->total, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'reserved' => 'erp-badge-reserved', 'partially_fulfilled' => 'erp-badge-partial', 'fulfilled' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                                $c = ['pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'reserved' => 'erp-badge-reserved', 'partially_fulfilled' => 'erp-badge-partial', 'fulfilled' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$order->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
+                            <span class="{{ $c[$order->status] ?? 'erp-badge-pending' }}">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $order->order_date?->format('M d, Y') ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <x-action-links
                                 :view="route('sales.orders.show', $order)"
-                                :edit="$order->status === 'draft' ? route('sales.orders.edit', $order) : null"
+                                :edit="$order->status === 'pending_approval' ? route('sales.orders.edit', $order) : null"
                             />
                         </td>
                     </tr>

@@ -12,12 +12,8 @@
             <a href="{{ route('purchasing.orders.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
                 <a href="{{ route('purchasing.orders.print', $purchaseOrder) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
-                @if ($purchaseOrder->status === 'draft')
+                @if ($purchaseOrder->status === 'pending_approval')
                     <a href="{{ route('purchasing.orders.edit', $purchaseOrder) }}" class="erp-btn-primary">Edit</a>
-                    <form action="{{ route('purchasing.orders.submit-approval', $purchaseOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="erp-btn-secondary">Submit for Approval</button>
-                    </form>
                 @endif
                 @if ($purchaseOrder->status === 'pending_approval')
                     <form action="{{ route('purchasing.orders.approve', $purchaseOrder) }}" method="POST" class="inline">
@@ -30,12 +26,6 @@
                     </form>
                 @endif
                 @if ($purchaseOrder->status === 'approved')
-                    <form action="{{ route('purchasing.orders.send', $purchaseOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="erp-btn-primary">Send to Supplier</button>
-                    </form>
-                @endif
-                @if (in_array($purchaseOrder->status, ['draft', 'approved', 'sent']))
                     <form action="{{ route('purchasing.orders.cancel', $purchaseOrder) }}" method="POST" class="inline"
                         onsubmit="return confirm('Cancel this order?');">
                         @csrf
@@ -47,7 +37,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mb-6">
             <div class="p-6">
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <h3 class="text-sm font-medium text-slate-500 mb-4">Order Information</h3>
                         <dl class="space-y-3">
@@ -71,7 +61,7 @@
                                 <dt class="text-sm text-slate-500">Status</dt>
                                 <dd>
                                     @php
-                                        $c = ['draft' => 'bg-slate-100 text-slate-600', 'pending_approval' => 'bg-amber-100 text-amber-700', 'approved' => 'bg-green-100 text-green-700', 'sent' => 'bg-blue-100 text-blue-700', 'partially_received' => 'bg-purple-100 text-purple-700', 'completed' => 'bg-emerald-100 text-emerald-700', 'cancelled' => 'bg-red-100 text-red-700'];
+                                        $c = ['pending_approval' => 'bg-amber-100 text-amber-700', 'approved' => 'bg-green-100 text-green-700', 'partially_received' => 'bg-purple-100 text-purple-700', 'completed' => 'bg-emerald-100 text-emerald-700', 'cancelled' => 'bg-red-100 text-red-700'];
                                     @endphp
                                     <span class="px-2 py-1 text-xs font-medium rounded-full {{ $c[$purchaseOrder->status] ?? 'bg-slate-100 text-slate-600' }}">{{ ucfirst(str_replace('_', ' ', $purchaseOrder->status)) }}</span>
                                 </dd>
@@ -83,20 +73,30 @@
                         <dl class="space-y-3">
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Subtotal</dt>
-                                <dd class="text-sm font-medium text-slate-800">{{ number_format($purchaseOrder->subtotal, 2) }}</dd>
+                                <dd class="text-sm font-medium text-slate-800">TSh {{ number_format($purchaseOrder->subtotal, 2) }}</dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Discount ({{ $purchaseOrder->discount_type === 'percentage' ? '%' : 'Fixed' }})</dt>
-                                <dd class="text-sm font-medium text-slate-800">-{{ number_format($purchaseOrder->discount, 2) }}</dd>
+                                <dd class="text-sm font-medium text-slate-800">-TSh {{ number_format($purchaseOrder->discount, 2) }}</dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Tax</dt>
-                                <dd class="text-sm font-medium text-slate-800">{{ number_format($purchaseOrder->tax, 2) }}</dd>
+                                <dd class="text-sm font-medium text-slate-800">TSh {{ number_format($purchaseOrder->tax, 2) }}</dd>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-100 pt-2">
+                                <dt class="text-sm font-bold text-slate-700">Total</dt>
+                                <dd class="text-sm font-bold text-slate-800">TSh {{ number_format($purchaseOrder->total, 2) }}</dd>
+                            </div>
+                            @if($purchaseOrder->amount_paid > 0 || $purchaseOrder->balance_due < $purchaseOrder->total)
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-slate-500">Amount Paid</dt>
+                                <dd class="text-sm font-medium text-green-600">TSh {{ number_format($purchaseOrder->amount_paid, 2) }}</dd>
                             </div>
                             <div class="flex justify-between">
-                                <dt class="text-sm text-slate-500">Total</dt>
-                                <dd class="text-sm font-bold text-slate-800">{{ number_format($purchaseOrder->total, 2) }}</dd>
+                                <dt class="text-sm text-slate-500">Balance Due</dt>
+                                <dd class="text-sm font-medium {{ $purchaseOrder->balance_due > 0 ? 'text-red-600' : 'text-green-600' }}">TSh {{ number_format($purchaseOrder->balance_due, 2) }}</dd>
                             </div>
+                            @endif
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">Created By</dt>
                                 <dd class="text-sm font-medium text-slate-800">{{ $purchaseOrder->creator?->name ?? '-' }}</dd>
@@ -138,8 +138,8 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{{ $item->product?->name ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $item->quantity }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ number_format($item->unit_price, 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{{ number_format($item->subtotal, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">TSh {{ number_format($item->unit_price, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800">TSh {{ number_format($item->subtotal, 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $item->received_quantity ?? 0 }}</td>
                             </tr>
                         @empty
@@ -151,5 +151,40 @@
                 </table>
             </div>
         </div>
+
+        @if ($purchaseOrder->receipts->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mt-6">
+                <div class="px-6 py-4 border-b border-slate-200/60">
+                    <h3 class="text-sm font-medium text-slate-500">Goods Receipts ({{ $purchaseOrder->receipts->count() }})</h3>
+                </div>
+                <div class="p-6">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Receipt #</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @foreach ($purchaseOrder->receipts as $receipt)
+                                <tr>
+                                    <td class="px-4 py-2 text-sm font-mono">{{ $receipt->receipt_number }}</td>
+                                    <td class="px-4 py-2 text-sm text-slate-500">{{ $receipt->receipt_date?->format('d M Y') ?? '-' }}</td>
+                                    <td class="px-4 py-2">
+                                        @php $rc = ['completed' => 'bg-green-100 text-green-700', 'cancelled' => 'bg-red-100 text-red-700']; @endphp
+                                        <span class="px-2 py-0.5 text-xs font-medium rounded-full {{ $rc[$receipt->status] ?? 'bg-slate-100 text-slate-600' }}">{{ ucfirst($receipt->status) }}</span>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <a href="{{ route('purchasing.receipts.show', $receipt) }}" class="text-xs text-primary hover:underline">View</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
     </div>
 </x-app-layout>

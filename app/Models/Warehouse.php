@@ -12,7 +12,7 @@ class Warehouse extends Model
 {
     use HasFactory, AutoHasUuid, SoftDeletes;
 
-    public const TYPES = ['goods', 'fixed_asset'];
+    public const TYPES = ['goods'];
 
     protected $fillable = [
         'name', 'code', 'type', 'location', 'description', 'is_active', 'branch_id',

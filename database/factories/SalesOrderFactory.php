@@ -21,7 +21,7 @@ class SalesOrderFactory extends Factory
             'customer_id' => Customer::factory(),
             'order_date' => fake()->date(),
             'delivery_date' => fake()->optional()->dateTimeBetween('+1 week', '+1 month'),
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'subtotal' => $subtotal,
             'tax' => $tax,
             'discount' => 0,

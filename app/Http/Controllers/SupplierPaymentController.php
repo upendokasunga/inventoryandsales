@@ -43,7 +43,7 @@ class SupplierPaymentController extends Controller
     public function create(): View
     {
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
-        $purchaseOrders = PurchaseOrder::whereIn('status', ['approved', 'sent', 'partially_received', 'completed'])
+        $purchaseOrders = PurchaseOrder::whereIn('status', ['approved', 'partially_received', 'completed'])
             ->whereHas('supplier')
             ->with('supplier')
             ->get();
@@ -97,7 +97,15 @@ class SupplierPaymentController extends Controller
                 ->get();
         }
 
-        return view('supplier-payments.show', compact('supplierPayment', 'paymentHistory'));
+        $paymentAccounts = Account::where('is_active', true)
+            ->where(function ($q) {
+                $q->where('ifrs_category', 'bank')
+                  ->orWhere('ifrs_category', 'cash');
+            })
+            ->orderBy('code')
+            ->get();
+
+        return view('supplier-payments.show', compact('supplierPayment', 'paymentHistory', 'paymentAccounts'));
     }
 
     public function approve(SupplierPayment $supplierPayment): RedirectResponse
@@ -174,6 +182,7 @@ class SupplierPaymentController extends Controller
             }
 
             $je = JournalEntry::create([
+                'entry_number' => 'PAY-' . strtoupper(\Illuminate\Support\Str::random(8)),
                 'entry_date' => $request->payment_date ?? now(),
                 'type' => 'payment',
                 'status' => 'posted',

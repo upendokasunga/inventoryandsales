@@ -5,6 +5,19 @@ Alpine.plugin(persist);
 
 window.Alpine = Alpine;
 
+window.formatPrice = function (value) {
+    const num = parseFloat(value);
+    if (isNaN(num)) return 'TSh 0.00';
+    return 'TSh ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+window.parsePrice = function (formatted) {
+    if (!formatted) return 0;
+    const cleaned = String(formatted).replace(/TSh\s*/gi, '').replace(/,/g, '').trim();
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+};
+
 document.addEventListener('alpine:init', () => {
     Alpine.store('erp', {
         activeModule: null,
@@ -56,6 +69,47 @@ document.addEventListener('alpine:init', () => {
         },
         close() {
             this.open = false;
+        },
+    }));
+
+    Alpine.data('priceInput', () => ({
+        display: '',
+        raw: 0,
+        init() {
+            const decimals = parseInt(this.$el.dataset.decimals ?? 0);
+            const fmt = (n) => n ? n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : '';
+            this.raw = parseFloat(this.$el.value) || 0;
+            this.display = fmt(this.raw);
+            this.$el.value = this.raw || '';
+            this.$el.type = 'hidden';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative';
+            this.$el.parentNode.insertBefore(wrapper, this.$el);
+            wrapper.appendChild(this.$el);
+            const visible = document.createElement('input');
+            visible.type = 'text';
+            visible.className = this.$el.className;
+            visible.placeholder = 'TSh 0';
+            visible.value = this.display;
+            visible.setAttribute('x-ref', 'visible');
+            wrapper.insertBefore(visible, this.$el);
+            visible.addEventListener('input', (e) => {
+                const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                this.raw = parseFloat(cleaned) || 0;
+                this.$el.value = this.raw || '';
+                const pos = e.target.selectionStart;
+                const oldLen = e.target.value.length;
+                e.target.value = fmt(this.raw);
+                const newLen = e.target.value.length;
+                e.target.setSelectionRange(pos + (newLen - oldLen), pos + (newLen - oldLen));
+            });
+            visible.addEventListener('focus', () => {
+                visible.value = this.raw || '';
+                visible.setSelectionRange(visible.value.length, visible.value.length);
+            });
+            visible.addEventListener('blur', () => {
+                visible.value = fmt(this.raw);
+            });
         },
     }));
 

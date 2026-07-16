@@ -53,9 +53,9 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">{{ number_format($invoice->amount_paid, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'proforma' => 'erp-badge-info', 'pending_approval' => 'erp-badge-warning', 'approved' => 'erp-badge-info', 'posted' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled', 'reversed' => 'erp-badge-cancelled'];
+                                $c = ['proforma' => 'erp-badge-info', 'pending_approval' => 'erp-badge-warning', 'approved' => 'erp-badge-info', 'posted' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled', 'reversed' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$invoice->status] ?? 'erp-badge-draft' }}">{{ str_replace('_', ' ', ucfirst($invoice->status)) }}</span>
+                            <span class="{{ $c[$invoice->status] ?? 'erp-badge-pending' }}">{{ str_replace('_', ' ', ucfirst($invoice->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php

@@ -47,13 +47,15 @@ class JournalEntry extends Model implements Approvable
 
     public const TYPES = ['general', 'adjustment', 'payment', 'receipt', 'contra', 'purchase', 'sales'];
 
-    public const STATUSES = ['draft', 'posted', 'approved', 'reversed'];
+    public const STATUSES = ['draft', 'pending_approval', 'submitted', 'posted', 'approved', 'reversed'];
 
     protected $fillable = [
-        'entry_number', 'entry_date', 'type', 'status', 'description',
+        'entry_number', 'entry_date', 'type', 'is_adjustment', 'status', 'description',
         'total_debit', 'total_credit',
         'reference_type', 'reference_id',
-        'created_by', 'approved_by', 'approved_at',
+        'created_by', 'submitted_by', 'tags', 'payload',
+        'project_id', 'branch_id',
+        'approved_by', 'approved_at',
         'reversed_by', 'reversed_at',
     ];
 
@@ -63,6 +65,9 @@ class JournalEntry extends Model implements Approvable
             'entry_date' => 'date',
             'total_debit' => 'decimal:2',
             'total_credit' => 'decimal:2',
+            'is_adjustment' => 'boolean',
+            'tags' => 'array',
+            'payload' => 'array',
             'approved_at' => 'datetime',
             'reversed_at' => 'datetime',
         ];
@@ -73,6 +78,11 @@ class JournalEntry extends Model implements Approvable
         return $this->hasMany(JournalEntryLine::class);
     }
 
+    public function audits(): HasMany
+    {
+        return $this->hasMany(JournalEntryAudit::class);
+    }
+
     public function reference(): MorphTo
     {
         return $this->morphTo();
@@ -81,6 +91,11 @@ class JournalEntry extends Model implements Approvable
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function submitter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
     public function approver(): BelongsTo
@@ -101,5 +116,10 @@ class JournalEntry extends Model implements Approvable
     public function scopePosted($query)
     {
         return $query->whereIn('status', ['posted', 'approved']);
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
     }
 }

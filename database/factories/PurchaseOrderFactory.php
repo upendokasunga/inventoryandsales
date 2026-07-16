@@ -21,7 +21,7 @@ class PurchaseOrderFactory extends Factory
             'supplier_id' => Supplier::factory(),
             'order_date' => fake()->date(),
             'expected_date' => fake()->optional()->dateTimeBetween('+1 week', '+1 month'),
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'subtotal' => $subtotal,
             'tax' => $tax,
             'total' => $total,

@@ -17,7 +17,7 @@ class StockAdjustmentFactory extends Factory
             'type' => fake()->randomElement(['positive', 'negative']),
             'reason' => fake()->randomElement(['damaged', 'lost', 'found', 'recount']),
             'description' => fake()->sentence(),
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'created_by' => User::factory(),
         ];
     }

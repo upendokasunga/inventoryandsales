@@ -19,7 +19,7 @@ class SalesReturnFactory extends Factory
             'return_number' => 'SR-' . now()->year . '-' . str_pad((string) $this->faker->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
             'customer_id' => Customer::factory(),
             'total_amount' => $this->faker->randomFloat(2, 1000, 500000),
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'created_by' => User::factory(),
         ];
     }

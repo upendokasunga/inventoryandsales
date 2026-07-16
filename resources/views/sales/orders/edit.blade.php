@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">{{ __('Edit Sales Order') }}: {{ $salesOrder->so_number }}</x-slot>
+    <x-slot name="header">{{ __('Edit Proforma Invoice') }}: {{ $salesOrder->so_number }}</x-slot>
 
     <div class="max-w-4xl mx-auto">
         <form method="POST" action="{{ route('sales.orders.update', $salesOrder) }}" x-data="salesOrderForm()">

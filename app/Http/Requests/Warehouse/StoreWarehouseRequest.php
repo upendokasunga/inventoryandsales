@@ -15,8 +15,7 @@ class StoreWarehouseRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:20|unique:warehouses',
-            'type' => 'required|in:goods,fixed_asset',
+            'type' => 'required|in:goods',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',

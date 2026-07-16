@@ -10,10 +10,13 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6">
                 <div class="flex justify-between items-start mb-6">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">{{ $bankAccount->bank_name }}</h2>
-                        <p class="text-sm text-slate-500">{{ $bankAccount->account_number }} &middot; {{ ucfirst(str_replace('_', ' ', $bankAccount->account_type)) }}</p>
-                        @if($bankAccount->branch)
-                            <p class="text-sm text-slate-500">{{ $bankAccount->branch }}</p>
+                        <h2 class="text-lg font-bold text-slate-800">{{ $bankAccount->bank?->name ?? $bankAccount->bank_name }}</h2>
+                        <p class="text-sm text-slate-500">{{ $bankAccount->account_number }} &middot; {{ $bankAccount->accountType?->label ?? ucfirst(str_replace('_', ' ', $bankAccount->account_type)) }}</p>
+                        @if($bankAccount->branch || $bankAccount->bank?->branch)
+                            <p class="text-sm text-slate-500">{{ $bankAccount->branch ?? $bankAccount->bank->branch }}</p>
+                        @endif
+                        @if($bankAccount->bank?->swift_code)
+                            <p class="text-xs text-slate-400">SWIFT: {{ $bankAccount->bank->swift_code }}</p>
                         @endif
                     </div>
                     <span class="erp-badge {{ $bankAccount->is_active ? 'erp-badge-active' : 'erp-badge-inactive' }}">

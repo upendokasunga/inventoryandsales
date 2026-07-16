@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InventoryBalance;
 use App\Models\Product;
 use App\Services\InventoryAnalyticsService;
 use App\Services\InventoryService;
@@ -49,5 +50,31 @@ class InventoryController extends Controller
         $recentTransactions = $this->analyticsService->getRecentTransactions();
 
         return view('inventory.analytics', compact('stats', 'stockDistribution', 'recentTransactions'));
+    }
+
+    public function availableStock(Request $request)
+    {
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        $query = InventoryBalance::with('product')->where('quantity_on_hand', '>', 0);
+
+        if ($search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('sku', 'like', "%{$search}%")
+                  ->orWhere('barcode', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status === 'low') {
+            $query->whereColumn('quantity_on_hand', '<=', 'product.reorder_level');
+        } elseif ($status === 'overstocked') {
+            $query->whereColumn('quantity_on_hand', '>', 'product.safety_stock * 3');
+        }
+
+        $balances = $query->orderBy('quantity_on_hand', 'desc')->paginate(25)->withQueryString();
+
+        return view('inventory.available-stock', compact('balances', 'search', 'status'));
     }
 }

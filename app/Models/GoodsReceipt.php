@@ -24,7 +24,7 @@ class GoodsReceipt extends Model
         ];
     }
 
-    public const STATUSES = ['draft', 'completed', 'cancelled'];
+    public const STATUSES = ['completed', 'cancelled'];
 
     public function purchaseOrder(): BelongsTo
     {

@@ -37,8 +37,7 @@ class StockAdjustmentController extends Controller
 
         $counts = [
             'all' => StockAdjustment::count(),
-            'draft' => StockAdjustment::where('status', 'draft')->count(),
-            'pending_approval' => StockAdjustment::where('status', 'pending_approval')->count(),
+                'pending_approval' => StockAdjustment::where('status', 'pending_approval')->count(),
             'approved' => StockAdjustment::where('status', 'approved')->count(),
             'completed' => StockAdjustment::where('status', 'completed')->count(),
             'cancelled' => StockAdjustment::where('status', 'cancelled')->count(),
@@ -63,7 +62,7 @@ class StockAdjustmentController extends Controller
                 'type' => $data['type'],
                 'reason' => $data['reason'],
                 'description' => $data['description'] ?? null,
-                'status' => 'draft',
+                'status' => 'pending_approval',
                 'created_by' => auth()->id(),
             ]);
 
@@ -106,9 +105,9 @@ class StockAdjustmentController extends Controller
 
     public function edit(StockAdjustment $stockAdjustment)
     {
-        if ($stockAdjustment->status !== 'draft') {
+        if ($stockAdjustment->status !== 'pending_approval') {
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Only draft adjustments can be edited.');
+                ->with('error', 'Only pending adjustments can be edited.');
         }
 
         $products = Product::where('track_stock', true)->orderBy('name')->get();
@@ -118,9 +117,9 @@ class StockAdjustmentController extends Controller
 
     public function update(UpdateStockAdjustmentRequest $request, StockAdjustment $stockAdjustment)
     {
-        if ($stockAdjustment->status !== 'draft') {
+        if ($stockAdjustment->status !== 'pending_approval') {
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Only draft adjustments can be edited.');
+                ->with('error', 'Only pending adjustments can be edited.');
         }
 
         $data = $request->validated();
@@ -180,29 +179,34 @@ class StockAdjustmentController extends Controller
 
     public function complete(StockAdjustment $stockAdjustment)
     {
-        if (!in_array($stockAdjustment->status, ['draft', 'approved'])) {
+        if ($stockAdjustment->status !== 'approved') {
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
-                ->with('error', 'Adjustment cannot be completed in its current status.');
+                ->with('error', 'Only approved adjustments can be completed. Submit for approval first.');
         }
 
-        DB::transaction(function () use ($stockAdjustment) {
-            $stockAdjustment->update([
-                'status' => 'completed',
-                'approved_by' => $stockAdjustment->approved_by ?? auth()->id(),
-                'approved_at' => $stockAdjustment->approved_at ?? now(),
-            ]);
+        try {
+            DB::transaction(function () use ($stockAdjustment) {
+                $stockAdjustment->update([
+                    'status' => 'completed',
+                    'approved_by' => $stockAdjustment->approved_by ?? auth()->id(),
+                    'approved_at' => $stockAdjustment->approved_at ?? now(),
+                ]);
 
-            foreach ($stockAdjustment->items as $item) {
-                $this->inventoryService->adjustStock(
-                    $item->product,
-                    $item->expected_quantity,
-                    $item->actual_quantity,
-                    $item->unit_cost,
-                    $stockAdjustment->reason . ': ' . ($item->notes ?? ''),
-                    $stockAdjustment
-                );
-            }
-        });
+                foreach ($stockAdjustment->items as $item) {
+                    $this->inventoryService->adjustStock(
+                        $item->product,
+                        $item->expected_quantity,
+                        $item->actual_quantity,
+                        $item->unit_cost,
+                        $stockAdjustment->reason . ': ' . ($item->notes ?? ''),
+                        $stockAdjustment
+                    );
+                }
+            });
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('stock-adjustments.show', $stockAdjustment)
+                ->with('error', 'Cannot complete adjustment: ' . $e->getMessage());
+        }
 
         return redirect()->route('stock-adjustments.show', $stockAdjustment)
             ->with('success', 'Stock adjustment completed.');
@@ -210,7 +214,7 @@ class StockAdjustmentController extends Controller
 
     public function destroy(StockAdjustment $stockAdjustment)
     {
-        if (!in_array($stockAdjustment->status, ['draft', 'cancelled'])) {
+        if (!in_array($stockAdjustment->status, ['pending_approval', 'cancelled'])) {
             return redirect()->route('stock-adjustments.show', $stockAdjustment)
                 ->with('error', 'Cannot delete a completed adjustment.');
         }
@@ -219,5 +223,19 @@ class StockAdjustmentController extends Controller
 
         return redirect()->route('stock-adjustments.index')
             ->with('success', 'Stock adjustment deleted.');
+    }
+
+    public function stockInfo(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $product = Product::with('inventoryBalance')->findOrFail($request->product_id);
+
+        return response()->json([
+            'current_stock' => $product->inventoryBalance->quantity_on_hand ?? 0,
+            'unit_cost' => $product->inventoryBalance->average_cost ?? $product->standard_cost ?? 0,
+        ]);
     }
 }

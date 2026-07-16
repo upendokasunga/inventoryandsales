@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Account;
+use App\Models\AccountType;
 use App\Models\BankAccount;
 use App\Models\BankReconciliation;
 use App\Models\BankReconciliationItem;
@@ -12,7 +14,7 @@ class BankingService
 {
     public function getAccountsPaginated(int $perPage = 20): mixed
     {
-        return BankAccount::with(['coaAccount', 'creator'])
+        return BankAccount::with(['coaAccount', 'bank', 'accountType', 'creator'])
             ->latest()
             ->paginate($perPage);
     }
@@ -31,6 +33,47 @@ class BankingService
         return DB::transaction(function () use ($data) {
             $data['created_by'] = auth()->id();
             $data['current_balance'] = $data['opening_balance'] ?? 0;
+
+            // Sync bank_name from bank_id for backward compatibility
+            if (!empty($data['bank_id'])) {
+                $bank = \App\Models\Bank::find($data['bank_id']);
+                if ($bank) {
+                    $data['bank_name'] = $bank->name;
+                }
+            }
+
+            // Create corresponding Chart of Account entry
+            $accountType = AccountType::find($data['account_type_id'] ?? null);
+            $ifrsCategory = null;
+            if ($accountType) {
+                $ifrsCategory = match($accountType->key) {
+                    'asset_bank' => 'bank',
+                    'asset_cash' => 'cash',
+                    default => null,
+                };
+            }
+
+            $code = \App\Helpers\AccountingHelper::generateAccountCode();
+
+            $account = Account::create([
+                'code' => $code,
+                'name' => ($data['bank_name'] ?? '') . ' - ' . ($data['name'] ?? 'Account'),
+                'type' => $accountType?->base_type ?? 'asset',
+                'ifrs_category' => $ifrsCategory,
+                'category' => $accountType?->asset_class === 'current' ? 'current_asset' : 'non_current_asset',
+                'current_noncurrent' => $accountType?->asset_class,
+                'account_number' => $data['account_number'] ?? null,
+                'opening_balance' => $data['opening_balance'] ?? 0,
+                'current_balance' => $data['opening_balance'] ?? 0,
+                'is_active' => true,
+                'reportable' => false,
+                'allow_overdraft' => !empty($data['allow_overdraft']),
+                'overdraft_limit' => $data['overdraft_limit'] ?? 0,
+                'currency_code' => null,
+            ]);
+
+            $data['account_id'] = $account->id;
+
             return BankAccount::create($data);
         });
     }
@@ -43,7 +86,42 @@ class BankingService
             $data['current_balance'] = $data['opening_balance'];
         }
 
+        // Sync bank_name from bank_id for backward compatibility
+        if (!empty($data['bank_id'])) {
+            $bank = \App\Models\Bank::find($data['bank_id']);
+            if ($bank) {
+                $data['bank_name'] = $bank->name;
+            }
+        }
+
         $account->update($data);
+
+        // Sync the CoA entry
+        if ($account->account_id) {
+            $updateFields = [];
+            if (isset($data['bank_name']) || isset($data['name'])) {
+                $bankName = $data['bank_name'] ?? $account->bank_name ?? '';
+                $acctName = $data['name'] ?? $account->name ?? '';
+                $updateFields['name'] = $bankName . ' - ' . $acctName;
+            }
+            if (isset($data['opening_balance']) && $hasNoTransactions) {
+                $updateFields['opening_balance'] = $data['opening_balance'];
+                $updateFields['current_balance'] = $data['opening_balance'];
+            }
+            if (isset($data['account_number'])) {
+                $updateFields['account_number'] = $data['account_number'];
+            }
+            if (array_key_exists('allow_overdraft', $data)) {
+                $updateFields['allow_overdraft'] = !empty($data['allow_overdraft']);
+            }
+            if (array_key_exists('overdraft_limit', $data)) {
+                $updateFields['overdraft_limit'] = $data['overdraft_limit'] ?? 0;
+            }
+            if (!empty($updateFields)) {
+                Account::where('id', $account->account_id)->update($updateFields);
+            }
+        }
+
         return $account->fresh();
     }
 
@@ -52,7 +130,13 @@ class BankingService
         if ($account->transactions()->exists()) {
             throw new \InvalidArgumentException('Cannot delete a bank account with transactions.');
         }
+
+        $coaAccountId = $account->account_id;
         $account->delete();
+
+        if ($coaAccountId) {
+            Account::where('id', $coaAccountId)->delete();
+        }
     }
 
     public function getTransactionsPaginated(BankAccount $account, int $perPage = 20, ?array $filters = []): mixed

@@ -11,7 +11,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 border-b border-slate-200/60">
             <nav class="flex gap-6 -mb-px overflow-x-auto">
-                @php $tabs = ['all' => 'All', 'draft' => 'Draft', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'sent' => 'Sent', 'partially_received' => 'Partial', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
+                @php $tabs = ['all' => 'All', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'partially_received' => 'Partial', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
                 @foreach ($tabs as $key => $label)
                     <a href="{{ route('purchasing.orders.index', ['tab' => $key] + request()->except(['tab', 'status'])) }}"
                        class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
@@ -61,15 +61,15 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800 font-medium">{{ number_format($order->total, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'sent' => 'erp-badge-info', 'partially_received' => 'erp-badge-partial', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                                $c = ['pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'partially_received' => 'erp-badge-partial', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$order->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
+                            <span class="{{ $c[$order->status] ?? 'erp-badge-pending' }}">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $order->order_date?->format('M d, Y') ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <x-action-links
                                 :view="route('purchasing.orders.show', $order)"
-                                :edit="$order->status === 'draft' ? route('purchasing.orders.edit', $order) : null"
+                                :edit="$order->status === 'pending_approval' ? route('purchasing.orders.edit', $order) : null"
                             />
                         </td>
                     </tr>

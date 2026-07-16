@@ -60,8 +60,8 @@
                         @error('parent_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label for="opening_balance" class="block text-sm font-medium text-slate-700">Opening Balance</label>
-                        <input type="number" step="0.01" min="0" name="opening_balance" id="opening_balance" value="{{ old('opening_balance', $account->opening_balance) }}" class="mt-1 block w-full erp-input">
+                        <label for="opening_balance" class="block text-sm font-medium text-slate-700">Opening Balance (TSh)</label>
+                        <input type="number" step="1" min="0" name="opening_balance" id="opening_balance" value="{{ old('opening_balance', $account->opening_balance) }}" class="mt-1 block w-full erp-input" x-data="priceInput()" data-decimals="0">
                         @error('opening_balance') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="md:col-span-2">
@@ -74,6 +74,62 @@
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $account->is_active) ? 'checked' : '' }} class="erp-input">
                             <span class="ml-2 text-sm text-slate-700">Active</span>
                         </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6">
+                <div class="px-6 py-4 border-b border-slate-200/60">
+                    <h3 class="text-lg font-semibold text-slate-800">IFRS Classification</h3>
+                    <p class="text-xs text-slate-400 mt-1">Optional IFRS reporting fields</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ifrs_category" class="block text-sm font-medium text-slate-700">IFRS Category</label>
+                        <input type="text" name="ifrs_category" id="ifrs_category" value="{{ old('ifrs_category', $account->ifrs_category) }}" class="mt-1 block w-full erp-input" placeholder="e.g. PPE, cash, bank, trade_receivables">
+                        @error('ifrs_category') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="presentation_order" class="block text-sm font-medium text-slate-700">Presentation Order</label>
+                        <input type="number" name="presentation_order" id="presentation_order" value="{{ old('presentation_order', $account->presentation_order) }}" class="mt-1 block w-full erp-input">
+                        @error('presentation_order') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 mb-6">
+                <div class="px-6 py-4 border-b border-slate-200/60">
+                    <h3 class="text-lg font-semibold text-slate-800">Bank Details</h3>
+                    <p class="text-xs text-slate-400 mt-1">For cash/bank accounts only</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="bank_name" class="block text-sm font-medium text-slate-700">Bank Name</label>
+                        <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', $account->bank_name) }}" class="mt-1 block w-full erp-input" placeholder="e.g. CRDB, NMB">
+                        @error('bank_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="bank_branch" class="block text-sm font-medium text-slate-700">Branch</label>
+                        <input type="text" name="bank_branch" id="bank_branch" value="{{ old('bank_branch', $account->bank_branch) }}" class="mt-1 block w-full erp-input">
+                        @error('bank_branch') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="bank_swift_code" class="block text-sm font-medium text-slate-700">SWIFT Code</label>
+                        <input type="text" name="bank_swift_code" id="bank_swift_code" value="{{ old('bank_swift_code', $account->bank_swift_code) }}" class="mt-1 block w-full erp-input">
+                        @error('bank_swift_code') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="allow_overdraft" value="1" {{ old('allow_overdraft', $account->allow_overdraft) ? 'checked' : '' }} class="rounded border-slate-300 text-primary focus:ring-primary-500">
+                            <span class="ml-2 text-sm font-medium text-slate-700">Allow Overdraft</span>
+                        </label>
+                        <p class="text-xs text-slate-400 mt-1">Enable if this account can go negative</p>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label for="overdraft_limit" class="block text-sm font-medium text-slate-700">Overdraft Limit (TSh)</label>
+                        <input type="number" step="1" min="0" name="overdraft_limit" id="overdraft_limit" value="{{ old('overdraft_limit', $account->overdraft_limit) }}" class="mt-1 block w-full erp-input" x-data="priceInput()" data-decimals="0">
+                        <p class="text-xs text-slate-400 mt-1">Maximum negative balance allowed</p>
+                        @error('overdraft_limit') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

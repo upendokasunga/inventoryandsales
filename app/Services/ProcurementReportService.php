@@ -21,7 +21,7 @@ class ProcurementReportService
                 DB::raw('SUM(total) as total_spent')
             )
                 ->whereBetween('order_date', [$start, $end])
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->groupBy('supplier_id')
                 ->with('supplier')
                 ->get();
@@ -91,7 +91,7 @@ class ProcurementReportService
             )
                 ->whereHas('purchaseOrder', function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('order_date', [$startDate, $endDate])
-                        ->whereIn('status', ['completed', 'partially_received', 'sent']);
+                        ->whereIn('status', ['completed', 'partially_received']);
                 })
                 ->groupBy('product_id')
                 ->with('product')
@@ -103,7 +103,7 @@ class ProcurementReportService
             )
                 ->whereHas('purchaseOrder', function ($q) use ($startDate) {
                     $q->where('order_date', '<', $startDate)
-                        ->whereIn('status', ['completed', 'partially_received', 'sent']);
+                        ->whereIn('status', ['completed', 'partially_received']);
                 })
                 ->groupBy('product_id')
                 ->get()
@@ -150,7 +150,7 @@ class ProcurementReportService
                 DB::raw('AVG(total) as average_amount')
             )
                 ->whereBetween('order_date', [$startDate, $endDate])
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->groupBy(DB::raw("DATE_FORMAT(order_date, '%Y-%m')"))
                 ->orderBy('month')
                 ->get();

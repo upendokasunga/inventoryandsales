@@ -23,7 +23,9 @@ class JournalEntryController extends Controller
         $tab = $request->get('tab', 'all');
         $query = JournalEntry::with('creator');
 
-        if ($tab !== 'all') {
+        if ($tab === 'adjustment') {
+            $query->where('is_adjustment', true);
+        } elseif ($tab !== 'all') {
             $query->where('status', $tab);
         }
 
@@ -68,22 +70,55 @@ class JournalEntryController extends Controller
 
     public function show(JournalEntry $journalEntry): View
     {
-        $journalEntry->load('lines.account', 'creator');
+        $journalEntry->load('lines.account', 'creator', 'approver', 'reverser', 'audits.user');
         return view('journal-entries.show', compact('journalEntry'));
     }
 
     public function approve(JournalEntry $journalEntry): RedirectResponse
     {
         try {
-            $this->centralApproval->submit($journalEntry);
+            if ($journalEntry->status === 'draft') {
+                $this->centralApproval->submit($journalEntry);
+            }
             $this->centralApproval->approve($journalEntry);
             return redirect()->route('journal-entries.show', $journalEntry)
                 ->with('success', 'Journal entry posted successfully.');
         } catch (\InvalidArgumentException $e) {
-            // Rollback to draft if approval failed after submit
             if ($journalEntry->fresh()->status === 'pending_approval') {
                 $journalEntry->update(['status' => 'draft']);
             }
+            return redirect()->route('journal-entries.show', $journalEntry)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function submit(JournalEntry $journalEntry): RedirectResponse
+    {
+        if ($journalEntry->status !== 'draft') {
+            return back()->with('error', 'Only draft journal entries can be submitted for approval.');
+        }
+
+        try {
+            $this->centralApproval->submit($journalEntry);
+            return redirect()->route('journal-entries.show', $journalEntry)
+                ->with('success', 'Journal entry submitted for approval.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('journal-entries.show', $journalEntry)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(JournalEntry $journalEntry): RedirectResponse
+    {
+        if ($journalEntry->status !== 'pending_approval') {
+            return back()->with('error', 'Only pending journal entries can be rejected.');
+        }
+
+        try {
+            $this->centralApproval->reject($journalEntry, 'Rejected by ' . auth()->user()?->name);
+            return redirect()->route('journal-entries.show', $journalEntry)
+                ->with('success', 'Journal entry rejected and returned to draft.');
+        } catch (\InvalidArgumentException $e) {
             return redirect()->route('journal-entries.show', $journalEntry)
                 ->with('error', $e->getMessage());
         }

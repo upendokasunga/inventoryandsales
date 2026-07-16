@@ -19,12 +19,10 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\PriceListController;
-use App\Http\Controllers\PricingSimulatorController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\PurchaseReturnController;
-use App\Http\Controllers\PurchaseSuggestionController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ApprovalConfigurationController;
@@ -256,14 +254,12 @@ Route::middleware(["auth", "verified"])->group(function () {
 
     // --- Purchasing (Phase 6; fixed paths BEFORE wildcards) ---
     Route::middleware("menu.access:can_create")->group(function () {
-        Route::get("purchasing/suggestions/create", [PurchaseSuggestionController::class, "create"])->name("purchasing.suggestions.create");
         Route::get("purchasing/orders/create", [PurchaseOrderController::class, "create"])->name("purchasing.orders.create");
         Route::get("purchasing/receipts/create", [GoodsReceiptController::class, "create"])->name("purchasing.receipts.create");
     });
     Route::middleware("menu.access:can_view")->group(function () {
-        Route::get("purchasing/suggestions", [PurchaseSuggestionController::class, "index"])->name("purchasing.suggestions.index");
-        Route::get("purchasing/suggestions/{suggestion}", [PurchaseSuggestionController::class, "show"])->name("purchasing.suggestions.show");
         Route::get("purchasing/orders", [PurchaseOrderController::class, "index"])->name("purchasing.orders.index");
+        Route::get("purchasing/orders/latest-price", [PurchaseOrderController::class, "latestPrice"])->name("purchasing.orders.latest-price");
         Route::get("purchasing/orders/{purchaseOrder}", [PurchaseOrderController::class, "show"])->name("purchasing.orders.show");
         Route::get("purchasing/receipts", [GoodsReceiptController::class, "index"])->name("purchasing.receipts.index");
         Route::get("purchasing/receipts/{goodsReceipt}", [GoodsReceiptController::class, "show"])->name("purchasing.receipts.show");
@@ -275,8 +271,6 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("purchasing/receipts/{goodsReceipt}/print", [GoodsReceiptController::class, "print"])->name("purchasing.receipts.print");
     });
     Route::middleware("menu.access:can_create")->group(function () {
-        Route::post("purchasing/suggestions", [PurchaseSuggestionController::class, "store"])->name("purchasing.suggestions.store");
-        Route::post("purchasing/suggestions/generate", [PurchaseSuggestionController::class, "generate"])->name("purchasing.suggestions.generate");
         Route::post("purchasing/orders", [PurchaseOrderController::class, "store"])->name("purchasing.orders.store");
         Route::post("purchasing/receipts", [GoodsReceiptController::class, "store"])->name("purchasing.receipts.store");
     });
@@ -286,13 +280,9 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::patch("purchasing/receipts/{goodsReceipt}/complete", [GoodsReceiptController::class, "complete"])->name("purchasing.receipts.complete");
     });
     Route::middleware("menu.access:can_approve")->group(function () {
-        Route::post("purchasing/suggestions/{suggestion}/approve", [PurchaseSuggestionController::class, "approve"])->name("purchasing.suggestions.approve");
-        Route::post("purchasing/suggestions/{suggestion}/reject", [PurchaseSuggestionController::class, "reject"])->name("purchasing.suggestions.reject");
-        Route::post("purchasing/suggestions/{suggestion}/convert", [PurchaseSuggestionController::class, "convert"])->name("purchasing.suggestions.convert");
         Route::post("purchasing/orders/{purchaseOrder}/submit-for-approval", [PurchaseOrderController::class, "submitForApproval"])->name("purchasing.orders.submit-approval");
         Route::post("purchasing/orders/{purchaseOrder}/approve", [PurchaseOrderController::class, "approve"])->name("purchasing.orders.approve");
         Route::post("purchasing/orders/{purchaseOrder}/reject", [PurchaseOrderController::class, "reject"])->name("purchasing.orders.reject");
-        Route::post("purchasing/orders/{purchaseOrder}/send", [PurchaseOrderController::class, "send"])->name("purchasing.orders.send");
     });
     Route::middleware("menu.access:can_delete")->group(function () {
         Route::post("purchasing/orders/{purchaseOrder}/cancel", [PurchaseOrderController::class, "cancel"])->name("purchasing.orders.cancel");
@@ -337,8 +327,6 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("price-lists", fn() => redirect()->route('dashboard'))->name("price-lists.dashboard");
         Route::get("price-lists/list", [PriceListController::class, "index"])->name("price-lists.index");
         Route::get("price-lists/export", [PriceListController::class, "exportCsv"])->name("price-lists.export-csv");
-        Route::get("price-lists/simulator", [PricingSimulatorController::class, "index"])->name("price-lists.simulator");
-        Route::post("price-lists/simulate", [PricingSimulatorController::class, "simulate"])->name("price-lists.simulate")->middleware("throttle:30,1");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
         Route::get("price-lists/{priceList}/edit", [PriceListController::class, "edit"])->name("price-lists.edit");
@@ -354,6 +342,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     // --- Inventory (Phase 7) ---
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("inventory", [InventoryController::class, "index"])->name("inventory.index");
+        Route::get("inventory/available-stock", [InventoryController::class, "availableStock"])->name("inventory.available-stock");
         Route::get("inventory/transactions", [InventoryController::class, "transactions"])->name("inventory.transactions");
         Route::get("inventory/valuation", [InventoryController::class, "valuation"])->name("inventory.valuation");
         Route::get("inventory/analytics", [InventoryController::class, "analytics"])->name("inventory.analytics");
@@ -368,6 +357,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("stock-adjustments", [StockAdjustmentController::class, "index"])->name("stock-adjustments.index");
+        Route::get("stock-adjustments/stock-info", [StockAdjustmentController::class, "stockInfo"])->name("stock-adjustments.stock-info");
         Route::get("stock-adjustments/{stockAdjustment}", [StockAdjustmentController::class, "show"])->name("stock-adjustments.show");
     });
     Route::middleware("menu.access:can_print")->group(function () {
@@ -418,6 +408,7 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::post("sales/orders/{salesOrder}/pack", [SalesOrderController::class, "markPacked"])->name("sales.orders.pack");
         Route::post("sales/orders/{salesOrder}/fulfill", [SalesOrderController::class, "fulfill"])->name("sales.orders.fulfill");
         Route::post("sales/orders/{salesOrder}/cancel", [SalesOrderController::class, "cancel"])->name("sales.orders.cancel");
+        Route::post("sales/orders/{salesOrder}/generate-invoice", [SalesOrderController::class, "generateInvoice"])->name("sales.orders.generate-invoice");
     });
     Route::middleware("menu.access:can_delete")->group(function () {
         Route::delete("sales/orders/{salesOrder}", [SalesOrderController::class, "destroy"])->name("sales.orders.destroy");
@@ -436,6 +427,7 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::get("pos/sku", [PosController::class, "lookupSku"])->name("pos.sku");
         Route::get("pos/customer", [PosController::class, "getCustomer"])->name("pos.customer");
         Route::get("pos/price", [PosController::class, "getPrice"])->name("pos.price");
+        Route::get("pos/price-simple", [PosController::class, "getPriceSimple"])->name("pos.price-simple");
         Route::post("pos/validate-credit", [PosController::class, "validateCredit"])->name("pos.validate-credit");
     });
     Route::middleware("menu.access:can_create")->group(function () {
@@ -751,6 +743,8 @@ Route::middleware(["auth", "verified"])->group(function () {
     });
     Route::middleware("menu.access:can_approve")->group(function () {
         Route::post("journal-entries/{journalEntry}/approve", [JournalEntryController::class, "approve"])->name("journal-entries.approve");
+        Route::post("journal-entries/{journalEntry}/submit", [JournalEntryController::class, "submit"])->name("journal-entries.submit");
+        Route::post("journal-entries/{journalEntry}/reject", [JournalEntryController::class, "reject"])->name("journal-entries.reject");
         Route::post("journal-entries/{journalEntry}/reverse", [JournalEntryController::class, "reverse"])->name("journal-entries.reverse");
     });
     Route::middleware("menu.access:can_delete")->group(function () {
@@ -760,11 +754,13 @@ Route::middleware(["auth", "verified"])->group(function () {
     // --- Banking (Phase 4.4) ---
     Route::middleware("menu.access:can_view")->group(function () {
         Route::get("bank-accounts", [BankAccountController::class, "index"])->name("bank-accounts.index");
-        Route::get("bank-accounts/{bankAccount}", [BankAccountController::class, "show"])->name("bank-accounts.show");
     });
     Route::middleware("menu.access:can_create")->group(function () {
         Route::get("bank-accounts/create", [BankAccountController::class, "create"])->name("bank-accounts.create");
         Route::post("bank-accounts", [BankAccountController::class, "store"])->name("bank-accounts.store");
+    });
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("bank-accounts/{bankAccount}", [BankAccountController::class, "show"])->name("bank-accounts.show");
     });
     Route::middleware("menu.access:can_edit")->group(function () {
         Route::get("bank-accounts/{bankAccount}/edit", [BankAccountController::class, "edit"])->name("bank-accounts.edit");
@@ -797,6 +793,60 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::post("bank-reconciliations/{bankReconciliation}/match", [BankReconciliationController::class, "match"])->name("bank-reconciliations.match");
         Route::post("bank-reconciliations/{bankReconciliation}/complete", [BankReconciliationController::class, "complete"])->name("bank-reconciliations.complete");
         Route::post("bank-reconciliations/{bankReconciliation}/cancel", [BankReconciliationController::class, "cancel"])->name("bank-reconciliations.cancel");
+    });
+
+    // --- Open Account ---
+    Route::get("accounts/open", [\App\Http\Controllers\AccountController::class, "open"])->name("accounts.open");
+    Route::post("accounts/open", [\App\Http\Controllers\AccountController::class, "openStore"])->name("accounts.open-store");
+
+    // --- Account Balances & Statements ---
+    Route::get("accounts/balances", [\App\Http\Controllers\AccountController::class, "balances"])->name("accounts.balances");
+    Route::get("accounts/{account}/balance-json", [\App\Http\Controllers\AccountController::class, "balanceJson"])->name("accounts.balance-json");
+    Route::get("accounts/{account}/statement", [\App\Http\Controllers\AccountController::class, "bankStatement"])->name("accounts.statement");
+
+    // --- Banks (Institution Directory) ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("banks", [\App\Http\Controllers\BanksController::class, "index"])->name("banks.index");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("banks/create", [\App\Http\Controllers\BanksController::class, "create"])->name("banks.create");
+        Route::post("banks", [\App\Http\Controllers\BanksController::class, "store"])->name("banks.store");
+    });
+    Route::middleware("menu.access:can_update")->group(function () {
+        Route::get("banks/{bank}/edit", [\App\Http\Controllers\BanksController::class, "edit"])->name("banks.edit");
+        Route::patch("banks/{bank}", [\App\Http\Controllers\BanksController::class, "update"])->name("banks.update");
+    });
+    Route::middleware("menu.access:can_delete")->group(function () {
+        Route::delete("banks/{bank}", [\App\Http\Controllers\BanksController::class, "destroy"])->name("banks.destroy");
+    });
+
+    // --- Money Transfers ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("money-transfers", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "index"])->name("money-transfers.index");
+        Route::get("money-transfers/{moneyTransfer}", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "show"])->name("money-transfers.show");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("money-transfers/create", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "create"])->name("money-transfers.create");
+        Route::post("money-transfers", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "store"])->name("money-transfers.store");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("money-transfers/{moneyTransfer}/approve", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "approve"])->name("money-transfers.approve");
+        Route::post("money-transfers/{moneyTransfer}/reject", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "reject"])->name("money-transfers.reject");
+        Route::post("money-transfers/{moneyTransfer}/reverse", [\App\Http\Controllers\Accounts\MoneyTransferController::class, "reverse"])->name("money-transfers.reverse");
+    });
+
+    // --- Cash Transfers ---
+    Route::middleware("menu.access:can_view")->group(function () {
+        Route::get("cash-transfers", [\App\Http\Controllers\Accounts\CashTransferController::class, "index"])->name("cash-transfers.index");
+        Route::get("cash-transfers/{cashTransfer}", [\App\Http\Controllers\Accounts\CashTransferController::class, "show"])->name("cash-transfers.show");
+    });
+    Route::middleware("menu.access:can_create")->group(function () {
+        Route::get("cash-transfers/create", [\App\Http\Controllers\Accounts\CashTransferController::class, "create"])->name("cash-transfers.create");
+        Route::post("cash-transfers", [\App\Http\Controllers\Accounts\CashTransferController::class, "store"])->name("cash-transfers.store");
+    });
+    Route::middleware("menu.access:can_approve")->group(function () {
+        Route::post("cash-transfers/{cashTransfer}/approve", [\App\Http\Controllers\Accounts\CashTransferController::class, "approve"])->name("cash-transfers.approve");
+        Route::post("cash-transfers/{cashTransfer}/reject", [\App\Http\Controllers\Accounts\CashTransferController::class, "reject"])->name("cash-transfers.reject");
     });
 
     // --- Data Migration ---

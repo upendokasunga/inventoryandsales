@@ -100,13 +100,8 @@ class PurchaseOrderController extends Controller
 
     public function submitForApproval(PurchaseOrder $purchaseOrder): RedirectResponse
     {
-        try {
-            $this->centralApproval->submit($purchaseOrder);
-            return redirect()->route('purchasing.orders.show', $purchaseOrder)
-                ->with('success', 'Order submitted for approval.');
-        } catch (\InvalidArgumentException $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        return redirect()->route('purchasing.orders.show', $purchaseOrder)
+            ->with('success', 'Order is already pending approval.');
     }
 
     public function approve(PurchaseOrder $purchaseOrder): RedirectResponse
@@ -125,22 +120,11 @@ class PurchaseOrderController extends Controller
         try {
             $this->centralApproval->reject($purchaseOrder);
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
-                ->with('success', 'Order returned to draft.');
+                ->with('success', 'Order rejected and cancelled.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->route('purchasing.orders.show', $purchaseOrder)
                 ->with('error', $e->getMessage());
         }
-    }
-
-    public function send(PurchaseOrder $purchaseOrder): RedirectResponse
-    {
-        if ($purchaseOrder->status !== 'approved') {
-            return redirect()->route('purchasing.orders.show', $purchaseOrder)
-                ->with('error', 'Only approved orders can be sent.');
-        }
-        $purchaseOrder->update(['status' => 'sent']);
-        return redirect()->route('purchasing.orders.show', $purchaseOrder)
-            ->with('success', 'Order sent to supplier.');
     }
 
     public function cancel(PurchaseOrder $purchaseOrder): RedirectResponse
@@ -158,7 +142,10 @@ class PurchaseOrderController extends Controller
     {
         try {
             DB::transaction(function () use ($purchaseOrder) {
-                if (!in_array($purchaseOrder->status, ['completed', 'approved'])) {
+                $transitions = $purchaseOrder->getAllowedApprovalTransitions();
+                $allowed = $transitions[$purchaseOrder->status] ?? [];
+
+                if (!in_array('reversed', $allowed)) {
                     throw new \InvalidArgumentException('Only completed or approved orders can be reversed.');
                 }
 
@@ -178,5 +165,25 @@ class PurchaseOrderController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    public function latestPrice(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $item = \App\Models\PurchaseOrderItem::where('product_id', $request->product_id)
+            ->whereHas('purchaseOrder', fn ($q) => $q->where('status', '!=', 'cancelled'))
+            ->join('purchase_orders', 'purchase_order_items.purchase_order_id', '=', 'purchase_orders.id')
+            ->orderByDesc('purchase_orders.order_date')
+            ->orderByDesc('purchase_orders.id')
+            ->select('purchase_order_items.unit_price', 'purchase_order_items.selling_price')
+            ->first();
+
+        return response()->json([
+            'unit_price' => $item ? (float) $item->unit_price : null,
+            'selling_price' => $item ? (float) $item->selling_price : null,
+        ]);
     }
 }

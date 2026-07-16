@@ -22,6 +22,7 @@ class Customer extends Model
         'name', 'email', 'phone', 'address', 'city', 'region',
         'postal_code', 'country', 'contact_person', 'contact_phone', 'contact_email',
         'tax_id', 'registration_number', 'website',
+        'bank_name', 'bank_branch', 'bank_swift_code',
         'customer_group_id',
         'credit_limit', 'available_credit', 'outstanding_balance',
         'payment_terms', 'credit_status', 'credit_hold_at', 'credit_hold_reason',

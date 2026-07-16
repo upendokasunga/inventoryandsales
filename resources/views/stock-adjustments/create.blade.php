@@ -52,7 +52,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Product</label>
-                                <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required>
+                                <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required
+                                    @change="fetchStockInfo($event.target.value, index)">
                                     <option value="">Select Product</option>
                                     @foreach ($products as $p)
                                         <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->sku }})</option>
@@ -65,7 +66,8 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Expected Qty</label>
-                                <input type="number" step="0.001" :name="'items[' + index + '][expected_quantity]'" class="erp-input w-full" required>
+                                <input type="number" step="0.001" :name="'items[' + index + '][expected_quantity]'"
+                                    x-model="item.expected_quantity" class="erp-input w-full" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Actual Qty</label>
@@ -73,7 +75,8 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Unit Cost</label>
-                                <input type="number" step="0.01" :name="'items[' + index + '][unit_cost]'" class="erp-input w-full">
+                                <input type="number" step="0.01" :name="'items[' + index + '][unit_cost]'"
+                                    x-model="item.unit_cost" class="erp-input w-full">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Notes</label>
@@ -99,10 +102,21 @@
             return {
                 items: [],
                 addItem() {
-                    this.items.push({});
+                    this.items.push({ expected_quantity: '', unit_cost: '' });
                 },
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+                async fetchStockInfo(productId, index) {
+                    if (!productId) return;
+                    try {
+                        const res = await fetch(`{{ route('stock-adjustments.stock-info') }}?product_id=${productId}`);
+                        const data = await res.json();
+                        this.items[index].expected_quantity = data.current_stock ?? 0;
+                        this.items[index].unit_cost = data.unit_cost ?? 0;
+                    } catch (e) {
+                        console.error('Failed to fetch stock info', e);
+                    }
                 }
             }
         }

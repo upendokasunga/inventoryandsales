@@ -16,7 +16,7 @@ class GoodsReceiptFactory extends Factory
         return [
             'purchase_order_id' => PurchaseOrder::factory(),
             'receipt_date' => fake()->date(),
-            'status' => 'draft',
+            'status' => 'completed',
             'notes' => fake()->optional()->sentence(),
             'created_by' => User::factory(),
         ];

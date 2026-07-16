@@ -17,7 +17,8 @@ class BankAccount extends Model
 
     protected $fillable = [
         'uuid', 'name', 'account_number', 'bank_name', 'branch',
-        'account_type', 'account_id', 'opening_balance', 'current_balance',
+        'account_type', 'bank_id', 'account_type_id', 'account_id',
+        'opening_balance', 'current_balance',
         'is_active', 'created_by',
     ];
 
@@ -33,6 +34,16 @@ class BankAccount extends Model
     public function coaAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class);
+    }
+
+    public function accountType(): BelongsTo
+    {
+        return $this->belongsTo(AccountType::class, 'account_type_id');
     }
 
     public function transactions(): HasMany

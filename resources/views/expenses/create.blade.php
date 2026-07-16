@@ -18,7 +18,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Amount</label>
-                        <input type="number" step="0.01" min="0" name="amount" value="{{ old('amount') }}" required class="mt-1 block w-full erp-input">
+                        <input type="number" step="0.01" min="0" name="amount" value="{{ old('amount') }}" required x-data="priceInput()" class="mt-1 block w-full erp-input">
                         @error('amount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>

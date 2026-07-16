@@ -25,7 +25,7 @@ class StoreProductRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
             'weight' => 'nullable|numeric|min:0',
 
-            'product_type' => 'nullable|in:goods,service,fixed_asset',
+            'product_type' => 'nullable|in:goods,service',
             'price' => 'nullable|numeric|min:0',
             'retail_price' => 'nullable|numeric|min:0',
             'standard_cost' => 'nullable|numeric|min:0',
@@ -50,7 +50,6 @@ class StoreProductRequest extends FormRequest
 
             'units' => 'required|array|min:1',
             'units.*.unit_id' => 'required|exists:units,id',
-            'units.*.conversion_factor' => 'required|numeric|min:0.001',
             'units.*.purchase_price' => 'nullable|numeric|min:0',
             'units.*.selling_price' => 'nullable|numeric|min:0',
             'units.*.wholesale_price' => 'nullable|numeric|min:0',

@@ -32,7 +32,7 @@ class DashboardAnalyticsService
                 ->whereIn('payment_status', ['pending', 'partial', 'overdue'])
                 ->sum('balance_due');
 
-            $outstandingPayables = PurchaseOrder::whereIn('status', ['sent', 'partially_received'])
+            $outstandingPayables = PurchaseOrder::whereIn('status', ['partially_received'])
                 ->sum('total');
 
             $monthlySales = Invoice::whereIn('status', ['approved', 'completed'])
@@ -40,7 +40,7 @@ class DashboardAnalyticsService
                 ->whereYear('invoice_date', now()->year)
                 ->sum('total');
 
-            $monthlyPurchases = PurchaseOrder::whereIn('status', ['completed', 'partially_received', 'sent'])
+            $monthlyPurchases = PurchaseOrder::whereIn('status', ['completed', 'partially_received'])
                 ->whereMonth('order_date', now()->month)
                 ->whereYear('order_date', now()->year)
                 ->sum('total');

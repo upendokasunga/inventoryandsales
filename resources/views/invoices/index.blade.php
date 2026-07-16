@@ -19,7 +19,7 @@
         <div class="mb-6 border-b border-slate-200">
             <nav class="flex space-x-4 -mb-px overflow-x-auto" role="tablist">
                 @foreach ([
-                    'all' => 'All', 'draft' => 'Draft', 'proforma' => 'Proforma',
+                    'all' => 'All', 'proforma' => 'Proforma',
                     'pending_approval' => 'Pending', 'posted' => 'Posted',
                     'paid' => 'Paid', 'partial' => 'Partial', 'overdue' => 'Overdue',
                     'cancelled' => 'Cancelled', 'reversed' => 'Reversed',
@@ -92,17 +92,17 @@
                         <td class="px-4 py-4 whitespace-nowrap text-center">
                             @php
                                 $sc = [
-                                    'draft' => 'erp-badge-draft', 'proforma' => 'erp-badge-pending',
+                                    'proforma' => 'erp-badge-pending',
                                     'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved',
                                     'posted' => 'erp-badge-fulfilled', 'completed' => 'erp-badge-fulfilled',
                                     'cancelled' => 'erp-badge-cancelled', 'reversed' => 'erp-badge-cancelled',
                                 ];
                             @endphp
-                            <span class="{{ $sc[$invoice->status] ?? 'erp-badge-draft' }}">{{ str_replace('_', ' ', ucfirst($invoice->status)) }}</span>
+                            <span class="{{ $sc[$invoice->status] ?? 'erp-badge-pending' }}">{{ str_replace('_', ' ', ucfirst($invoice->status)) }}</span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-center">
                             @php
-                                $pc = ['paid' => 'erp-badge-fulfilled', 'partial' => 'erp-badge-partial', 'overdue' => 'erp-badge-danger', 'pending' => 'erp-badge-draft', 'cancelled' => 'erp-badge-cancelled'];
+                                    $pc = ['paid' => 'erp-badge-fulfilled', 'partial' => 'erp-badge-partial', 'overdue' => 'erp-badge-danger', 'pending' => 'erp-badge-pending', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
                             <span class="{{ $pc[$invoice->payment_status] ?? 'erp-badge-draft' }}">{{ ucfirst($invoice->payment_status) }}</span>
                         </td>

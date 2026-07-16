@@ -27,7 +27,7 @@ class InvoiceFactory extends Factory
             'total' => 0,
             'amount_paid' => 0,
             'balance_due' => 0,
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'created_by' => User::factory(),
         ];
     }

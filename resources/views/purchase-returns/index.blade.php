@@ -13,7 +13,7 @@
             <x-stats-card title="Total Returns" :value="number_format($stats['total_returns'] ?? 0)" color="primary" />
             <x-stats-card title="Pending" :value="number_format($stats['pending_returns'] ?? 0)" color="warning" />
             <x-stats-card title="Approved" :value="number_format($stats['approved_returns'] ?? 0)" color="info" />
-            <x-stats-card title="Total Amount" :value="number_format($stats['total_amount'] ?? 0, 2)" color="success" />
+            <x-stats-card title="Total Amount" :value="'TSh ' . number_format($stats['total_amount'] ?? 0, 2)" color="success" />
         </div>
 
         <div class="erp-card mb-6">
@@ -59,13 +59,13 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{{ $return->return_number }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $return->supplier->name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $return->purchaseOrder->po_number ?? '-' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{{ number_format($return->total_amount, 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">TSh {{ number_format($return->total_amount, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-slate-500">{{ $return->reason ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @php
-                                $sc = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'rejected' => 'erp-badge-cancelled', 'completed' => 'erp-badge-fulfilled'];
+                                $sc = ['pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'rejected' => 'erp-badge-cancelled', 'completed' => 'erp-badge-fulfilled'];
                             @endphp
-                            <span class="{{ $sc[$return->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</span>
+                            <span class="{{ $sc[$return->status] ?? 'erp-badge-pending' }}">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $return->created_at->format('d M Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">

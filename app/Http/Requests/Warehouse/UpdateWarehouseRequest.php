@@ -17,7 +17,7 @@ class UpdateWarehouseRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'code' => ['required', 'string', 'max:20', Rule::unique('warehouses')->ignore($this->route('warehouse'))],
-            'type' => 'required|in:goods,fixed_asset',
+            'type' => 'required|in:goods',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',

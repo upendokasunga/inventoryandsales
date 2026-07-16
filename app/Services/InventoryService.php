@@ -68,9 +68,10 @@ class InventoryService
         ?string $expiryDate = null,
         ?object $reference = null,
         ?string $description = null,
-        ?int $warehouseId = null
+        ?int $warehouseId = null,
+        string $type = 'purchase_receipt'
     ): InventoryTransaction {
-        return DB::transaction(function () use ($product, $quantity, $unitCost, $batchNumber, $expiryDate, $reference, $description, $warehouseId) {
+        return DB::transaction(function () use ($product, $quantity, $unitCost, $batchNumber, $expiryDate, $reference, $description, $warehouseId, $type) {
             $balance = $this->getOrCreateBalance($product->id);
             $balanceBefore = $balance->quantity_on_hand;
             $balanceAfter = $balanceBefore + $quantity;
@@ -100,7 +101,7 @@ class InventoryService
                 'warehouse_id' => $warehouseId,
                 'reference_type' => $reference ? get_class($reference) : null,
                 'reference_id' => $reference?->id,
-                'type' => 'purchase_receipt',
+                'type' => $type,
                 'quantity' => $quantity,
                 'unit_cost' => $unitCost,
                 'total_cost' => $totalCost,
@@ -120,13 +121,14 @@ class InventoryService
         Product $product,
         float $quantity,
         ?object $reference = null,
-        ?string $description = null
+        ?string $description = null,
+        string $type = 'sale'
     ): array {
-        return DB::transaction(function () use ($product, $quantity, $reference, $description) {
+        return DB::transaction(function () use ($product, $quantity, $reference, $description, $type) {
             $balance = $this->getOrCreateBalance($product->id);
 
             if ($balance->quantity_on_hand < $quantity) {
-                throw new \InvalidArgumentException("Insufficient stock: {$balance->quantity_on_hand} available, {$quantity} required.");
+                throw new \InvalidArgumentException("Insufficient stock for {$product->name}: {$balance->quantity_on_hand} available, {$quantity} required.");
             }
 
             $balanceBefore = $balance->quantity_on_hand;
@@ -154,7 +156,7 @@ class InventoryService
                 'product_id' => $product->id,
                 'reference_type' => $reference ? get_class($reference) : null,
                 'reference_id' => $reference?->id,
-                'type' => 'sales_order',
+                'type' => $type,
                 'quantity' => -$quantity,
                 'unit_cost' => $balance->average_cost,
                 'total_cost' => $totalCost,
@@ -188,6 +190,13 @@ class InventoryService
 
             $balanceBefore = $balance->quantity_on_hand;
             $balanceAfter = $balanceBefore + $difference;
+
+            if ($balanceAfter < 0) {
+                throw new \InvalidArgumentException(
+                    "Stock adjustment would result in negative balance for {$product->name}: " .
+                    "current {$balanceBefore}, adjustment {$difference}, would result in {$balanceAfter}."
+                );
+            }
 
             $adjustmentCost = abs($difference) * $unitCost;
             if ($difference > 0) {

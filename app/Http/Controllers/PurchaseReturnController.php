@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseReturn\StorePurchaseReturnRequest;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
 use App\Services\PurchaseReturnService;
 use Illuminate\Http\RedirectResponse;
@@ -23,9 +24,37 @@ class PurchaseReturnController extends Controller
         return view('purchase-returns.index', compact('returns', 'stats'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('purchase-returns.create');
+        $purchaseOrders = PurchaseOrder::with(['supplier'])
+            ->whereIn('status', ['approved', 'partially_received'])
+            ->get();
+
+        $selectedOrder = null;
+        $poItems = [];
+
+        if ($poId = $request->query('purchase_order_id')) {
+            $selectedOrder = PurchaseOrder::with(['items.product'])
+                ->find($poId);
+
+            if ($selectedOrder && in_array($selectedOrder->status, ['approved', 'partially_received'])) {
+                $supplierId = $selectedOrder->supplier_id;
+                $poItems = $selectedOrder->items->map(function ($item) {
+                    $returnable = max(0, $item->received_quantity - ($item->returnable_quantity ?? 0));
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name ?? 'N/A',
+                        'product_unit_id' => $item->product_unit_id ?? null,
+                        'quantity' => $returnable,
+                        'received_quantity' => $item->received_quantity,
+                        'unit_price' => $item->unit_price,
+                        'returnable' => $returnable,
+                    ];
+                })->filter(fn ($item) => $item['returnable'] > 0)->values();
+            }
+        }
+
+        return view('purchase-returns.create', compact('purchaseOrders', 'selectedOrder', 'poItems'));
     }
 
     public function store(StorePurchaseReturnRequest $request): RedirectResponse
@@ -47,7 +76,7 @@ class PurchaseReturnController extends Controller
         try {
             $this->purchaseReturnService->approve($purchaseReturn);
             return redirect()->route('purchase-returns.show', $purchaseReturn)
-                ->with('success', 'Purchase return approved. Inventory deducted.');
+                ->with('success', 'Purchase return approved. Inventory deducted and PO payment adjusted.');
         } catch (\Exception $e) {
             return redirect()->route('purchase-returns.show', $purchaseReturn)
                 ->with('error', $e->getMessage());

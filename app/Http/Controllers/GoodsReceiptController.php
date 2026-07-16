@@ -35,20 +35,20 @@ class GoodsReceiptController extends Controller
 
     public function create(Request $request): View
     {
-        $purchaseOrder = null;
+        $selectedOrder = null;
         $orders = PurchaseOrder::with('supplier')
-            ->whereIn('status', ['sent', 'partially_received'])
+            ->whereIn('status', ['approved', 'partially_received'])
             ->latest()
             ->get();
 
         if ($request->filled('purchase_order_id')) {
-            $purchaseOrder = PurchaseOrder::with(['items.product', 'supplier'])
+            $selectedOrder = PurchaseOrder::with(['items.product', 'supplier'])
                 ->findOrFail($request->purchase_order_id);
         }
 
         $warehouses = Warehouse::active()->get();
 
-        return view('purchasing.receipts.create', compact('orders', 'purchaseOrder', 'warehouses'));
+        return view('purchasing.receipts.create', compact('orders', 'selectedOrder', 'warehouses'));
     }
 
     public function store(StoreGoodsReceiptRequest $request): RedirectResponse
@@ -57,7 +57,8 @@ class GoodsReceiptController extends Controller
         $data = $request->safe()->except('items');
         $items = $request->input('items', []);
 
-        $this->receiptService->createFromPO($purchaseOrder, $data, $items);
+        $receipt = $this->receiptService->createFromPO($purchaseOrder, $data, $items);
+        $this->receiptService->complete($receipt);
 
         return redirect()->route('purchasing.receipts.index')
             ->with('success', 'Goods receipt created.');
@@ -65,7 +66,7 @@ class GoodsReceiptController extends Controller
 
     public function show(GoodsReceipt $goodsReceipt): View
     {
-        $goodsReceipt->load(['purchaseOrder.supplier', 'warehouse', 'items.product', 'creator']);
+        $goodsReceipt->load(['purchaseOrder.supplier', 'warehouse', 'items.product', 'items.purchaseOrderItem', 'creator']);
         return view('purchasing.receipts.show', compact('goodsReceipt'));
     }
 

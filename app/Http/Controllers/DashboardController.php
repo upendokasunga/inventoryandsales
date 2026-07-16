@@ -62,7 +62,7 @@ class DashboardController extends Controller
 
             $creditCustomers = Customer::where('outstanding_balance', '>', 0)->count();
 
-            $pendingPurchases = PurchaseOrder::whereIn('status', ['draft', 'pending_approval', 'approved', 'sent', 'partially_received'])->count();
+            $pendingPurchases = PurchaseOrder::whereIn('status', ['pending_approval', 'approved', 'partially_received'])->count();
             $activeSuppliers = Supplier::where('is_active', true)->count();
 
             return [

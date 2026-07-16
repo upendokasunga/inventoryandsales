@@ -20,9 +20,24 @@ class StockAdjustment extends Model implements Approvable
         return 'stock_adjustment';
     }
 
+    public function getAllowedApprovalTransitions(): array
+    {
+        return [
+            'pending_approval' => ['approved', 'cancelled'],
+            'approved' => ['completed', 'cancelled'],
+            'completed' => [],
+            'cancelled' => [],
+        ];
+    }
+
+    public function getApprovedStatus(): string
+    {
+        return 'approved';
+    }
+
     public const TYPES = ['positive', 'negative', 'transfer', 'return'];
     public const REASONS = ['damaged', 'lost', 'found', 'expired', 'recount', 'theft', 'audit_count', 'correction', 'return', 'other'];
-    public const STATUSES = ['draft', 'pending_approval', 'approved', 'completed', 'cancelled'];
+    public const STATUSES = ['pending_approval', 'approved', 'completed', 'cancelled'];
 
     protected $fillable = [
         'adjustment_number', 'type', 'reason', 'description',

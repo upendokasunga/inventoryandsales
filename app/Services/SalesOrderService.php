@@ -66,7 +66,7 @@ class SalesOrderService
     {
         return DB::transaction(function () use ($data, $items) {
             $data['created_by'] = auth()->id();
-            $data['status'] = 'draft';
+            $data['status'] = 'pending_approval';
 
             $customer = \App\Models\Customer::find($data['customer_id']);
             $customerGroupId = $customer?->customer_group_id;
@@ -207,7 +207,6 @@ class SalesOrderService
         return Cache::remember('sales.order.stats', 3600, function () {
             return [
                 'total' => SalesOrder::count(),
-                'draft' => SalesOrder::where('status', 'draft')->count(),
                 'pending_approval' => SalesOrder::where('status', 'pending_approval')->count(),
                 'approved' => SalesOrder::where('status', 'approved')->count(),
                 'reserved' => SalesOrder::where('status', 'reserved')->count(),

@@ -95,11 +95,6 @@ class Product extends Model
         return $query->where('product_type', 'service');
     }
 
-    public function scopeFixedAssets($query)
-    {
-        return $query->where('product_type', 'fixed_asset');
-    }
-
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);

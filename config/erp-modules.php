@@ -35,7 +35,6 @@ return [
             'icon' => 'truck',
             'route' => null,
             'children' => [
-                ['name' => 'Purchase Suggestions',  'route' => 'purchasing.suggestions.index', 'section' => 'Orders'],
                 ['name' => 'Purchase Orders',        'route' => 'purchasing.orders.index',      'section' => 'Orders'],
                 ['name' => 'Goods Receiving',        'route' => 'purchasing.receipts.index',    'section' => 'Orders'],
                 ['name' => 'Purchase Returns',       'route' => 'purchase-returns.index',       'section' => 'Returns'],
@@ -50,6 +49,7 @@ return [
             'icon' => 'archive',
             'route' => null,
             'children' => [
+                ['name' => 'Available Stock',     'route' => 'inventory.available-stock', 'section' => 'Operations'],
                 ['name' => 'Stock Adjustments',    'route' => 'stock-adjustments.index',     'section' => 'Operations'],
                 ['name' => 'Store Requests',       'route' => 'store-requests.index',        'section' => 'Operations'],
                 ['name' => 'Stock Transfers',      'route' => 'stock-transfers.index',       'section' => 'Operations'],
@@ -64,7 +64,7 @@ return [
             'icon' => 'shopping-cart',
             'route' => null,
             'children' => [
-                ['name' => 'Sales Orders',     'route' => 'sales.orders.index',    'section' => 'Orders'],
+                ['name' => 'Proforma Invoices', 'route' => 'sales.orders.index',    'section' => 'Orders'],
                 ['name' => 'Invoices',         'route' => 'invoices.index',        'section' => 'Orders'],
                 ['name' => 'POS',              'route' => 'sales.new',             'section' => 'POS'],
                 ['name' => 'Payments',         'route' => 'payments.index',        'section' => 'Payments'],
@@ -85,11 +85,20 @@ return [
                 ['name' => 'Expenses',            'route' => 'expenses.index',             'section' => 'Accounting'],
                 ['name' => 'Accounts Receivable', 'route' => 'customers.statement',        'section' => 'Receivables'],
                 ['name' => 'Accounts Payable',    'route' => null,                         'section' => 'Payables'],
-                ['name' => 'Bank Accounts',      'route' => 'bank-accounts.index',        'section' => 'Banking'],
                 ['name' => 'Reconciliations',    'route' => 'bank-reconciliations.index',  'section' => 'Banking'],
                 ['name' => 'Tax',                 'route' => 'reports.tax',                'section' => 'Taxation'],
                 ['name' => 'Profit Analysis',     'route' => 'reports.profit',             'section' => 'Profitability'],
                 ['name' => 'Financial Statements','route' => null,                         'section' => 'Reporting'],
+            ],
+        ],
+
+        [
+            'name' => 'Banking',
+            'icon' => 'building-library',
+            'route' => null,
+            'children' => [
+                ['name' => 'Bank Institutions', 'route' => 'banks.index',           'section' => 'Registration'],
+                ['name' => 'Bank Accounts',     'route' => 'bank-accounts.index',   'section' => 'Registration'],
             ],
         ],
 

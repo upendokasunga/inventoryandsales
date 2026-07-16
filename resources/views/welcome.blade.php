@@ -154,8 +154,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Sales Orders</h3>
-                        <p class="text-sm text-slate-600">Create and manage sales orders with customer credit tracking and multi-unit pricing.</p>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Proforma Invoices</h3>
+                        <p class="text-sm text-slate-600">Create and manage proforma invoices with customer credit tracking and multi-unit pricing.</p>
                     </div>
 
                     {{-- Feature: Reports --}}

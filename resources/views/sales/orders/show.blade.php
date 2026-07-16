@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">{{ __('Sales Order') }}: {{ $salesOrder->so_number }}</x-slot>
+    <x-slot name="header">{{ __('Proforma Invoice') }}: {{ $salesOrder->so_number }}</x-slot>
 
     <div class="max-w-7xl mx-auto">
         @if (session('error'))
@@ -10,43 +10,23 @@
             <a href="{{ route('sales.orders.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
                 <a href="{{ route('sales.orders.print', $salesOrder) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
-                @if ($salesOrder->status === 'draft')
-                    <a href="{{ route('sales.orders.edit', $salesOrder) }}" class="erp-btn-primary">Edit</a>
-                    <form action="{{ route('sales.orders.submit-approval', $salesOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="erp-btn-secondary">Submit for Approval</button>
-                    </form>
-                @endif
                 @if ($salesOrder->status === 'pending_approval')
-                    <form action="{{ route('sales.orders.approve', $salesOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="erp-btn-primary">Approve</button>
-                    </form>
-                    <form action="{{ route('sales.orders.reject', $salesOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="erp-btn-danger">Reject</button>
-                    </form>
-                @endif
-                @if ($salesOrder->status === 'approved')
-                    <form action="{{ route('sales.orders.reserve', $salesOrder) }}" method="POST" class="inline"
-                        onsubmit="return confirm('Reserve stock for this order?');">
-                        @csrf
-                        <button type="submit" class="erp-btn-primary">Reserve Stock</button>
-                    </form>
-                @endif
-                @if (in_array($salesOrder->status, ['reserved', 'partially_fulfilled']))
-                    <form action="{{ route('sales.orders.fulfill', $salesOrder) }}" method="POST" class="inline"
-                        onsubmit="return confirm('Fulfill this order? This will deduct stock and update credit.');">
-                        @csrf
-                        <button type="submit" class="erp-btn-primary bg-green-600 hover:bg-green-700">Fulfill</button>
-                    </form>
-                @endif
-                @if (in_array($salesOrder->status, ['draft', 'pending_approval', 'approved']))
+                    <a href="{{ route('sales.orders.edit', $salesOrder) }}" class="erp-btn-primary">Edit</a>
+                    @if (!$salesOrder->invoices()->exists())
+                        <form action="{{ route('sales.orders.generate-invoice', $salesOrder) }}" method="POST" class="inline"
+                            onsubmit="return confirm('Generate an invoice from this proforma?');">
+                            @csrf
+                            <button type="submit" class="erp-btn-primary">Generate Invoice</button>
+                        </form>
+                    @endif
                     <form action="{{ route('sales.orders.cancel', $salesOrder) }}" method="POST" class="inline"
-                        onsubmit="return confirm('Cancel this order?');">
+                        onsubmit="return confirm('Cancel this proforma?');">
                         @csrf
                         <button type="submit" class="erp-btn-danger">Cancel</button>
                     </form>
+                @endif
+                @if ($salesOrder->invoices()->exists())
+                    <a href="{{ route('invoices.show', $salesOrder->invoices()->first()) }}" class="erp-btn-secondary">View Invoice</a>
                 @endif
             </div>
         </div>
@@ -55,7 +35,7 @@
             <div class="p-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div>
-                        <h3 class="text-sm font-medium text-slate-500 mb-4">Order Information</h3>
+                        <h3 class="text-sm font-medium text-slate-500 mb-4">Proforma Information</h3>
                         <dl class="space-y-3">
                             <div class="flex justify-between">
                                 <dt class="text-sm text-slate-500">SO Number</dt>
@@ -77,7 +57,7 @@
                                 <dt class="text-sm text-slate-500">Status</dt>
                                 <dd>
                                     @php
-                                        $c = ['draft' => 'bg-slate-100 text-slate-600', 'pending_approval' => 'bg-amber-100 text-amber-700', 'approved' => 'bg-blue-100 text-blue-700', 'reserved' => 'bg-purple-100 text-purple-700', 'partially_fulfilled' => 'bg-amber-100 text-amber-700', 'fulfilled' => 'bg-green-100 text-green-700', 'cancelled' => 'bg-red-100 text-red-700'];
+                                        $c = ['pending_approval' => 'bg-amber-100 text-amber-700', 'approved' => 'bg-blue-100 text-blue-700', 'reserved' => 'bg-purple-100 text-purple-700', 'partially_fulfilled' => 'bg-amber-100 text-amber-700', 'fulfilled' => 'bg-green-100 text-green-700', 'cancelled' => 'bg-red-100 text-red-700'];
                                     @endphp
                                     <span class="px-2 py-1 text-xs font-medium rounded-full {{ $c[$salesOrder->status] ?? 'bg-slate-100 text-slate-600' }}">{{ ucfirst(str_replace('_', ' ', $salesOrder->status)) }}</span>
                                 </dd>
@@ -146,7 +126,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden mb-6">
             <div class="p-6">
-                <h3 class="text-sm font-medium text-slate-500 mb-4">Order Items</h3>
+                <h3 class="text-sm font-medium text-slate-500 mb-4">Line Items</h3>
                 <table class="min-w-full divide-y divide-slate-100">
                     <thead>
                         <tr>

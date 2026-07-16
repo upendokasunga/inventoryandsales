@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BankAccount\StoreBankAccountRequest;
 use App\Http\Requests\BankAccount\UpdateBankAccountRequest;
-use App\Models\Account;
+use App\Models\AccountType;
+use App\Models\Bank;
 use App\Models\BankAccount;
 use App\Services\BankingService;
 use Illuminate\Http\RedirectResponse;
@@ -26,8 +27,9 @@ class BankAccountController extends Controller
 
     public function create(): View
     {
-        $coaAccounts = Account::where('is_active', true)->where('type', 'asset')->orderBy('code')->get();
-        return view('bank-accounts.create', compact('coaAccounts'));
+        $banks = Bank::orderBy('name')->get();
+        $accountTypes = AccountType::active()->ordered()->get();
+        return view('bank-accounts.create', compact('banks', 'accountTypes'));
     }
 
     public function store(StoreBankAccountRequest $request): RedirectResponse
@@ -39,7 +41,7 @@ class BankAccountController extends Controller
 
     public function show(BankAccount $bankAccount): View
     {
-        $bankAccount->load(['coaAccount', 'creator', 'transactions' => function ($q) {
+        $bankAccount->load(['coaAccount', 'bank', 'accountType', 'creator', 'transactions' => function ($q) {
             $q->latest('transaction_date')->limit(10);
         }]);
         return view('bank-accounts.show', compact('bankAccount'));
@@ -47,8 +49,9 @@ class BankAccountController extends Controller
 
     public function edit(BankAccount $bankAccount): View
     {
-        $coaAccounts = Account::where('is_active', true)->where('type', 'asset')->orderBy('code')->get();
-        return view('bank-accounts.edit', compact('bankAccount', 'coaAccounts'));
+        $banks = Bank::orderBy('name')->get();
+        $accountTypes = AccountType::active()->ordered()->get();
+        return view('bank-accounts.edit', compact('bankAccount', 'banks', 'accountTypes'));
     }
 
     public function update(UpdateBankAccountRequest $request, BankAccount $bankAccount): RedirectResponse

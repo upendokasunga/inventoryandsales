@@ -88,14 +88,19 @@ class SalesReturnService
 
             foreach ($salesReturn->items as $item) {
                 $product = Product::findOrFail($item->product_id);
+                $balance = $this->inventoryService->getOrCreateBalance($product->id);
+                $unitCost = $balance->average_cost > 0 ? $balance->average_cost : (float) $product->standard_cost;
+
                 $this->inventoryService->receiveStock(
                     $product,
                     $item->quantity,
-                    0,
+                    $unitCost,
                     null,
                     null,
                     $salesReturn,
-                    "Sales return: {$item->reason}"
+                    "Sales return {$salesReturn->return_number}: {$item->quantity} units ({$item->reason})",
+                    null,
+                    'sale_return'
                 );
             }
 

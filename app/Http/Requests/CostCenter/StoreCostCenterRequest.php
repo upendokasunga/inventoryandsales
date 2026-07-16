@@ -15,7 +15,6 @@ class StoreCostCenterRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100|unique:cost_centers',
-            'code' => 'nullable|string|max:50|unique:cost_centers',
             'description' => 'nullable|string|max:500',
             'is_active' => 'boolean',
         ];

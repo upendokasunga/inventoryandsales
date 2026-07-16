@@ -82,6 +82,7 @@
                         <textarea name="notes" id="notes" rows="3"
                             class="mt-1 block w-full erp-input">{{ old('notes') }}</textarea>
                     </div>
+
                     <div class="mb-4">
                         <label class="inline-flex items-center">
                             <input type="checkbox" name="is_active" value="1" checked

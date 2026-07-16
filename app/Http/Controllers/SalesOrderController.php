@@ -72,9 +72,9 @@ class SalesOrderController extends Controller
 
     public function edit(SalesOrder $salesOrder)
     {
-        if ($salesOrder->status !== 'draft') {
+        if ($salesOrder->status !== 'pending_approval') {
             return redirect()->route('sales.orders.show', $salesOrder)
-                ->with('error', 'Only draft orders can be edited.');
+                ->with('error', 'Only pending orders can be edited.');
         }
 
         $customers = Customer::where('is_active', true)->orderBy('name')->get();
@@ -86,9 +86,9 @@ class SalesOrderController extends Controller
 
     public function update(UpdateSalesOrderRequest $request, SalesOrder $salesOrder)
     {
-        if ($salesOrder->status !== 'draft') {
+        if ($salesOrder->status !== 'pending_approval') {
             return redirect()->route('sales.orders.show', $salesOrder)
-                ->with('error', 'Only draft orders can be edited.');
+                ->with('error', 'Only pending orders can be edited.');
         }
 
         $data = $request->validated();
@@ -138,7 +138,7 @@ class SalesOrderController extends Controller
         try {
             $this->centralApproval->reject($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
-                ->with('success', 'Order returned to draft.');
+                ->with('success', 'Order rejected and cancelled.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('error', $e->getMessage());
@@ -209,6 +209,18 @@ class SalesOrderController extends Controller
             $this->centralApproval->cancel($salesOrder);
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('success', 'Order cancelled.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('sales.orders.show', $salesOrder)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function generateInvoice(SalesOrder $salesOrder)
+    {
+        try {
+            $invoice = app(\App\Services\InvoiceService::class)->createFromProforma($salesOrder);
+            return redirect()->route('invoices.show', $invoice)
+                ->with('success', 'Invoice generated from proforma.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->route('sales.orders.show', $salesOrder)
                 ->with('error', $e->getMessage());

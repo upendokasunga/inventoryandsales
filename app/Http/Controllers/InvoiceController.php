@@ -46,16 +46,20 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::where('is_active', true)->orderBy('name')->get();
         $stores = \App\Models\Warehouse::orderBy('name')->get();
-        $paymentAccounts = \App\Models\Account::where('type', 'asset')
-            ->whereHas('parent', fn($q) => $q->where('code', 'like', '110%'))
-            ->orWhere('code', 'like', '110%')
-            ->orderBy('name')
+        $bankAccounts = \App\Models\Account::where('is_active', true)
+            ->where('ifrs_category', 'bank')
+            ->orderBy('code')
             ->get();
+        $cashAccounts = \App\Models\Account::where('is_active', true)
+            ->where('ifrs_category', 'cash')
+            ->orderBy('code')
+            ->get();
+        $paymentAccounts = $bankAccounts->merge($cashAccounts);
         $costCenters = \App\Models\CostCenter::all();
         $currencies = ['TZS', 'USD', 'EUR'];
 
         return view('invoices.create', compact(
-            'customers', 'stores', 'paymentAccounts', 'costCenters', 'currencies'
+            'customers', 'stores', 'bankAccounts', 'cashAccounts', 'costCenters', 'currencies'
         ));
     }
 
@@ -66,7 +70,7 @@ class InvoiceController extends Controller
         }
 
         $data = $request->validated();
-        $data['status'] = 'draft';
+        $data['status'] = 'pending_approval';
         $invoice = $this->invoiceService->create($data);
 
         if (Approvals::isLevelZero('invoice')) {
@@ -93,7 +97,7 @@ class InvoiceController extends Controller
     public function storeDraft(StoreInvoiceRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['status'] = 'draft';
+        $data['status'] = 'pending_approval';
         $data['amount_paid'] = 0;
 
         $invoice = $this->invoiceService->create($data);
@@ -101,18 +105,18 @@ class InvoiceController extends Controller
         Cache::forget('invoices.stats');
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', 'Draft invoice saved.');
+            ->with('success', 'Invoice saved.');
     }
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit', 'payments', 'creator', 'approver']);
+        $invoice->load(['customer', 'items.product', 'items.store', 'items.unit', 'payments', 'creator', 'approver']);
         return view('invoices.show', compact('invoice'));
     }
 
     public function edit(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
+        $invoice->load(['customer', 'items.product', 'items.store', 'items.unit']);
         return view('invoices.edit', compact('invoice'));
     }
 
@@ -126,9 +130,9 @@ class InvoiceController extends Controller
 
     public function convertToProforma(Invoice $invoice): RedirectResponse
     {
-        if ($invoice->status !== 'draft') {
+        if ($invoice->status !== 'pending_approval') {
             return redirect()->route('invoices.show', $invoice)
-                ->with('error', 'Only draft invoices can be converted to proforma.');
+                ->with('error', 'Only pending invoices can be converted to proforma.');
         }
 
         $invoice->update(['status' => 'proforma']);
@@ -141,19 +145,19 @@ class InvoiceController extends Controller
     {
         if ($invoice->status !== 'proforma') {
             return redirect()->route('invoices.show', $invoice)
-                ->with('error', 'Only proforma invoices can be reverted to draft.');
+                ->with('error', 'Only proforma invoices can be reverted.');
         }
 
-        $invoice->update(['status' => 'draft']);
+        $invoice->update(['status' => 'pending_approval']);
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', 'Proforma reverted to draft successfully.');
+            ->with('success', 'Proforma reverted to pending status.');
     }
 
     public function approve(Invoice $invoice): RedirectResponse
     {
         try {
-            if (in_array($invoice->status, ['draft', 'proforma'])) {
+            if (in_array($invoice->status, ['pending_approval', 'proforma'])) {
                 $this->centralApproval->submit($invoice);
             }
             if ($invoice->status !== 'posted') {
@@ -191,7 +195,7 @@ class InvoiceController extends Controller
 
     public function returnCreate(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
+        $invoice->load(['customer', 'items.product', 'items.store', 'items.unit']);
         return view('invoices.return-create', compact('invoice'));
     }
 
@@ -226,7 +230,7 @@ class InvoiceController extends Controller
 
     public function discountCreate(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'items.product', 'items.subProduct', 'items.store', 'items.unit']);
+        $invoice->load(['customer', 'items.product', 'items.store', 'items.unit']);
         return view('invoices.discount-create', compact('invoice'));
     }
 

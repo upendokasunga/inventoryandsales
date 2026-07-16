@@ -35,7 +35,6 @@
                             <option value="">Select Type</option>
                             <option value="goods" {{ old('product_type', $product->product_type) == 'goods' ? 'selected' : '' }}>Goods</option>
                             <option value="service" {{ old('product_type', $product->product_type) == 'service' ? 'selected' : '' }}>Service</option>
-                            <option value="fixed_asset" {{ old('product_type', $product->product_type) == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                         </select>
                         @error('product_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -48,11 +47,6 @@
                             @endforeach
                         </select>
                         @error('category_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label for="category" class="block text-sm font-medium text-slate-700">Category (text)</label>
-                        <input type="text" name="category" id="category" value="{{ old('category', $product->category) }}" placeholder="Additional category info" class="mt-1 block w-full erp-input">
-                        @error('category') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="md:col-span-3">
                         <label for="description" class="block text-sm font-medium text-slate-700">Description</label>
@@ -87,7 +81,7 @@
                         @forelse ($product->productUnits as $i => $pu)
                             <div class="unit-row grid grid-cols-12 gap-3 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                                 <input type="hidden" name="units[{{ $i }}][id]" value="{{ $pu->id }}">
-                                <div class="col-span-5">
+                                <div class="col-span-10">
                                     <label class="block text-xs font-medium text-slate-600 mb-1">Unit</label>
                                     <select name="units[{{ $i }}][unit_id]" required class="block w-full erp-input text-sm">
                                         <option value="">Select</option>
@@ -95,10 +89,6 @@
                                             <option value="{{ $unit->id }}" {{ $pu->unit_id == $unit->id ? 'selected' : '' }}>{{ $unit->short_code ?? $unit->name }}</option>
                                         @endforeach
                                     </select>
-                                </div>
-                                <div class="col-span-5">
-                                    <label class="block text-xs font-medium text-slate-600 mb-1">Conversion Factor</label>
-                                    <input type="number" step="0.001" min="0.001" name="units[{{ $i }}][conversion_factor]" value="{{ $pu->conversion_factor }}" required class="block w-full erp-input text-sm">
                                 </div>
                                 <div class="col-span-2 pt-5">
                                     <button type="button" class="remove-unit text-red-500 hover:text-red-700" title="Remove">

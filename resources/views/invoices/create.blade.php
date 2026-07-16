@@ -53,9 +53,20 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Payment Account</label>
                     <select name="payment_account_id" class="erp-input w-full">
                         <option value="">Select</option>
-                        @foreach($paymentAccounts as $a)
-                            <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
-                        @endforeach
+                        @if($bankAccounts->count())
+                            <optgroup label="Bank Accounts">
+                                @foreach($bankAccounts as $a)
+                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if($cashAccounts->count())
+                            <optgroup label="Cash Registers">
+                                @foreach($cashAccounts as $a)
+                                    <option value="{{ $a->id }}">{{ $a->code }} - {{ $a->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
                     @error('payment_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
@@ -150,7 +161,7 @@
                                     <td class="px-3 py-2 text-right">
                                         <input type="number" x-model="item.discount" @input="updateLine(index)" step="0.01" min="0" class="erp-input w-20 text-right">
                                     </td>
-                                    <td class="px-3 py-2 text-right font-medium" x-text="formatCurrency(item.line_total)"></td>
+                                    <td class="px-3 py-2 text-right font-medium" x-text="formatPrice(item.line_total)"></td>
                                     <td class="px-3 py-2 text-center">
                                         <button type="button" @click="removeItem(index)" class="text-danger text-xs">Remove</button>
                                     </td>
@@ -160,23 +171,23 @@
                         <tfoot>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm">Subtotal:</td>
-                                <td class="px-3 py-2 text-right text-sm" x-text="formatCurrency(subtotal)"></td>
+                                <td class="px-3 py-2 text-right text-sm" x-text="formatPrice(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm text-red-600">Total Discount:</td>
-                                <td class="px-3 py-2 text-right text-sm text-red-600" x-text="formatCurrency(totalDiscount)"></td>
+                                <td class="px-3 py-2 text-right text-sm text-red-600" x-text="formatPrice(totalDiscount)"></td>
                                 <td></td>
                             </tr>
                             <tr class="bg-slate-50 font-semibold">
                                 <td colspan="5" class="px-3 py-2 text-right text-sm">Total:</td>
-                                <td class="px-3 py-2 text-right text-sm text-lg font-bold" x-text="formatCurrency(grandTotal)"></td>
+                                <td class="px-3 py-2 text-right text-sm text-lg font-bold" x-text="formatPrice(grandTotal)"></td>
                                 <td></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
-                <button type="button" @click="addItem" class="mt-3 px-3 py-1.5 text-sm text-primary border border-primary rounded-lg hover:bg-primary-50 transition">+ Add Item</button>
+                <button type="button" @click="addItem" class="mt-3 erp-btn-secondary">+ Add Item</button>
             </div>
 
             {{-- Hidden fields for items --}}
@@ -219,13 +230,13 @@
                 loadProduct(index) {
                     const productId = this.items[index].product_id;
                     if (!productId) return;
-                    fetch(`/pos/barcode?barcode=${productId}`)
+                    const qty = parseFloat(this.items[index].quantity) || 1;
+                    let url = `/pos/price-simple?product_id=${productId}&quantity=${qty}`;
+                    fetch(url)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.product) {
-                                this.items[index].unit_price = parseFloat(data.product.unit_price);
-                                this.updateLine(index);
-                            }
+                            this.items[index].unit_price = parseFloat(data.unit_price);
+                            this.updateLine(index);
                         })
                         .catch(() => {});
                 },
@@ -237,9 +248,6 @@
                 },
                 get grandTotal() {
                     return this.subtotal - this.totalDiscount;
-                },
-                formatCurrency(value) {
-                    return new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
                 },
                 init() {
                     this.$watch('selectedCustomer', (val) => {

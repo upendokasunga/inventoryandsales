@@ -84,7 +84,7 @@ class CentralApprovalService
         $this->logAction($tracking, 'rejected', $comments);
 
         $model->onRejected();
-        $model->setApprovalStatus('draft');
+        $model->setApprovalStatus('cancelled');
     }
 
     public function cancel(Approvable $model, ?string $comments = null): void

@@ -5,8 +5,7 @@ namespace App\Traits;
 trait HasApprovalWorkflow
 {
     protected array $approvalTransitions = [
-        'draft' => ['pending_approval', 'cancelled'],
-        'pending_approval' => ['approved', 'draft', 'cancelled'],
+        'pending_approval' => ['approved', 'cancelled'],
         'approved' => ['cancelled'],
         'cancelled' => [],
     ];

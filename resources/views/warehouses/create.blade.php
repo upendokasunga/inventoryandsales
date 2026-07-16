@@ -16,16 +16,14 @@
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label for="code" class="block text-sm font-medium text-slate-700">Code</label>
-                        <input type="text" name="code" id="code" value="{{ old('code') }}" required class="mt-1 block w-full erp-input">
-                        @error('code') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        <label class="block text-sm font-medium text-slate-700">Code</label>
+                        <p class="mt-1 block w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500">Auto-generated</p>
                     </div>
                     <div>
                         <label for="type" class="block text-sm font-medium text-slate-700">Type</label>
                         <select name="type" id="type" required class="mt-1 block w-full erp-input">
                             <option value="">Select Type</option>
                             <option value="goods" {{ old('type') == 'goods' ? 'selected' : '' }}>Goods</option>
-                            <option value="fixed_asset" {{ old('type') == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                         </select>
                         @error('type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>

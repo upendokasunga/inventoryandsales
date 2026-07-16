@@ -15,6 +15,7 @@ class PosController extends Controller
 {
     public function __construct(
         protected PosService $posService,
+        protected \App\Services\PricingService $pricingService,
     ) {}
 
     public function index(): View
@@ -107,6 +108,30 @@ class PosController extends Controller
         );
 
         return response()->json(['price' => $price]);
+    }
+
+    public function getPriceSimple(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|numeric|min:0.001',
+            'customer_group_id' => 'nullable|exists:customer_groups,id',
+        ]);
+
+        $product = \App\Models\Product::findOrFail($request->product_id);
+        $unitId = $product->units()->first()?->id ?? 1;
+
+        $price = $this->pricingService->getPrice(
+            $request->product_id,
+            $unitId,
+            $request->quantity,
+            $request->customer_group_id
+        );
+
+        return response()->json([
+            'price' => $price,
+            'unit_price' => $price['price'] ?? $product->price,
+        ]);
     }
 
     public function validateCredit(Request $request): \Illuminate\Http\JsonResponse

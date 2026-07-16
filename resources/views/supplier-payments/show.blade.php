@@ -82,10 +82,6 @@
                                         <span class="text-slate-500">Balance Due</span>
                                         <span class="font-medium {{ $remaining > 0 ? 'text-red-600' : 'text-emerald-600' }}">{{ number_format($remaining, 2) }}</span>
                                     </div>
-                                    <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                        <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ $pct }}%"></div>
-                                    </div>
-                                    <p class="text-xs text-slate-500 text-right">{{ $pct }}% paid</p>
                                 </div>
                             </div>
                         @endif
@@ -115,7 +111,7 @@
                                         <label class="block text-sm font-medium text-slate-700">Payment Account</label>
                                         <select name="payment_account_id" required class="mt-1 block w-full erp-input">
                                             <option value="">Select Account</option>
-                                            @foreach (\App\Models\Account::where('type', 'asset')->where('is_active', true)->get() as $acct)
+                                            @foreach ($paymentAccounts as $acct)
                                                 <option value="{{ $acct->id }}">{{ $acct->name }} ({{ $acct->code }})</option>
                                             @endforeach
                                         </select>

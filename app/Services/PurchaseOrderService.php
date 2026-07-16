@@ -58,7 +58,7 @@ class PurchaseOrderService
     {
         return DB::transaction(function () use ($data, $items) {
             $data['created_by'] = auth()->id();
-            $data['status'] = 'draft';
+            $data['status'] = 'pending_approval';
 
             $subtotal = 0;
             $poItems = [];
@@ -144,10 +144,8 @@ class PurchaseOrderService
         return Cache::remember('purchasing.order.stats', 3600, function () {
             return [
                 'total' => PurchaseOrder::count(),
-                'draft' => PurchaseOrder::where('status', 'draft')->count(),
                 'pending_approval' => PurchaseOrder::where('status', 'pending_approval')->count(),
                 'approved' => PurchaseOrder::where('status', 'approved')->count(),
-                'sent' => PurchaseOrder::where('status', 'sent')->count(),
                 'partially_received' => PurchaseOrder::where('status', 'partially_received')->count(),
                 'completed' => PurchaseOrder::where('status', 'completed')->count(),
                 'cancelled' => PurchaseOrder::where('status', 'cancelled')->count(),

@@ -22,7 +22,7 @@ class SalesOrder extends Model implements Approvable
     }
 
     public const STATUSES = [
-        'draft', 'proforma', 'pending_approval', 'approved', 'reserved',
+        'pending_approval', 'approved', 'reserved',
         'picking', 'packed', 'partially_fulfilled', 'fulfilled',
         'invoiced', 'cancelled',
     ];
@@ -76,6 +76,11 @@ class SalesOrder extends Model implements Approvable
     public function reservations(): HasMany
     {
         return $this->hasMany(StockReservation::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class, 'sales_order_id');
     }
 
     public function creator(): BelongsTo

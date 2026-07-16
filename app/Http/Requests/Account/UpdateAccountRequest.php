@@ -23,6 +23,8 @@ class UpdateAccountRequest extends FormRequest
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'opening_balance' => 'nullable|numeric|min:0',
+            'allow_overdraft' => 'boolean',
+            'overdraft_limit' => 'nullable|numeric|min:0',
         ];
     }
 }

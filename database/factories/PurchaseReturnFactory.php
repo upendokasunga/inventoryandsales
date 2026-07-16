@@ -18,7 +18,7 @@ class PurchaseReturnFactory extends Factory
             'return_number' => 'PR-' . now()->year . '-' . str_pad((string) $this->faker->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
             'supplier_id' => Supplier::factory(),
             'total_amount' => $this->faker->randomFloat(2, 1000, 500000),
-            'status' => 'draft',
+            'status' => 'pending_approval',
             'created_by' => User::factory(),
         ];
     }

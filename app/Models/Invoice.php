@@ -24,9 +24,8 @@ class Invoice extends Model implements Approvable
     public function getAllowedApprovalTransitions(): array
     {
         return [
-            'draft' => ['proforma', 'pending_approval', 'cancelled'],
-            'proforma' => ['pending_approval', 'draft', 'cancelled'],
-            'pending_approval' => ['approved', 'draft', 'cancelled'],
+            'proforma' => ['pending_approval', 'cancelled'],
+            'pending_approval' => ['approved', 'cancelled'],
             'approved' => ['posted', 'cancelled'],
             'posted' => ['cancelled', 'reversed'],
             'completed' => ['reversed'],
@@ -37,7 +36,7 @@ class Invoice extends Model implements Approvable
 
     protected $table = 'sales_invoices';
 
-    public const STATUSES = ['draft', 'proforma', 'pending_approval', 'approved', 'posted', 'completed', 'cancelled', 'reversed'];
+    public const STATUSES = ['proforma', 'pending_approval', 'approved', 'posted', 'completed', 'cancelled', 'reversed'];
 
     public const PAYMENT_STATUSES = ['pending', 'partial', 'paid', 'overdue', 'cancelled'];
 

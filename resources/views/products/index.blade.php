@@ -22,7 +22,6 @@
                     <option value="">All Types</option>
                     <option value="goods" {{ request('product_type') == 'goods' ? 'selected' : '' }}>Goods</option>
                     <option value="service" {{ request('product_type') == 'service' ? 'selected' : '' }}>Service</option>
-                    <option value="fixed_asset" {{ request('product_type') == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                 </select>
                 <select name="status" class="erp-input">
                     <option value="">All Status</option>
@@ -74,7 +73,6 @@
                                 $typeBadge = match($product->product_type) {
                                     'goods' => 'erp-badge-success',
                                     'service' => 'erp-badge-info',
-                                    'fixed_asset' => 'erp-badge-warning',
                                     default => 'erp-badge-draft',
                                 };
                             @endphp

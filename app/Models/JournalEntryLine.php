@@ -12,6 +12,7 @@ class JournalEntryLine extends Model
 
     protected $fillable = [
         'journal_entry_id', 'account_id', 'description', 'debit', 'credit',
+        'balance_sheet_item_id', 'project_id', 'branch_id',
     ];
 
     protected function casts(): array
@@ -30,5 +31,10 @@ class JournalEntryLine extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function balanceSheetItem(): BelongsTo
+    {
+        return $this->belongsTo(BalanceSheetItem::class);
     }
 }

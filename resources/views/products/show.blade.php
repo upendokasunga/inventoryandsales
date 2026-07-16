@@ -35,10 +35,10 @@
                             <span class="text-xs font-medium text-slate-500 uppercase">Barcode</span>
                             <p class="mt-1 text-sm font-mono text-slate-800">
                                 {{ $product->barcode ?? '-' }}
-                                @if ($product->barcode_image)
-                                    <br><img src="{{ Storage::url($product->barcode_image) }}" alt="{{ $product->barcode }}" class="mt-1 h-10">
-                                @endif
                             </p>
+                            @if ($product->barcode)
+                                <div class="mt-1">{!! app(\App\Services\BarcodeService::class)->getBarcodeSvg($product->barcode, 1, 30) !!}</div>
+                            @endif
                         </div>
                         <div>
                             <span class="text-xs font-medium text-slate-500 uppercase">Category</span>
@@ -93,7 +93,6 @@
                             <thead>
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Unit</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Conversion Factor</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Purchase Price</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Selling Price</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Wholesale</th>
@@ -105,11 +104,10 @@
                                 @forelse ($product->productUnits as $pu)
                                     <tr>
                                         <td class="px-4 py-3 text-sm font-medium text-slate-800">{{ $pu->unit?->short_code ?? $pu->unit?->name ?? '-' }}</td>
-                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->conversion_factor }}</td>
-                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->purchase_price ? '$' . number_format($pu->purchase_price, 2) : '-' }}</td>
-                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->selling_price ? '$' . number_format($pu->selling_price, 2) : '-' }}</td>
-                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->wholesale_price ? '$' . number_format($pu->wholesale_price, 2) : '-' }}</td>
-                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->bulk_price ? '$' . number_format($pu->bulk_price, 2) : '-' }}</td>
+                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->purchase_price ? 'TSh ' . number_format($pu->purchase_price, 0) : '-' }}</td>
+                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->selling_price ? 'TSh ' . number_format($pu->selling_price, 0) : '-' }}</td>
+                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->wholesale_price ? 'TSh ' . number_format($pu->wholesale_price, 0) : '-' }}</td>
+                                        <td class="px-4 py-3 text-sm text-slate-600">{{ $pu->bulk_price ? 'TSh ' . number_format($pu->bulk_price, 0) : '-' }}</td>
                                         <td class="px-4 py-3 text-sm">
                                             @if ($pu->is_default_sale) <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Sale</span> @endif
                                             @if ($pu->is_default_purchase) <span class="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Buy</span> @endif
@@ -117,7 +115,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-4 py-3 text-center text-sm text-slate-500">No units configured.</td>
+                                        <td colspan="5" class="px-4 py-3 text-center text-sm text-slate-500">No units configured.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

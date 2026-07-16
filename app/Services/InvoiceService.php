@@ -23,6 +23,7 @@ class InvoiceService
     public function __construct(
         protected PricingService $pricingService,
         protected InventoryService $inventoryService,
+        protected DocumentNumberingService $numberingService,
     ) {}
 
     public function getAllPaginated(int $perPage = 20, ?array $filters = null): LengthAwarePaginator
@@ -31,9 +32,7 @@ class InvoiceService
 
         $tab = $filters['tab'] ?? 'all';
 
-        if ($tab === 'draft') {
-            $query->where('status', 'draft');
-        } elseif ($tab === 'proforma') {
+        if ($tab === 'proforma') {
             $query->where('status', 'proforma');
         } elseif ($tab === 'pending_approval') {
             $query->where('status', 'pending_approval');
@@ -293,7 +292,13 @@ class InvoiceService
         DB::transaction(function () use ($invoice) {
             $invoice->loadMissing(['items.product', 'customer']);
 
+            $alreadyStocked = InventoryTransaction::where('reference_type', Invoice::class)
+                ->where('reference_id', $invoice->id)
+                ->where('type', 'sale')
+                ->exists();
+
             $je = JournalEntry::create([
+                'entry_number' => 'SJE-' . strtoupper(\Illuminate\Support\Str::random(8)),
                 'entry_date' => $invoice->invoice_date ?? now(),
                 'type' => 'sales',
                 'status' => 'posted',
@@ -388,6 +393,7 @@ class InvoiceService
 
             if (($invoice->amount_paid ?? 0) > 0 && $invoice->payment_account_id) {
                 $receiptJe = JournalEntry::create([
+                    'entry_number' => 'RJE-' . strtoupper(\Illuminate\Support\Str::random(8)),
                     'entry_date' => $invoice->invoice_date ?? now(),
                     'type' => 'receipt',
                     'status' => 'posted',
@@ -420,17 +426,16 @@ class InvoiceService
                 }
             }
 
-            foreach ($invoice->items as $item) {
-                if ($item->product && $item->product->product_type === 'goods') {
-                    try {
+            if (!$alreadyStocked) {
+                foreach ($invoice->items as $item) {
+                    if ($item->product && $item->product->product_type === 'goods') {
                         $this->inventoryService->issueStock(
                             $item->product,
                             $item->quantity,
                             $invoice,
-                            "Invoice {$invoice->invoice_number}: {$item->quantity} units"
+                            "Invoice {$invoice->invoice_number}: {$item->quantity} units",
+                            'sale'
                         );
-                    } catch (\InvalidArgumentException $e) {
-                        Log::warning("Stock issue failed for invoice {$invoice->id}: {$e->getMessage()}");
                     }
                 }
             }
@@ -453,6 +458,63 @@ class InvoiceService
                     ->whereYear('created_at', now()->year)
                     ->sum('total'),
             ];
+        });
+    }
+
+    public function createFromProforma(SalesOrder $salesOrder): Invoice
+    {
+        return DB::transaction(function () use ($salesOrder) {
+            $salesOrder->load('items.product');
+
+            $subtotal = 0;
+            $totalTax = 0;
+            $totalDiscount = 0;
+            $invoiceItems = [];
+
+            foreach ($salesOrder->items as $item) {
+                $lineTotal = ($item->unit_price * $item->quantity) - ($item->discount ?? 0) + ($item->tax ?? 0);
+                $subtotal += $item->unit_price * $item->quantity;
+                $totalTax += $item->tax ?? 0;
+                $totalDiscount += $item->discount ?? 0;
+
+                $invoiceItems[] = new InvoiceItem([
+                    'product_id' => $item->product_id,
+                    'store_id' => null,
+                    'product_unit_id' => null,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'discount' => $item->discount ?? 0,
+                    'tax' => $item->tax ?? 0,
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            $total = $subtotal - $totalDiscount + $totalTax;
+
+            $invoice = Invoice::create([
+                'customer_id' => $salesOrder->customer_id,
+                'sales_order_id' => $salesOrder->id,
+                'invoice_number' => $this->numberingService->generateNumber('invoice'),
+                'invoice_date' => now(),
+                'payment_type' => 'credit',
+                'subtotal' => $subtotal,
+                'discount' => $totalDiscount,
+                'discount_type' => $salesOrder->discount_type,
+                'tax' => $totalTax,
+                'total' => $total,
+                'amount_paid' => 0,
+                'balance_due' => $total,
+                'payment_status' => 'pending',
+                'status' => 'pending_approval',
+                'notes' => $salesOrder->notes,
+                'created_by' => auth()->id(),
+            ]);
+            $invoice->items()->saveMany($invoiceItems);
+
+            Cache::forget('pos.dashboard.stats');
+            Cache::forget('sales.dashboard');
+
+            return $invoice->load(['items.product', 'customer']);
         });
     }
 }

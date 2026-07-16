@@ -57,7 +57,7 @@ class SalesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateSaleRequest($request);
-        $data['status'] = Approvals::isLevelZero('invoice') ? 'pending_approval' : 'draft';
+        $data['status'] = 'pending_approval';
 
         $invoice = $this->invoiceService->create($data);
 
@@ -72,7 +72,7 @@ class SalesController extends Controller
     public function storeDraft(Request $request): RedirectResponse
     {
         $data = $this->validateSaleRequest($request);
-        $data['status'] = 'draft';
+        $data['status'] = 'pending_approval';
         $data['amount_paid'] = 0;
 
         $invoice = $this->invoiceService->create($data);

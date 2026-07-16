@@ -14,7 +14,6 @@
                 <select name="type" class="erp-input" onchange="this.form.submit()">
                     <option value="">All Types</option>
                     <option value="goods" {{ request('type') == 'goods' ? 'selected' : '' }}>Goods</option>
-                    <option value="fixed_asset" {{ request('type') == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                 </select>
                 <button type="submit" class="erp-btn-primary">Filter</button>
             </form>

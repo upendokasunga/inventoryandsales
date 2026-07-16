@@ -8,14 +8,12 @@ use App\Models\Group;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
-use App\Models\PurchaseSuggestion;
 use App\Models\Supplier;
 use App\Models\SupplierPerformance;
 use App\Models\SupplierPriceHistory;
 use App\Models\User;
 use App\Services\GoodsReceiptService;
 use App\Services\PurchaseOrderService;
-use App\Services\PurchaseSuggestionService;
 use App\Services\SupplierAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -46,155 +44,6 @@ class PurchasingEngineTest extends TestCase
             'current_stock' => 10,
             'safety_stock' => 5,
         ]);
-    }
-
-    // Purchase Suggestions
-
-    public function test_suggestion_index_is_accessible(): void
-    {
-        PurchaseSuggestion::factory()->create(['product_id' => $this->product->id]);
-
-        $response = $this->actingAs($this->admin)->get(route('purchasing.suggestions.index'));
-
-        $response->assertStatus(200);
-        $response->assertSee('Purchase Suggestions');
-    }
-
-    public function test_suggestion_create_form_is_accessible(): void
-    {
-        $response = $this->actingAs($this->admin)->get(route('purchasing.suggestions.create'));
-
-        $response->assertStatus(200);
-        $response->assertSee('Product');
-    }
-
-    public function test_suggestion_can_be_created(): void
-    {
-        $response = $this->actingAs($this->admin)->post(route('purchasing.suggestions.store'), [
-            'product_id' => $this->product->id,
-            'suggested_quantity' => 100,
-            'reason' => 'Low stock alert',
-        ]);
-
-        $response->assertRedirect(route('purchasing.suggestions.index'));
-        $this->assertDatabaseHas('purchase_suggestions', [
-            'product_id' => $this->product->id,
-            'suggested_quantity' => 100,
-        ]);
-    }
-
-    public function test_suggestion_requires_product(): void
-    {
-        $response = $this->actingAs($this->admin)->post(route('purchasing.suggestions.store'), [
-            'suggested_quantity' => 100,
-        ]);
-
-        $response->assertSessionHasErrors('product_id');
-    }
-
-    public function test_suggestion_show_is_accessible(): void
-    {
-        $suggestion = PurchaseSuggestion::factory()->create(['product_id' => $this->product->id]);
-
-        $response = $this->actingAs($this->admin)->get(route('purchasing.suggestions.show', $suggestion));
-
-        $response->assertStatus(200);
-        $response->assertSee($this->product->name);
-    }
-
-    public function test_suggestion_can_be_approved(): void
-    {
-        $suggestion = PurchaseSuggestion::factory()->create([
-            'product_id' => $this->product->id,
-            'status' => 'pending',
-        ]);
-
-        $response = $this->actingAs($this->admin)->post(route('purchasing.suggestions.approve', $suggestion));
-
-        $response->assertRedirect(route('purchasing.suggestions.index'));
-        $this->assertEquals('approved', $suggestion->fresh()->status);
-        $this->assertNotNull($suggestion->fresh()->reviewed_at);
-    }
-
-    public function test_suggestion_can_be_rejected(): void
-    {
-        $suggestion = PurchaseSuggestion::factory()->create([
-            'product_id' => $this->product->id,
-            'status' => 'pending',
-        ]);
-
-        $response = $this->actingAs($this->admin)->post(route('purchasing.suggestions.reject', $suggestion), [
-            'notes' => 'Not needed at this time',
-        ]);
-
-        $response->assertRedirect(route('purchasing.suggestions.index'));
-        $this->assertEquals('rejected', $suggestion->fresh()->status);
-    }
-
-    public function test_suggestion_can_be_converted(): void
-    {
-        $suggestion = PurchaseSuggestion::factory()->create([
-            'product_id' => $this->product->id,
-            'status' => 'approved',
-        ]);
-
-        $response = $this->actingAs($this->admin)->post(route('purchasing.suggestions.convert', $suggestion));
-
-        $response->assertRedirect();
-        $this->assertEquals('converted', $suggestion->fresh()->status);
-    }
-
-    public function test_suggestion_auto_generate_creates_suggestions(): void
-    {
-        Product::factory()->count(3)->create([
-            'track_stock' => true,
-            'reorder_level' => 25,
-            'current_stock' => 5,
-        ]);
-
-        $service = app(PurchaseSuggestionService::class);
-        $created = $service->generateSuggestions();
-
-        $this->assertCount(4, $created);
-    }
-
-    public function test_suggestion_auto_generate_uses_correct_formula(): void
-    {
-        $service = app(PurchaseSuggestionService::class);
-        $created = $service->generateSuggestions();
-
-        $this->assertCount(1, $created);
-        $expected = max(0, 50 - 10 + 5);
-        $this->assertEquals($expected, $created[0]->suggested_quantity);
-    }
-
-    public function test_suggestion_auto_generate_skips_when_stock_above_reorder(): void
-    {
-        $this->product->update(['current_stock' => 100]);
-
-        Product::factory()->create([
-            'track_stock' => true,
-            'reorder_level' => 50,
-            'current_stock' => 100,
-        ]);
-
-        $service = app(PurchaseSuggestionService::class);
-        $created = $service->generateSuggestions();
-
-        $this->assertCount(0, $created);
-    }
-
-    public function test_suggestion_auto_generate_skips_existing_pending(): void
-    {
-        PurchaseSuggestion::factory()->create([
-            'product_id' => $this->product->id,
-            'status' => 'pending',
-        ]);
-
-        $service = app(PurchaseSuggestionService::class);
-        $created = $service->generateSuggestions();
-
-        $this->assertCount(0, $created);
     }
 
     // Purchase Orders
@@ -275,7 +124,7 @@ class PurchasingEngineTest extends TestCase
     {
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->patch(route('purchasing.orders.update', $order), [
@@ -299,7 +148,7 @@ class PurchasingEngineTest extends TestCase
     {
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->get(route('purchasing.orders.edit', $order));
@@ -336,11 +185,11 @@ class PurchasingEngineTest extends TestCase
     {
         PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->get(route('purchasing.orders.index', [
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]));
 
         $response->assertStatus(200);
@@ -370,7 +219,7 @@ class PurchasingEngineTest extends TestCase
     {
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->post(route('purchasing.orders.submit-approval', $order));
@@ -403,27 +252,14 @@ class PurchasingEngineTest extends TestCase
         $response = $this->actingAs($this->admin)->post(route('purchasing.orders.reject', $order));
 
         $response->assertRedirect(route('purchasing.orders.show', $order));
-        $this->assertEquals('draft', $order->fresh()->status);
-    }
-
-    public function test_order_can_be_sent_to_supplier(): void
-    {
-        $order = PurchaseOrder::factory()->create([
-            'supplier_id' => $this->supplier->id,
-            'status' => 'approved',
-        ]);
-
-        $response = $this->actingAs($this->admin)->post(route('purchasing.orders.send', $order));
-
-        $response->assertRedirect(route('purchasing.orders.show', $order));
-        $this->assertEquals('sent', $order->fresh()->status);
+        $this->assertEquals('cancelled', $order->fresh()->status);
     }
 
     public function test_order_can_be_cancelled(): void
     {
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->post(route('purchasing.orders.cancel', $order));
@@ -441,7 +277,7 @@ class PurchasingEngineTest extends TestCase
 
         $response = $this->actingAs($this->admin)->post(route('purchasing.orders.submit-approval', $order));
 
-        $response->assertSessionHas('error');
+        $response->assertSessionHas('success');
         $this->assertEquals('approved', $order->fresh()->status);
     }
 
@@ -449,13 +285,13 @@ class PurchasingEngineTest extends TestCase
     {
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
 
         $response = $this->actingAs($this->admin)->post(route('purchasing.orders.approve', $order));
 
-        $response->assertSessionHas('error');
-        $this->assertEquals('draft', $order->fresh()->status);
+        $response->assertSessionHas('success');
+        $this->assertEquals('approved', $order->fresh()->status);
     }
 
     // Goods Receiving
@@ -475,7 +311,7 @@ class PurchasingEngineTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('purchasing.receipts.create'));
 
         $response->assertStatus(200);
-        $response->assertSee('Create Goods Receipt');
+        $response->assertSee('Receive Goods');
     }
 
     public function test_receipt_can_be_created(): void
@@ -551,7 +387,7 @@ class PurchasingEngineTest extends TestCase
 
         $receipt = GoodsReceipt::factory()->create([
             'purchase_order_id' => $order->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
         GoodsReceiptItem::factory()->create([
             'goods_receipt_id' => $receipt->id,
@@ -580,7 +416,7 @@ class PurchasingEngineTest extends TestCase
 
         $receipt = GoodsReceipt::factory()->create([
             'purchase_order_id' => $order->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
         GoodsReceiptItem::factory()->create([
             'goods_receipt_id' => $receipt->id,
@@ -712,14 +548,6 @@ class PurchasingEngineTest extends TestCase
 
     // Permissions
 
-    public function test_non_admin_cannot_access_suggestions(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get(route('purchasing.suggestions.index'));
-        $response->assertStatus(403);
-    }
-
     public function test_non_admin_cannot_access_orders(): void
     {
         $user = User::factory()->create();
@@ -745,19 +573,6 @@ class PurchasingEngineTest extends TestCase
     }
 
     // Audit Logging
-
-    public function test_suggestion_creation_creates_audit_log(): void
-    {
-        $suggestion = PurchaseSuggestion::factory()->create([
-            'product_id' => $this->product->id,
-        ]);
-
-        $this->assertDatabaseHas('audit_logs', [
-            'auditable_type' => PurchaseSuggestion::class,
-            'auditable_id' => $suggestion->id,
-            'event' => 'created',
-        ]);
-    }
 
     public function test_order_creation_creates_audit_log(): void
     {
@@ -785,23 +600,13 @@ class PurchasingEngineTest extends TestCase
 
     // Cache
 
-    public function test_suggestion_stats_are_cached(): void
-    {
-        $service = app(PurchaseSuggestionService::class);
-        $stats = $service->getStats();
-
-        $this->assertArrayHasKey('total', $stats);
-        $this->assertArrayHasKey('pending', $stats);
-        $this->assertArrayHasKey('approved', $stats);
-    }
-
     public function test_order_stats_are_cached(): void
     {
         $service = app(PurchaseOrderService::class);
         $stats = $service->getStats();
 
         $this->assertArrayHasKey('total', $stats);
-        $this->assertArrayHasKey('draft', $stats);
+        $this->assertArrayHasKey('pending_approval', $stats);
         $this->assertArrayHasKey('completed', $stats);
     }
 
@@ -815,7 +620,7 @@ class PurchasingEngineTest extends TestCase
 
         $order = PurchaseOrder::factory()->create([
             'supplier_id' => $this->supplier->id,
-            'status' => 'draft',
+            'status' => 'pending_approval',
         ]);
         $order->update(['status' => 'completed']);
     }

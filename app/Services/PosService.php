@@ -80,7 +80,13 @@ class PosService
 
             foreach ($data['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                $this->inventoryService->issueStock($product, $item['quantity']);
+                $this->inventoryService->issueStock(
+                    $product,
+                    $item['quantity'],
+                    $invoice,
+                    "POS sale {$invoice->invoice_number}: {$item['quantity']} units",
+                    'sale'
+                );
             }
 
             Cache::forget('pos.dashboard.stats');

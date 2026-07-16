@@ -11,7 +11,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 border-b border-slate-200/60">
             <nav class="flex gap-6 -mb-px overflow-x-auto">
-                @foreach (['all' => 'All', 'draft' => 'Draft', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $key => $label)
+                @foreach (['all' => 'All', 'pending_approval' => 'Pending', 'approved' => 'Approved', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $key => $label)
                     <a href="{{ route('stock-adjustments.index', ['tab' => $key, 'type' => request('type')]) }}"
                        class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
                        {{ $tab === $key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
@@ -61,15 +61,15 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{{ $adj->items->count() }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                                $c = ['pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$adj->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $adj->status)) }}</span>
+                            <span class="{{ $c[$adj->status] ?? 'erp-badge-pending' }}">{{ ucfirst(str_replace('_', ' ', $adj->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $adj->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <x-action-links
                                 :view="route('stock-adjustments.show', $adj)"
-                                :edit="$adj->status === 'draft' ? route('stock-adjustments.edit', $adj) : null"
+                                :edit="$adj->status === 'pending_approval' ? route('stock-adjustments.edit', $adj) : null"
                             />
                         </td>
                     </tr>

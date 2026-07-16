@@ -36,10 +36,22 @@ class CostCenterController extends Controller
 
     public function store(StoreCostCenterRequest $request): RedirectResponse
     {
-        CostCenter::create($request->validated());
+        $data = $request->validated();
+        $data['code'] = self::generateCode();
+        CostCenter::create($data);
 
         return redirect()->route('cost-centers.index')
             ->with('success', 'Cost centre created successfully.');
+    }
+
+    private static function generateCode(): string
+    {
+        $last = CostCenter::orderByRaw("CAST(SUBSTRING(code, 4) AS UNSIGNED) DESC")->first();
+        $nextNum = 1;
+        if ($last && preg_match('/^CC-(\d+)$/', $last->code, $m)) {
+            $nextNum = (int) $m[1] + 1;
+        }
+        return 'CC-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
     }
 
     public function edit(CostCenter $costCenter): View

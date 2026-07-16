@@ -53,7 +53,7 @@ class SupplierAnalyticsService
             return [
                 'total_pos' => PurchaseOrder::count(),
                 'completed_pos' => PurchaseOrder::where('status', 'completed')->count(),
-                'pending_pos' => PurchaseOrder::whereIn('status', ['pending_approval', 'approved', 'sent'])->count(),
+                'pending_pos' => PurchaseOrder::whereIn('status', ['pending_approval', 'approved'])->count(),
                 'total_spent' => PurchaseOrder::whereIn('status', ['completed', 'partially_received'])->sum('total'),
                 'avg_lead_time' => round($avgLeadTime ?? 0, 1),
                 'active_suppliers' => PurchaseOrder::distinct('supplier_id')->count('supplier_id'),
@@ -97,7 +97,7 @@ class SupplierAnalyticsService
                 DB::raw('SUM(total) as total_amount')
             )
                 ->where('order_date', '>=', $start)
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->groupBy('month')
                 ->orderBy('month')
                 ->get()

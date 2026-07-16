@@ -14,7 +14,9 @@ class Supplier extends Model
 
     protected $fillable = [
         'name', 'contact_person', 'email', 'phone1', 'phone2',
-        'address', 'city', 'tax_id', 'payment_terms', 'notes', 'is_active',
+        'address', 'city', 'tax_id', 'payment_terms', 'notes',
+        'bank_name', 'bank_branch', 'bank_swift_code',
+        'is_active',
     ];
 
     protected function casts(): array

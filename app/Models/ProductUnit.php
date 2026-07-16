@@ -31,6 +31,16 @@ class ProductUnit extends Model
         ];
     }
 
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($unit) {
+            if (is_null($unit->conversion_factor)) {
+                $unit->conversion_factor = 1.000;
+            }
+        });
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

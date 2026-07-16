@@ -49,7 +49,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Product</label>
-                                <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required>
+                                <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required
+                                    @change="fetchStockInfo($event.target.value, index)">
                                     @foreach ($products as $p)
                                         <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->sku }})</option>
                                     @endforeach
@@ -90,10 +91,21 @@
                     'unit_cost' => $i->unit_cost,
                 ])->values()),
                 addItem() {
-                    this.items.push({});
+                    this.items.push({ expected_quantity: '', unit_cost: '' });
                 },
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+                async fetchStockInfo(productId, index) {
+                    if (!productId) return;
+                    try {
+                        const res = await fetch(`{{ route('stock-adjustments.stock-info') }}?product_id=${productId}`);
+                        const data = await res.json();
+                        this.items[index].expected_quantity = data.current_stock ?? 0;
+                        this.items[index].unit_cost = data.unit_cost ?? 0;
+                    } catch (e) {
+                        console.error('Failed to fetch stock info', e);
+                    }
                 }
             }
         }

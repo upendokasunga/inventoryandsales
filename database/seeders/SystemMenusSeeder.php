@@ -122,8 +122,11 @@ class SystemMenusSeeder extends Seeder
             ['name' => 'Payment Reports',      'route' => 'reports.payments',         'icon' => 'chart-bar',      'module' => 'Reporting', 'sort_order' => 41, 'parent' => 'Finance', 'section' => 'Payments'],
 
             // ── Finance → Banking ──
-            ['name' => 'Bank Accounts',        'route' => 'bank-accounts.index',       'icon' => 'banknotes',      'module' => 'Finance', 'sort_order' => 50, 'parent' => 'Finance', 'section' => 'Banking'],
             ['name' => 'Reconciliations',      'route' => 'bank-reconciliations.index', 'icon' => 'check-badge',   'module' => 'Finance', 'sort_order' => 51, 'parent' => 'Finance', 'section' => 'Banking'],
+
+            // ── Banking ──
+            ['name' => 'Bank Institutions',    'route' => 'banks.index',               'icon' => 'building-library', 'module' => 'Banking', 'sort_order' => 10, 'parent' => 'Banking', 'section' => 'Registration'],
+            ['name' => 'Bank Accounts',        'route' => 'bank-accounts.index',       'icon' => 'banknotes',      'module' => 'Banking', 'sort_order' => 20, 'parent' => 'Banking', 'section' => 'Registration'],
 
             // ── Reports & Analytics ──
             ['name' => 'Sales Reports',        'route' => 'reports.sales',            'icon' => 'chart-bar',  'module' => 'Reporting', 'sort_order' => 10, 'parent' => 'Reports & Analytics', 'section' => 'Sales Reports'],

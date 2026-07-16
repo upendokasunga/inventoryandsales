@@ -16,8 +16,7 @@
                         @endif
                     </div>
                     <span class="px-3 py-1 text-sm rounded-full font-medium
-                        @if($salesReturn->status === 'draft') bg-slate-100 text-slate-600
-                        @elseif($salesReturn->status === 'pending_approval') bg-orange-100 text-orange-700
+                        @if($salesReturn->status === 'pending_approval') bg-orange-100 text-orange-700
                         @elseif($salesReturn->status === 'approved') bg-blue-100 text-blue-700
                         @elseif($salesReturn->status === 'rejected') bg-red-100 text-red-700
                         @else bg-green-100 text-green-700 @endif">
@@ -82,7 +81,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
                 <h3 class="text-sm font-semibold text-slate-700">Actions</h3>
 
-                @if($salesReturn->status === 'draft')
+                @if($salesReturn->status === 'pending_approval')
                     <form action="{{ route('sales-returns.approve', $salesReturn) }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Approve & Generate Credit Note</button>

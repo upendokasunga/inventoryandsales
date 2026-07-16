@@ -71,6 +71,7 @@ class GoodsReceiptService
             $totalReceivedValue = 0;
 
             foreach ($receipt->items as $item) {
+                $poItem = null;
                 if ($item->purchase_order_item_id) {
                     $poItem = $item->purchaseOrderItem;
                     if ($poItem) {
@@ -113,6 +114,7 @@ class GoodsReceiptService
 
             if ($inventoryAccount && $apAccount && $totalReceivedValue > 0) {
                 $je = JournalEntry::create([
+                    'entry_number' => 'PJE-' . strtoupper(\Illuminate\Support\Str::random(8)),
                     'entry_date' => $receipt->receipt_date ?? now(),
                     'type' => 'purchase',
                     'status' => 'posted',
@@ -187,7 +189,6 @@ class GoodsReceiptService
         return Cache::remember('purchasing.receipt.stats', 300, function () {
             return [
                 'total' => GoodsReceipt::count(),
-                'draft' => GoodsReceipt::where('status', 'draft')->count(),
                 'completed' => GoodsReceipt::where('status', 'completed')->count(),
                 'cancelled' => GoodsReceipt::where('status', 'cancelled')->count(),
             ];

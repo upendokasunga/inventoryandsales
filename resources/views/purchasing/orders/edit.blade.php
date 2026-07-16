@@ -128,12 +128,12 @@
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" name="items[{{ $i }}][unit_price]" required
                                         value="{{ $item->unit_price }}"
-                                        class="erp-input item-price" style="width:120px">
+                                        class="erp-input item-price" data-price-input style="width:120px">
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" name="items[{{ $i }}][selling_price]"
                                         value="{{ $item->selling_price }}"
-                                        class="erp-input" style="width:120px" placeholder="Resale price">
+                                        class="erp-input item-selling-price" data-price-input style="width:120px" placeholder="Resale price">
                                 </td>
                                 <td class="px-4 py-2 text-sm text-slate-700 item-subtotal">{{ number_format($item->subtotal, 2) }}</td>
                                 <td class="px-4 py-2">
@@ -156,11 +156,11 @@
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" name="items[0][unit_price]" required
-                                        class="erp-input item-price" style="width:120px">
+                                        class="erp-input item-price" data-price-input style="width:120px">
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" name="items[0][selling_price]"
-                                        class="erp-input" style="width:120px" placeholder="Resale price">
+                                        class="erp-input item-selling-price" data-price-input style="width:120px" placeholder="Resale price">
                                 </td>
                                 <td class="px-4 py-2 text-sm text-slate-700 item-subtotal">0.00</td>
                                 <td class="px-4 py-2">
@@ -207,47 +207,67 @@
     </div>
 
     <script>
-        let itemIndex = {{ count($purchaseOrder->items) }};
-        document.getElementById('add-item').addEventListener('click', function() {
-            const tbody = document.querySelector('#items-table tbody');
-            const row = document.querySelector('.item-row').cloneNode(true);
-            row.querySelectorAll('input, select').forEach(el => {
-                el.name = el.name.replace(/items\[\d+\]/, `items[${itemIndex}]`);
-                el.value = '';
+        function initPriceInput(el) {
+            if (el.dataset.priceInit) return;
+            el.dataset.priceInit = '1';
+
+            let raw = parseFloat(el.value) || 0;
+            el.value = raw || '';
+            el.type = 'hidden';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            const visible = document.createElement('input');
+            visible.type = 'text';
+            visible.className = el.className.replace('item-price', '').replace('item-selling-price', '').trim();
+            visible.style.width = el.style.width;
+            visible.placeholder = 'TSh 0.00';
+            visible.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+            wrapper.insertBefore(visible, el);
+
+            visible.addEventListener('input', function () {
+                const cleaned = this.value.replace(/[^0-9.]/g, '');
+                raw = parseFloat(cleaned) || 0;
+                el.value = raw || '';
+                const pos = this.selectionStart;
+                const oldLen = this.value.length;
+                this.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                this.setSelectionRange(pos + (this.value.length - oldLen), pos + (this.value.length - oldLen));
+                recalcRow(el);
             });
-            row.querySelector('.item-subtotal').textContent = '0.00';
-            tbody.appendChild(row);
-            itemIndex++;
-        });
 
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price')) {
-                const row = e.target.closest('tr');
-                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                const subtotal = qty * price;
-                row.querySelector('.item-subtotal').textContent = subtotal.toFixed(2);
-                calcTotal();
-            }
-            if (e.target.id === 'tax' || e.target.id === 'discount' || e.target.id === 'discount_type') {
-                calcTotal();
-            }
-        });
+            visible.addEventListener('focus', function () {
+                this.value = raw || '';
+                this.setSelectionRange(this.value.length, this.value.length);
+            });
 
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-item')) {
-                const tbody = document.querySelector('#items-table tbody');
-                if (tbody.querySelectorAll('.item-row').length > 1) {
-                    e.target.closest('tr').remove();
-                    calcTotal();
-                }
-            }
-        });
+            visible.addEventListener('blur', function () {
+                this.value = raw ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+            });
+        }
+
+        function initAllPriceInputs(container) {
+            container.querySelectorAll('[data-price-input]').forEach(initPriceInput);
+        }
+
+        function recalcRow(changedEl) {
+            const row = changedEl.closest('tr');
+            if (!row) return;
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const priceInput = row.querySelector('.item-price');
+            const price = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
+            const subtotal = qty * price;
+            row.querySelector('.item-subtotal').textContent = 'TSh ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            calcTotal();
+        }
 
         function calcTotal() {
             let subtotal = 0;
             document.querySelectorAll('.item-subtotal').forEach(el => {
-                subtotal += parseFloat(el.textContent) || 0;
+                subtotal += parseFloat(el.textContent.replace(/[^0-9.-]/g, '')) || 0;
             });
             const tax = parseFloat(document.getElementById('tax').value) || 0;
             const discount = parseFloat(document.getElementById('discount').value) || 0;
@@ -262,10 +282,99 @@
 
             const total = afterDiscount + tax;
 
-            document.getElementById('order-subtotal').textContent = subtotal.toFixed(2);
-            document.getElementById('order-discount').textContent = '-' + (subtotal - afterDiscount).toFixed(2);
-            document.getElementById('order-tax-display').textContent = tax.toFixed(2);
-            document.getElementById('order-total').textContent = total.toFixed(2);
+            document.getElementById('order-subtotal').textContent = 'TSh ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            document.getElementById('order-discount').textContent = '-TSh ' + (subtotal - afterDiscount).toLocaleString('en-US', { minimumFractionDigits: 2 });
+            document.getElementById('order-tax-display').textContent = 'TSh ' + tax.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            document.getElementById('order-total').textContent = 'TSh ' + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
         }
+
+        function fetchLatestPrice(productSelect) {
+            const productId = productSelect.value;
+            if (!productId) return;
+
+            const row = productSelect.closest('tr');
+            const priceInput = row.querySelector('.item-price');
+            const sellingInput = row.querySelector('.item-selling-price');
+
+            fetch(`{{ route('purchasing.orders.latest-price') }}?product_id=${productId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.unit_price !== null) {
+                        setPriceInputValue(priceInput, data.unit_price);
+                        recalcRow(priceInput);
+                    }
+                    if (data.selling_price !== null && sellingInput) {
+                        setPriceInputValue(sellingInput, data.selling_price);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function setPriceInputValue(el, value) {
+            if (!el) return;
+            el.value = value || '';
+            const wrapper = el.parentNode;
+            if (wrapper && wrapper.classList.contains('relative')) {
+                const visible = wrapper.querySelector('input[type="text"]');
+                if (visible) {
+                    visible.value = value ? value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                }
+            }
+        }
+
+        let itemIndex = {{ count($purchaseOrder->items) }};
+
+        document.getElementById('add-item').addEventListener('click', function () {
+            const tbody = document.querySelector('#items-table tbody');
+            const row = document.querySelector('.item-row').cloneNode(true);
+            row.querySelectorAll('input, select').forEach(el => {
+                el.name = el.name.replace(/items\[\d+\]/, `items[${itemIndex}]`);
+                el.value = '';
+                delete el.dataset.priceInit;
+                const wrapper = el.parentNode;
+                if (wrapper && wrapper.classList.contains('relative') && el.type === 'hidden') {
+                    const visible = wrapper.querySelector('input[type="text"]');
+                    if (visible) visible.remove();
+                    el.type = 'number';
+                    el.className = el.className;
+                    el.style.width = el.style.width;
+                    wrapper.parentNode.insertBefore(el, wrapper);
+                    wrapper.remove();
+                }
+            });
+            row.querySelector('.item-subtotal').textContent = '0.00';
+            tbody.appendChild(row);
+            initAllPriceInputs(row);
+            itemIndex++;
+        });
+
+        document.addEventListener('input', function (e) {
+            if (e.target.classList.contains('item-qty')) {
+                recalcRow(e.target);
+            }
+            if (e.target.id === 'tax' || e.target.id === 'discount' || e.target.id === 'discount_type') {
+                calcTotal();
+            }
+        });
+
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('product-select')) {
+                fetchLatestPrice(e.target);
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-item')) {
+                const tbody = document.querySelector('#items-table tbody');
+                if (tbody.querySelectorAll('.item-row').length > 1) {
+                    e.target.closest('tr').remove();
+                    calcTotal();
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initAllPriceInputs(document);
+        });
     </script>
 </x-app-layout>

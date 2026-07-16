@@ -41,7 +41,7 @@
                     <div class="bg-slate-50 rounded-lg p-2"><span class="font-medium text-slate-700">unit</span><br><span class="text-slate-500">Unit code (default: PCS)</span></div>
                     <div class="bg-slate-50 rounded-lg p-2"><span class="font-medium text-slate-700">opening_stock</span><br><span class="text-slate-500">Initial stock qty</span></div>
                     <div class="bg-slate-50 rounded-lg p-2"><span class="font-medium text-slate-700">reorder_level</span><br><span class="text-slate-500">Min stock level</span></div>
-                    <div class="bg-slate-50 rounded-lg p-2"><span class="font-medium text-slate-700">product_type</span><br><span class="text-slate-500">goods/service/fixed_asset</span></div>
+                    <div class="bg-slate-50 rounded-lg p-2"><span class="font-medium text-slate-700">product_type</span><br><span class="text-slate-500">goods/service</span></div>
                 </div>
             </div>
         </div>

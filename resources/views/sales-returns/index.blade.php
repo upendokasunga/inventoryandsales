@@ -63,9 +63,9 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-slate-500">{{ $return->reason ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @php
-                                $sc = ['draft' => 'erp-badge-draft', 'pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'rejected' => 'erp-badge-cancelled', 'completed' => 'erp-badge-fulfilled'];
+                                $sc = ['pending_approval' => 'erp-badge-pending', 'approved' => 'erp-badge-approved', 'rejected' => 'erp-badge-cancelled', 'completed' => 'erp-badge-fulfilled'];
                             @endphp
-                            <span class="{{ $sc[$return->status] ?? 'erp-badge-draft' }}">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</span>
+                            <span class="{{ $sc[$return->status] ?? 'erp-badge-pending' }}">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $return->created_at->format('d M Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">

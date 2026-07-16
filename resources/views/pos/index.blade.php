@@ -29,7 +29,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
                 <h3 class="text-sm font-semibold text-slate-700 mb-3">Cart Summary</h3>
                 <p class="text-sm text-slate-600">Items: <span class="font-medium" x-text="cart.length"></span></p>
-                <p class="text-sm text-slate-600">Total: <span class="font-medium text-primary" x-text="formatCurrency(cartTotal)"></span></p>
+                <p class="text-sm text-slate-600">Total: <span class="font-medium text-primary" x-text="formatPrice(cartTotal)"></span></p>
             </div>
 
             {{-- Product Preview --}}
@@ -41,7 +41,7 @@
                         <span>Barcode: <span class="font-medium" x-text="previewProduct.barcode"></span></span>
                         <span>SKU: <span class="font-medium" x-text="previewProduct.sku"></span></span>
                         <span>Stock: <span class="font-medium" x-text="previewStock"></span></span>
-                        <span>Price: <span class="font-medium text-primary" x-text="formatCurrency(previewPrice)"></span></span>
+                        <span>Price: <span class="font-medium text-primary" x-text="formatPrice(previewPrice)"></span></span>
                     </div>
                     <button @click="addToCart" class="w-full mt-2 px-3 py-2 bg-success text-white text-sm rounded-lg hover:bg-success-600 transition">
                         Add to Cart
@@ -85,12 +85,12 @@
                                         <input type="number" x-model="item.quantity" @input.debounce="updateItem(index)"
                                                class="w-20 text-center border border-slate-200 rounded px-2 py-1 text-xs" min="0.001" step="1">
                                     </td>
-                                    <td class="px-4 py-3 text-right text-slate-600" x-text="formatCurrency(item.unit_price)"></td>
+                                    <td class="px-4 py-3 text-right text-slate-600" x-text="formatPrice(item.unit_price)"></td>
                                     <td class="px-4 py-3 text-right">
                                         <input type="number" x-model="item.discount" @input.debounce="updateItem(index)"
                                                class="w-20 text-right border border-slate-200 rounded px-2 py-1 text-xs" min="0">
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium text-slate-700" x-text="formatCurrency(item.lineTotal)"></td>
+                                    <td class="px-4 py-3 text-right font-medium text-slate-700" x-text="formatPrice(item.lineTotal)"></td>
                                     <td class="px-4 py-3 text-center">
                                         <button @click="removeItem(index)" class="text-danger hover:text-danger-600 transition">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -122,9 +122,9 @@
                 </select>
                 <template x-if="customerData">
                     <div class="text-xs space-y-1 text-slate-500 mt-2 p-2 bg-slate-50 rounded-lg">
-                        <p>Limit: <span class="font-medium text-slate-700" x-text="formatCurrency(customerData.credit_limit)"></span></p>
-                        <p>Outstanding: <span class="font-medium text-slate-700" x-text="formatCurrency(customerData.outstanding_balance)"></span></p>
-                        <p>Available: <span class="font-medium" :class="customerData.available_credit > 0 ? 'text-success' : 'text-danger'" x-text="formatCurrency(customerData.available_credit)"></span></p>
+                        <p>Limit: <span class="font-medium text-slate-700" x-text="formatPrice(customerData.credit_limit)"></span></p>
+                        <p>Outstanding: <span class="font-medium text-slate-700" x-text="formatPrice(customerData.outstanding_balance)"></span></p>
+                        <p>Available: <span class="font-medium" :class="customerData.available_credit > 0 ? 'text-success' : 'text-danger'" x-text="formatPrice(customerData.available_credit)"></span></p>
                     </div>
                 </template>
             </div>
@@ -133,20 +133,20 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
                 <div class="flex justify-between text-sm text-slate-600">
                     <span>Subtotal</span>
-                    <span class="font-medium" x-text="formatCurrency(subtotal)"></span>
+                    <span class="font-medium" x-text="formatPrice(subtotal)"></span>
                 </div>
                 <div class="flex justify-between text-sm text-slate-600">
                     <span>Discount</span>
-                    <span class="font-medium text-danger" x-text="formatCurrency(discountTotal)"></span>
+                    <span class="font-medium text-danger" x-text="formatPrice(discountTotal)"></span>
                 </div>
                 <div class="flex justify-between text-sm text-slate-600">
                     <span>Tax (<span x-text="taxRateDisplay"></span>)</span>
-                    <span class="font-medium" x-text="formatCurrency(taxAmount)"></span>
+                    <span class="font-medium" x-text="formatPrice(taxAmount)"></span>
                 </div>
                 <hr class="border-slate-200">
                 <div class="flex justify-between text-base font-bold text-slate-800">
                     <span>Grand Total</span>
-                    <span class="text-primary" x-text="formatCurrency(grandTotal)"></span>
+                    <span class="text-primary" x-text="formatPrice(grandTotal)"></span>
                 </div>
 
                 <div class="pt-2">
@@ -341,10 +341,6 @@
                     } finally {
                         this.processing = false;
                     }
-                },
-
-                formatCurrency(value) {
-                    return new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
                 },
             };
         }

@@ -25,7 +25,6 @@
                         <select name="type" id="type" required class="mt-1 block w-full erp-input">
                             <option value="">Select Type</option>
                             <option value="goods" {{ old('type', $warehouse->type) == 'goods' ? 'selected' : '' }}>Goods</option>
-                            <option value="fixed_asset" {{ old('type', $warehouse->type) == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
                         </select>
                         @error('type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>

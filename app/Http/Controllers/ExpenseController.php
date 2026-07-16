@@ -29,7 +29,7 @@ class ExpenseController extends Controller
     public function create(): View
     {
         $categories = ExpenseCategory::active()->orderBy('name')->get();
-        $accounts = Account::where('is_active', true)->orderBy('code')->get();
+        $accounts = Account::where('is_active', true)->where('ifrs_category', 'expense')->orderBy('code')->get();
         return view('expenses.create', compact('categories', 'accounts'));
     }
 
@@ -53,7 +53,7 @@ class ExpenseController extends Controller
     public function edit(Expense $expense): View
     {
         $categories = ExpenseCategory::active()->orderBy('name')->get();
-        $accounts = Account::where('is_active', true)->orderBy('code')->get();
+        $accounts = Account::where('is_active', true)->where('ifrs_category', 'expense')->orderBy('code')->get();
         return view('expenses.edit', compact('expense', 'categories', 'accounts'));
     }
 

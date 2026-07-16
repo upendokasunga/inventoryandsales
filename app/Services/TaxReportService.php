@@ -49,7 +49,7 @@ class TaxReportService
                 DB::raw('SUM(total) as total_amount')
             )
                 ->whereBetween('order_date', [$startDate, $endDate])
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->groupBy(DB::raw("DATE_FORMAT(order_date, '%Y-%m')"))
                 ->orderBy('month')
                 ->get();
@@ -74,7 +74,7 @@ class TaxReportService
                 ->sum('tax');
 
             $purchaseTax = PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->sum('tax');
 
             $netVat = $salesTax - $purchaseTax;
@@ -98,7 +98,7 @@ class TaxReportService
 
         return Cache::remember($key, 3600, function () use ($startDate, $endDate) {
             $purchaseTax = PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])
-                ->whereIn('status', ['completed', 'partially_received', 'sent'])
+                ->whereIn('status', ['completed', 'partially_received'])
                 ->sum('tax');
 
             return round($purchaseTax, 2);

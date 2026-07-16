@@ -71,8 +71,8 @@ class DataMigrationController extends Controller
             if ($costPrice !== null && $costPrice !== '' && (!is_numeric($costPrice) || $costPrice < 0)) {
                 $rowErrors[] = 'Cost price must be a valid positive number';
             }
-            if (!in_array($productType, ['goods', 'service', 'fixed_asset'])) {
-                $rowErrors[] = 'Product type must be goods, service, or fixed_asset';
+            if (!in_array($productType, ['goods', 'service'])) {
+                $rowErrors[] = 'Product type must be goods or service';
             }
             if ($sku && in_array(strtolower($sku), $existingSku)) {
                 $rowErrors[] = "SKU '{$sku}' already exists";

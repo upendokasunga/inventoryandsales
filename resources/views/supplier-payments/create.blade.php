@@ -43,7 +43,7 @@
                     <div>
                         <label for="amount" class="block text-sm font-medium text-slate-700">Amount (TZS) <span class="text-red-500">*</span></label>
                         <input type="number" step="0.01" min="0.01" name="amount" id="amount" value="{{ old('amount') }}" required
-                            class="mt-1 block w-full erp-input">
+                            x-data="priceInput()" class="mt-1 block w-full erp-input">
                         @error('amount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
@@ -78,7 +78,7 @@
             if (selected.value) {
                 supplierSelect.value = selected.dataset.supplier;
                 amountInput.max = selected.dataset.remaining;
-                amountInput.placeholder = 'Max: ' + parseFloat(selected.dataset.remaining).toLocaleString();
+                amountInput.placeholder = 'Max: ' + formatPrice(selected.dataset.remaining);
             }
         });
 

@@ -25,10 +25,8 @@ class PurchaseOrder extends Model implements Approvable
     public function getAllowedApprovalTransitions(): array
     {
         return [
-            'draft' => ['pending_approval', 'cancelled'],
-            'pending_approval' => ['approved', 'draft', 'cancelled'],
-            'approved' => ['cancelled', 'sent'],
-            'sent' => ['cancelled', 'partially_received'],
+            'pending_approval' => ['approved', 'cancelled'],
+            'approved' => ['cancelled', 'partially_received'],
             'partially_received' => ['completed'],
             'completed' => ['reversed'],
             'reversed' => [],
@@ -61,7 +59,7 @@ class PurchaseOrder extends Model implements Approvable
         ];
     }
 
-    public const STATUSES = ['draft', 'pending_approval', 'approved', 'sent', 'partially_received', 'completed', 'reversed', 'cancelled'];
+    public const STATUSES = ['pending_approval', 'approved', 'partially_received', 'completed', 'reversed', 'cancelled'];
 
     public function supplier(): BelongsTo
     {

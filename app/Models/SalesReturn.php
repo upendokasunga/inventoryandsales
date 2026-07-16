@@ -15,7 +15,7 @@ class SalesReturn extends Model
 
     protected $table = 'sales_returns';
 
-    public const STATUSES = ['draft', 'pending_approval', 'approved', 'rejected', 'completed'];
+    public const STATUSES = ['pending_approval', 'approved', 'rejected', 'completed'];
 
     public const REASONS = [
         'damaged',

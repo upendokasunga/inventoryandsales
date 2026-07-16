@@ -6,8 +6,10 @@
             <a href="{{ route('stock-adjustments.index') }}" class="erp-btn-secondary">Back to List</a>
             <div class="flex gap-2">
                 <a href="{{ route('stock-adjustments.print', $stockAdjustment) }}" class="erp-btn-secondary" target="_blank">Print PDF</a>
-                @if ($stockAdjustment->status === 'draft')
+                @if ($stockAdjustment->status === 'pending_approval')
                     <a href="{{ route('stock-adjustments.edit', $stockAdjustment) }}" class="erp-btn-primary">Edit</a>
+                @endif
+                @if ($stockAdjustment->status === 'approved')
                     <form action="{{ route('stock-adjustments.complete', $stockAdjustment) }}" method="POST" class="inline"
                         onsubmit="return confirm('Complete this adjustment? This will update inventory balances.');">
                         @csrf
@@ -15,7 +17,7 @@
                         <button type="submit" class="erp-btn-primary bg-green-600 hover:bg-green-700">Complete</button>
                     </form>
                 @endif
-                @if (in_array($stockAdjustment->status, ['draft', 'cancelled']))
+                @if ($stockAdjustment->status === 'cancelled')
                     <form action="{{ route('stock-adjustments.destroy', $stockAdjustment) }}" method="POST" class="inline"
                         onsubmit="return confirm('Delete this adjustment?');">
                         @csrf

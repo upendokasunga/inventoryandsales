@@ -1,8 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">{{ __('Create Sales Order') }}</x-slot>
+    <x-slot name="header">{{ __('Create Proforma Invoice') }}</x-slot>
 
     <div class="max-w-4xl mx-auto">
-        <form method="POST" action="{{ route('sales.orders.store') }}" x-data="salesOrderForm()">
+        <form method="POST" action="{{ route('sales.orders.store') }}" x-data="salesOrderForm()" x-init="init()">
             @csrf
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 mb-6">
@@ -51,7 +51,7 @@
                         <div class="grid grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Product</label>
-                                <select :name="'items[' + index + '][product_id]'" class="erp-input w-full" required>
+                                <select x-model="item.product_id" @change="loadProduct(index)" class="erp-input w-full" required>
                                     <option value="">Select</option>
                                     @foreach ($products as $p)
                                         <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->sku }})</option>
@@ -60,16 +60,19 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Quantity</label>
-                                <input type="number" step="0.001" :name="'items[' + index + '][quantity]'" class="erp-input w-full" required>
+                                <input type="number" step="0.001" min="0.001" x-model="item.quantity" @input="updateLine(index)" class="erp-input w-full" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-600 mb-1">Unit Price</label>
-                                <input type="number" step="0.01" :name="'items[' + index + '][unit_price]'" class="erp-input w-full" required>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Unit Price (TSh)</label>
+                                <input type="number" step="0.01" min="0" x-model="item.unit_price" @input="updateLine(index)" class="erp-input w-full" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Unit</label>
-                                <input type="text" :name="'items[' + index + '][unit_id]'" class="erp-input w-full" placeholder="Optional">
+                                <input type="text" x-model="item.unit_id" class="erp-input w-full" placeholder="Optional">
                             </div>
+                        </div>
+                        <div class="mt-2 text-right text-sm text-slate-600">
+                            Line Total: <span class="font-semibold" x-text="formatPrice(item.line_total)"></span>
                         </div>
                     </div>
                 </template>
@@ -93,11 +96,24 @@
                         <input type="number" step="0.01" name="tax" value="{{ old('tax', 0) }}" class="erp-input w-full">
                     </div>
                 </div>
+
+                <div class="mt-4 text-right text-sm">
+                    Subtotal: <span class="font-semibold" x-text="formatPrice(subtotal)"></span>
+                </div>
             </div>
+
+            <template x-for="(item, index) in items" :key="'h'+index">
+                <div>
+                    <input type="hidden" :name="`items[${index}][product_id]`" :value="item.product_id">
+                    <input type="hidden" :name="`items[${index}][quantity]`" :value="item.quantity">
+                    <input type="hidden" :name="`items[${index}][unit_price]`" :value="item.unit_price">
+                    <input type="hidden" :name="`items[${index}][unit_id]`" :value="item.unit_id">
+                </div>
+            </template>
 
             <div class="flex justify-end gap-2">
                 <a href="{{ route('sales.orders.index') }}" class="erp-btn-secondary">Cancel</a>
-                <button type="submit" class="erp-btn-primary">Create Sales Order</button>
+                <button type="submit" class="erp-btn-primary">Create Proforma Invoice</button>
             </div>
         </form>
     </div>
@@ -107,11 +123,38 @@
         function salesOrderForm() {
             return {
                 items: [],
+                newItem() {
+                    return { product_id: "", quantity: 1, unit_price: 0, unit_id: "", line_total: 0 };
+                },
                 addItem() {
-                    this.items.push({});
+                    this.items.push(this.newItem());
                 },
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+                updateLine(index) {
+                    const item = this.items[index];
+                    const qty = parseFloat(item.quantity) || 0;
+                    const price = parseFloat(item.unit_price) || 0;
+                    item.line_total = qty * price;
+                },
+                loadProduct(index) {
+                    const productId = this.items[index].product_id;
+                    if (!productId) return;
+                    const qty = parseFloat(this.items[index].quantity) || 1;
+                    fetch(`/pos/price-simple?product_id=${productId}&quantity=${qty}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            this.items[index].unit_price = parseFloat(data.unit_price) || 0;
+                            this.updateLine(index);
+                        })
+                        .catch(() => {});
+                },
+                get subtotal() {
+                    return this.items.reduce((sum, item) => sum + (parseFloat(item.unit_price) || 0) * (parseFloat(item.quantity) || 0), 0);
+                },
+                init() {
+                    this.addItem();
                 }
             }
         }

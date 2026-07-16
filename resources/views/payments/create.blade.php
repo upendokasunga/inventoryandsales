@@ -22,7 +22,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 mb-1">Amount</label>
                     <input type="number" name="amount" step="0.01" min="0.01" max="{{ $invoice->balance_due }}" required
-                           class="erp-input w-full" placeholder="0.00">
+                           x-data="priceInput()" class="erp-input w-full" placeholder="TSh 0.00">
                     @error('amount') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
 

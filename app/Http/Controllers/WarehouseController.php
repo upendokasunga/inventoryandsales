@@ -25,8 +25,20 @@ class WarehouseController extends Controller
 
     public function store(StoreWarehouseRequest $request): RedirectResponse
     {
-        Warehouse::create($request->validated());
+        $data = $request->validated();
+        $data['code'] = self::generateCode();
+        Warehouse::create($data);
         return redirect()->route('warehouses.index')->with('success', 'Warehouse created successfully.');
+    }
+
+    private static function generateCode(): string
+    {
+        $last = Warehouse::orderByRaw("CAST(SUBSTRING(code, 4) AS UNSIGNED) DESC")->first();
+        $nextNum = 1;
+        if ($last && preg_match('/^WH-(\d+)$/', $last->code, $m)) {
+            $nextNum = (int) $m[1] + 1;
+        }
+        return 'WH-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
     }
 
     public function show(Warehouse $warehouse): View

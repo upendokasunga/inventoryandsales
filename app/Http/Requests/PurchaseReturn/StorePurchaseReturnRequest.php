@@ -14,7 +14,7 @@ class StorePurchaseReturnRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'purchase_order_id' => 'nullable|exists:purchase_orders,id',
+            'purchase_order_id' => 'required|exists:purchase_orders,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'reason' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',

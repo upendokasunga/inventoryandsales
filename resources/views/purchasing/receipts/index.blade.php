@@ -11,7 +11,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-6 border-b border-slate-200/60">
             <nav class="flex gap-6 -mb-px overflow-x-auto">
-                @php $tabs = ['all' => 'All', 'draft' => 'Draft', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
+                @php $tabs = ['all' => 'All', 'completed' => 'Completed', 'cancelled' => 'Cancelled']; @endphp
                 @foreach ($tabs as $key => $label)
                     <a href="{{ route('purchasing.receipts.index', ['tab' => $key] + request()->except(['tab', 'status'])) }}"
                        class="whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 transition
@@ -48,9 +48,9 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->receipt_date?->format('M d, Y') ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $c = ['draft' => 'erp-badge-draft', 'completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
+                                $c = ['completed' => 'erp-badge-fulfilled', 'cancelled' => 'erp-badge-cancelled'];
                             @endphp
-                            <span class="{{ $c[$receipt->status] ?? 'erp-badge-draft' }}">{{ ucfirst($receipt->status) }}</span>
+                            <span class="{{ $c[$receipt->status] ?? 'erp-badge-pending' }}">{{ ucfirst($receipt->status) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ $receipt->creator?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
